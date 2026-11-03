@@ -64,16 +64,34 @@ async function run() {
   const ready = page.locator('#progress-workspace .progress-node.available').first();
   await ready.click();
   assert.equal(await page.locator('#resource-bar').innerText(), before, 'selection must not spend resources');
+  const selectedResearch = await page.locator('#progress-workspace .progress-detail h3').innerText();
+  await page.locator('#progress-workspace .progress-detail-action [data-action="research"]').click();
+  assert.match(await page.locator('#progress-workspace .progress-current-project').innerText(), new RegExp(selectedResearch));
   await capture(page, 'progress-technology-desktop.png');
 
   await page.locator('#progress-workspace .progress-tab[data-nav="traditions"]').click();
   await visible(page, '#progress-workspace .progress-node[data-id="frontier-spirit"]');
   assert.match(await page.locator('#progress-workspace').innerText(), /Unity/);
+  await page.locator('#progress-workspace .progress-node[data-id="frontier-spirit"]').click();
+  // Earn Unity legally via turns; no test-only manipulation of private game state.
+  for (let i = 0; i < 9 && !(await page.locator('#progress-workspace [data-action="adopt-tradition"]').isEnabled()); i++) {
+    await page.locator('[data-action="end-turn"]').click();
+    await page.locator('#modal-root .modal-close').click();
+  }
+  assert.equal(await page.locator('#progress-workspace [data-action="adopt-tradition"]').isEnabled(), true);
+  await page.locator('#progress-workspace [data-action="adopt-tradition"]').click();
+  assert.match(await page.locator('#progress-workspace .progress-node[data-id="frontier-spirit"] .progress-node-state').innerText(), /Completed/);
   await capture(page, 'progress-traditions-desktop.png');
+
   await page.locator('#progress-workspace .progress-tab[data-nav="policies"]').click();
   await visible(page, '#progress-workspace .progress-node[data-id="open-markets"]');
-  const policyInfo = await page.locator('#progress-workspace .progress-detail').innerText();
-  assert.ok(policyInfo.length > 10);
+  await page.locator('#progress-workspace .progress-node[data-id="open-markets"]').click();
+  await page.locator('#progress-workspace [data-action="enact-policy"]').click();
+  assert.match(await page.locator('#progress-workspace .progress-detail-action').innerText(), /Policy in force/);
+  await page.locator('#progress-workspace .progress-node[data-id="directed-industry"]').click();
+  assert.match(await page.locator('#progress-workspace .progress-warning').innerText(), /Replaces Open Markets/);
+  await page.locator('#progress-workspace [data-action="enact-policy"]').click();
+  assert.match(await page.locator('#progress-workspace .progress-detail-action').innerText(), /Policy in force/);
   await capture(page, 'progress-policies-desktop.png');
 
   // The original game remains reachable from the development viewer.
@@ -88,12 +106,21 @@ async function run() {
   await page.locator('#solar-stage [data-action="close-solar"]').click();
   assert.equal(await page.locator('#solar-stage').isHidden(), true);
 
+  const previousTurn = Number((await page.locator('#top-turn').innerText()).match(/\d+/)[0]);
   await page.locator('[data-action="end-turn"]').click();
-  assert.match(await page.locator('#top-turn').innerText(), /CYCLE 02/);
+  const nextTurn = 'CYCLE ' + String(previousTurn + 1).padStart(2, '0');
+  assert.equal(await page.locator('#top-turn').innerText(), nextTurn);
   await page.locator('#modal-root .modal-close').click();
   await page.reload({ waitUntil: 'networkidle' });
   await page.locator('#modal-root .modal-close').click();
-  assert.match(await page.locator('#top-turn').innerText(), /CYCLE 02/, 'reload must retain saved turn');
+  assert.equal(await page.locator('#top-turn').innerText(), nextTurn, 'reload must retain saved turn');
+  await page.locator('.sidebar .progress-nav').click();
+  await page.locator('#progress-workspace .progress-tab[data-nav="traditions"]').click();
+  await page.locator('#progress-workspace .progress-node[data-id="frontier-spirit"]').click();
+  assert.match(await page.locator('#progress-workspace .progress-detail-action').innerText(), /Already unlocked/);
+  await page.locator('#progress-workspace .progress-tab[data-nav="policies"]').click();
+  await page.locator('#progress-workspace .progress-node[data-id="directed-industry"]').click();
+  assert.match(await page.locator('#progress-workspace .progress-detail-action').innerText(), /Policy in force/);
 
   // Narrow viewport: navigation and full resource bar remain available.
   await page.setViewportSize({ width: 390, height: 844 });
