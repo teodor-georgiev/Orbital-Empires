@@ -1,0 +1,42 @@
+/* 4X command bridge: compact, actionable empire outliner.
+   Draws on the approved hybrid layout and established 4X navigation patterns.
+   The map and right-hand selected-object inspector keep priority. */
+@media(min-width:1021px){
+ .sidebar{display:flex;flex-direction:column;min-height:0}
+ .sidebar .game-nav{flex:0 0 auto}
+ .sidebar .sidebar-bottom{flex:0 0 auto}
+}
+.strategic-outliner{min-height:0;overflow:auto;scrollbar-width:thin;margin:5px 9px 11px;
+ border:1px solid #314a5c;border-radius:9px;background:linear-gradient(165deg,#122638,#0a1828);
+ padding:9px 8px 8px;flex:0 1 270px}
+.outliner-heading{display:flex;align-items:center;justify-content:space-between;gap:5px;
+ padding:3px 3px 9px;border-bottom:1px solid #29485d}
+.outliner-heading>span{display:flex;align-items:center;gap:5px;color:#c7dce8;font:700 10px/1.2 system-ui,sans-serif;letter-spacing:.55px}
+.outliner-heading small{font-size:8px;letter-spacing:.35px;color:#83a3b8}
+.outliner-icon{display:block;width:17px;height:17px;flex:0 0 17px;fill:none;color:#8bd6df}
+.outliner-heading .outliner-icon{width:19px;height:19px;flex-basis:19px}
+.outliner-overviews{display:flex;flex-direction:column;gap:4px;margin-top:8px}
+.outliner-overview{display:flex;align-items:center;width:100%;gap:8px;padding:8px 7px;
+ background:#132b40;border:1px solid #304f60;border-radius:6px;text-align:left;color:#deecf3}
+.outliner-overview:hover,.outliner-entry:hover{border-color:#76b9bf;background:#1b3949}
+.outliner-overview span:nth-child(2){min-width:0;flex:1}
+.outliner-overview strong,.outliner-entry span{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.outliner-overview small{display:block;font-size:9px;color:#91b0be;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.outliner-chevron{font-size:21px;color:#87bfc6}
+.outliner-section{padding-top:10px}
+.outliner-section-title{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #284457;margin-bottom:3px;padding:0 3px 6px}
+.outliner-section-title strong{font-size:10px;letter-spacing:.8px;color:#a9c3cf}
+.outliner-section-title span{font-size:10px;font-variant-numeric:tabular-nums;color:#e5ba7a}
+.outliner-entry{display:flex;align-items:center;gap:7px;width:100%;min-height:31px;text-align:left;
+ border:1px solid transparent;border-radius:5px;padding:4px 5px;background:transparent;color:#d4e8f1}
+.outliner-entry .outliner-icon{width:15px;height:15px;flex-basis:15px}
+.outliner-entry>span{flex:1;min-width:0}
+.outliner-entry small{font-size:9px;color:#8eaabe;text-align:right;max-width:46%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.outliner-entry.selected{background:#1a3947;border-color:#4d8e9b}
+.outliner-empty{font-size:10px;color:#819aa8;margin:6px 4px}
+.outliner-more{background:transparent;border:0;color:#87d3dc;font-size:10px;padding:5px 7px}
+.outliner-overview:focus-visible,.outliner-entry:focus-visible,.outliner-more:focus-visible{outline:2px solid #79dce4;outline-offset:1px}
+body.oe-orbital-mode .strategic-outliner{display:none}
+@media(max-width:1250px){.strategic-outliner{margin-left:5px;margin-right:5px;padding:7px 5px}.outliner-heading small{display:none}}
+@media(max-width:1020px){.strategic-outliner{display:none!important}}
+@media(prefers-reduced-motion:reduce){.outliner-overview,.outliner-entry{transition:none}}
