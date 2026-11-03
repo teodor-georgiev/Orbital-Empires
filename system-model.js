@@ -1,10 +1,11 @@
 /** Visual bodies are derived from the save data; they never alter gameplay or its save schema. */
-import { hashSeed } from './core.js';
+import { hashVisualSeed, planetVisual } from './modules/visuals/planet-visual.js';
+const hashSeed=hashVisualSeed;
 
 const TYPES = [
   ['Barren', '#b2a99c'], ['Volcanic', '#c47549'], ['Oceanic', '#3ba5c4'],
   ['Desert', '#d9a46d'], ['Arctic', '#b2d9e8'], ['Gas Giant', '#caaed8'],
-  ['Jungle', '#58a58b'], ['Terran', '#63baca'], ['Crystal', '#b49fe9'],
+  ['Jungle', '#58a58b'], ['Terran', '#63baca'], ['Toxic', '#aec453'], ['Crystal', '#b49fe9'],
 ];
 const TYPE_COLOR = Object.fromEntries(TYPES);
 const FALLBACK = '#91a9ba';
@@ -32,7 +33,7 @@ function solarSystemBodies(seed,system){
   ['Neptune','Gas Giant','#729ece',30.1,0.39,2]
  ];
  const planets=entries.map(([name,biome,color,orbitalDistanceAu,radius,moonCount],id)=>({
-  id,name,biome,color,radius,
+  id,name,biome,color,radius,visual:planetVisual(seed,system.id,id,biome,{name,historical:true}),
   orbitRadius:Number((2.4+id*1.65).toFixed(2)),
   orbitalDistanceAu,
   phase:next()*Math.PI*2,inclination:(next()-.5)*.08,
@@ -66,6 +67,7 @@ export function generateSystemBodies(seed, system) {
       name: `${system.name || 'Unknown'} ${String.fromCharCode(98 + id)}`,
       biome,
       color: TYPE_COLOR[biome] || FALLBACK,
+      visual: planetVisual(seed,system.id,id,biome),
       radius: Number(radius.toFixed(3)),
       orbitRadius: Number(orbitRadius.toFixed(2)),
       phase: next() * Math.PI * 2,

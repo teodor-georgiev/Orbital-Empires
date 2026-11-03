@@ -44,4 +44,4 @@ export function orbitalYield(system){
  }
  return totals;
 }
-export function biomeHousingBonus(system){return BIOME_BUILDINGS.reduce((n,b)=>n+(biomeBuildingAllowed(b,system)&&Number.isInteger(system?.buildings?.[b.id])?b.capacity*(system.buildings[b.id]||0):0),0);}
+export function biomeHousingBonus(system){return BIOME_BUILDINGS.reduce((n,b)=>n+(biomeBuildingAllowed(b,system)&&Number.isInteger(system?.buildings?.[b.id])?(b.capacity||0)*(system.buildings[b.id]||0):0),0);}
