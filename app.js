@@ -225,7 +225,7 @@ $('#modal-root').addEventListener('click',e=>{if(e.target.id==='modal-root'&&mod
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(modalType)closeModal();else if(solarOpen)closeSolarSystem();return;}if(e.target instanceof HTMLInputElement||e.target instanceof HTMLSelectElement)return;if(e.key==='Enter'&&modalType===null&&game&&!game.gameOver&&e.ctrlKey){e.preventDefault();handleAction('end-turn',{})}if(e.key==='?'&&modalType===null)openModal('guide');});
 
 document.addEventListener('click',event=>{
- const nav=event.target.closest('[data-nav]');if(nav){if(solarOpen)closeSolarSystem();activePage=nav.dataset.nav;render();return;}
+ const nav=event.target.closest('[data-nav]');if(nav){if(solarOpen)closeSolarSystem();activePage=nav.dataset.nav;render();if(window.matchMedia('(max-width:750px)').matches)$('#inspector').scrollIntoView({block:'start',behavior:'auto'});return;}
  const action=event.target.closest('[data-action]');if(!action||action.disabled)return;
  handleAction(action.dataset.action,action.dataset);
 });
