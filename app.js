@@ -2,6 +2,7 @@ import { VERSION, WORLD, BUILDINGS, SHIPS, TECHS, TRADITIONS, POLICIES, traditio
 import { generateSystemBodies, selectSystemPlanet } from './system-model.js';
 import { createSolarView } from './solar-view.js';
 import { APP_VERSION } from './version.js';
+import { createTickClock } from './modules/simulation/tick-clock.js';
 
 const SAVE_KEY = 'orbital-empires-save-v1';
 const PLANET_CLASSES=new Set(['terran','oceanic','desert','jungle','arctic','barren','volcanic','gas-giant']);
@@ -34,7 +35,7 @@ const solar=createSolarView($('#solar-canvas'),{onSelect: id => {selectedPlanet=
 
 function loadGame(){try{const obj=JSON.parse(localStorage.getItem(SAVE_KEY));if(validateGame(obj))return obj;}catch(e){}return null;}
 function persist(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(game));return true;}catch(e){notice('Saving is unavailable in this browser. Try a normal tab.','error');return false;}}
-function activateGame(g,withWelcome=false){closeSolarSystem();game=g;selectedId=g.empires[0].home;selectedFleetId=g.fleets.find(f=>f.owner===0)?.id??null;activePage='system';view.auto=true;rebuildStarfield();persist();render();if(withWelcome)openModal('welcome');}
+function activateGame(g,withWelcome=false){simClock.reset();closeSolarSystem();game=g;selectedId=g.empires[0].home;selectedFleetId=g.fleets.find(f=>f.owner===0)?.id??null;activePage='system';view.auto=true;rebuildStarfield();persist();render();if(withWelcome)openModal('welcome');}
 function notice(message,type='ok'){const node=$('#toast');node.textContent=message;node.className='toast show'+(type==='error'?' error':'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>node.className='toast',3200);}
 function act(result){if(!result)return;if(!result.ok){notice(result.message,'error');render();return;}persist();render();notice(result.message);}
 function palette(owner){return owner===null?'#91a9ba':game.empires[owner]?.color||'#aabbcc';}
@@ -93,8 +94,31 @@ function render(){
   for(const btn of document.querySelectorAll('[data-nav]')){btn.classList.toggle('active',btn.dataset.nav===activePage)}
   const inspector=$('#inspector');inspector.innerHTML=renderInspector();
   const turnBtn=$('[data-action="end-turn"]');turnBtn.disabled=!!game.gameOver;
+  syncClockControls(simClock.state());
   if(solarOpen)renderSolarHud();
 }
+function syncClockControls(snapshot){
+ const phase=$('#sim-phase'),state=$('#sim-state');
+ if(!phase||!state)return;
+ phase.textContent=`TICK ${snapshot.phase}/${snapshot.perCycle}`;
+ state.textContent=snapshot.speed==='paused'?'PAUSED':snapshot.speed.toUpperCase();
+ for(const button of document.querySelectorAll('.sim-clock [data-action]')){
+  const active=button.dataset.action===`sim-${snapshot.speed}`;
+  button.setAttribute('aria-pressed',String(active));
+  button.classList.toggle('active',active);
+ }
+}
+const simClock=createTickClock({
+ getGame:()=>game,
+ advanceCycle:g=>endTurn(g),
+ onChange:snapshot=>{
+  syncClockControls(snapshot);
+  if(snapshot.turnAdvanced){
+   persist();render();
+   if(game?.gameOver&&modalType!=='victory')openModal('victory');
+  }
+ }
+});
 function header(kicker,title,description,meta='SYSTEM ONLINE'){
  return `<div class="inspector-head"><div class="inspector-headline"><span>${kicker}</span><span>${meta}</span></div><h2>${title}</h2><p class="inspector-desc">${description}</p></div>`;
 }
@@ -189,7 +213,7 @@ viewport.addEventListener('wheel',e=>{if(!game)return;e.preventDefault();const r
 window.addEventListener('resize',resizeCanvas);
 
 function modalLayout(kicker,title,body,buttons=''){return `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><button class="modal-close" data-action="close-modal" aria-label="Close dialog">×</button><div class="eyebrow">${kicker}</div><h2 id="modal-title">${title}</h2>${body}${buttons?`<div class="modal-actions">${buttons}</div>`:''}</div>`}
-function openModal(type){modalType=type;const root=$('#modal-root');let html='';
+function openModal(type){if(simClock.state().speed!=='paused')simClock.pause();modalType=type;const root=$('#modal-root');let html='';
  if(type==='welcome'){
   const worlds=['Terran','Oceanic','Desert','Jungle','Arctic','Barren','Volcanic','Gas Giant'];
   const tiles=worlds.map(world=>'<div class="menu-world"><span class="planet-thumbnail planet-'+artworkBiome(world)+'" aria-hidden="true"></span><span>'+world+'</span></div>').join('');
@@ -217,7 +241,7 @@ function openModal(type){modalType=type;const root=$('#modal-root');let html='';
  root.innerHTML=html;root.hidden=false;root.querySelector('.modal-close')?.focus();}
 function closeModal(){modalType=null;$('#modal-root').hidden=true;$('#modal-root').innerHTML='';}
 $('#modal-root').addEventListener('click',e=>{if(e.target.id==='modal-root'&&modalType!=='welcome')closeModal()});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(modalType)closeModal();else if(solarOpen)closeSolarSystem();return;}if(e.target instanceof HTMLInputElement||e.target instanceof HTMLSelectElement)return;if(e.key==='Enter'&&modalType===null&&game&&!game.gameOver&&e.ctrlKey){e.preventDefault();handleAction('end-turn',{})}if(e.key==='?'&&modalType===null)openModal('guide');});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(modalType)closeModal();else if(solarOpen)closeSolarSystem();return;}if(e.target instanceof HTMLInputElement||e.target instanceof HTMLSelectElement)return;if(e.key==='Enter'&&modalType===null&&game&&!game.gameOver&&e.ctrlKey){e.preventDefault();handleAction('end-turn',{})}if((e.key==='p'||e.key==='P')&&modalType===null){simClock.setSpeed(simClock.state().speed==='paused'?'normal':'paused');return;}if(e.key==='?'&&modalType===null)openModal('guide');});
 
 document.addEventListener('click',event=>{
  const nav=event.target.closest('[data-nav]');if(nav){if(solarOpen)closeSolarSystem();activePage=nav.dataset.nav;render();return;}
@@ -227,7 +251,9 @@ document.addEventListener('click',event=>{
 function handleAction(action,data){
  const id=Number(data.id),systemId=Number(data.system);
  switch(action){
-  case 'end-turn':{const result=endTurn(game);if(!result.ok){notice(result.message,'error');break;}persist();render();openModal(game.gameOver?'victory':'turn');break;}
+  case 'end-turn':{const result=simClock.manualCycle();if(!result.ok){notice(result.message,'error');break;}if(!game.gameOver)openModal('turn');break;}
+   case 'sim-paused':simClock.pause();break;
+   case 'sim-slow':case 'sim-normal':case 'sim-fast':simClock.setSpeed(action.slice(4));break;
   case 'menu':openModal('welcome');break;
   case 'new':openModal('new');break;
   case 'start':{const seed=$('#new-seed')?.value?.trim()||'ORION-47',size=Number($('#new-size').value),opponents=Number($('#new-opponents').value),difficulty=$('#new-difficulty').value;closeModal();activateGame(generateGame({seed,size,opponents,difficulty}),false);notice('Fresh galaxy generated.');break;}
@@ -265,6 +291,7 @@ async function installApp(){if(deferredInstallPrompt){const prompt=deferredInsta
  if(mobile)notice('On iPhone: Share → Add to Home Screen.');else if(secure)notice('Use your browser menu → Install app / Add to desktop.');else notice('To install: serve this folder on localhost or HTTPS, then use the browser Install option.');}
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;$('#install-btn').title='Install this offline-capable game';});
 window.addEventListener('appinstalled',()=>notice('Orbital Empires installed. Play offline!'));
+document.addEventListener('visibilitychange',()=>{if(document.hidden)simClock.pause();});
 if('serviceWorker' in navigator&&window.location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 
 // Boot. Keep game state isolated from the UI — all mechanics live in core.js.
