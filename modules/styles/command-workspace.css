@@ -92,3 +92,34 @@
  .progress-detail{min-height:300px}
 }
 @media(prefers-reduced-motion:reduce){.progress-node{transition:none}}
+
+/* First-party strategy icon system — purposeful silhouettes on one 24px grid. */
+.nav-icon .ui-icon,.resource-icon .ui-icon{stroke:none;fill:none}
+.nav-link.active .nav-icon{background:#154451;border-color:#508a91}
+.nav-link:not(.active) .nav-icon{color:#93bdca}
+.progress-vector,.progress-tab-vector,.progress-filter-vector,.progress-lane-vector,
+.progress-status-vector,.progress-detail-vector{display:inline-block;width:20px;height:20px;flex-shrink:0;vertical-align:middle;fill:none;overflow:visible}
+.progress-node-identity{display:inline-flex;align-items:center;gap:8px;min-width:0}
+.progress-node-identity .progress-vector{width:25px;height:25px;padding:4px;border-radius:7px;background:#1a3548;border:1px solid #375b70;color:#98d5e3}
+.progress-node-status{font-variant-numeric:tabular-nums}
+.progress-node-symbol{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.progress-status-vector{width:18px;height:18px;color:#a7d3dd}
+.progress-node.locked .progress-status-vector{color:#94a7b7}
+.progress-node.completed .progress-status-vector{color:#88d9b3}
+.progress-node.researching .progress-status-vector{color:#ebc18b}
+.progress-tab{display:inline-flex;align-items:center;gap:9px}
+.progress-tab-vector{color:#8faaba;width:18px;height:18px}
+.progress-tab.active .progress-tab-vector{color:#77dbe8}
+.progress-tab span{margin-left:auto}
+.progress-filter{display:inline-flex;align-items:center;gap:7px}
+.progress-filter-vector{width:15px;height:15px;color:#8ab3c3}
+.progress-filter.active .progress-filter-vector{color:#89e6eb}
+.progress-lane-name{display:inline-flex;align-items:center;gap:8px;min-width:0}
+.progress-lane-vector{width:21px;height:21px;color:#79ced7}
+.progress-detail-icon .progress-detail-vector{width:36px;height:36px;color:#a6e5ef}
+@media(max-width:760px){
+  .progress-tab{gap:5px;padding:9px 7px}
+  .progress-tab-vector{width:16px;height:16px}
+  .progress-tab span{margin-left:2px}
+  .progress-node-identity .progress-vector{width:25px;height:25px}
+}
