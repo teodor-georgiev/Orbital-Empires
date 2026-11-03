@@ -1,0 +1,31 @@
+/* Government & Council — compact civil administration layout. */
+.government-panel{gap:22px}
+.government-note{font:12px/1.55 'DM Sans',sans-serif;color:#aabfcb;margin:0 0 11px}
+.government-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-bottom:12px}
+.government-stats>div{min-width:0;padding:9px;background:#122939;border:1px solid #365263;border-radius:4px}
+.government-stats small{display:block;font:700 9px var(--head);color:#9eb1bc;letter-spacing:.7px}
+.government-stats strong{display:block;font:700 17px var(--head);color:#e0ceab;margin-top:4px}
+.government-faction{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:5px 8px;background:#112333;border:1px solid #2d4558;padding:10px;margin:6px 0;border-radius:5px}
+.government-faction strong{display:block;font:700 13px var(--head);color:#e2eef1}
+.government-faction small{display:block;font:11px/1.3 'DM Sans',sans-serif;color:#829eaf}
+.government-faction b{font:700 12px var(--head);color:#b8dec3}
+.government-loyalty-track{grid-column:1/-1;height:5px;background:#314054;border-radius:3px;overflow:hidden}
+.government-loyalty-track i{height:100%;display:block;background:linear-gradient(90deg,#9c8472,#78cbb0);transition:width .15s}
+.government-card-stack{display:flex;flex-direction:column;gap:7px}
+.government-subgroup{background:#0e2331;border:1px solid #324d60;border-radius:6px;padding:10px}
+.government-subgroup>h3{font:700 15px var(--head);color:#e6d29a;margin:0 0 9px;display:flex;justify-content:space-between;gap:10px}
+.government-subgroup>h3 small{font:600 10px var(--head);color:#99b3c7;align-self:center}
+.government-option{width:100%;border:1px solid #375069;border-radius:6px;padding:11px 12px;background:linear-gradient(140deg,#14283a,#101f30);color:#dce5ed;text-align:left;display:flex;flex-direction:column;gap:5px}
+.government-option:hover:not(:disabled){background:#21384b;border-color:#d2b77f}
+.government-option.selected{background:#173b38;border-color:#6da99a}
+.government-option:disabled:not(.selected){opacity:.67}
+.government-option-heading{display:flex;gap:5px;justify-content:space-between;align-items:baseline}
+.government-option-heading strong{font:700 15px var(--head);color:#eff4f5}
+.government-option-heading small{font:700 9px var(--head);color:#e4be86;white-space:nowrap}
+.government-option.selected .government-option-heading small{color:#9cdcb5}
+.government-option-description{font:11px/1.48 'DM Sans',sans-serif;color:#9fb6c4}
+.government-option-bonus{font:700 11px/1.3 var(--head);color:#efd09c}
+@media(max-width:750px){.government-panel{display:flex!important;flex-direction:column!important}.government-option{min-height:67px}}
+
+/* Planet-command mobile menu uses a grid: nine tabs are balanced as 3 × 3. */
+@media(max-width:750px){.sidebar .game-nav{grid-template-columns:repeat(3,minmax(0,1fr))}.sidebar .game-nav .nav-link{font-size:11px;line-height:1.25;white-space:normal;min-width:0}}
