@@ -2,7 +2,14 @@
 
 > Updated 2026-11-03. This is the single backlog for the eight-lane development plan. Issue links name tasks, not agents actually running. Each task gets its own feature branch and focused PR to `feat/turn-based-4x-pwa`.
 
-## P0 — Current development priorities\n\n- [ ] Review and integrate **v0.3 Solar Frontier / Human Earth** in the dedicated PR: real-star names/distances, starting year, Sol planetary atlas and shared specs. Check Node tests and web/PWA smoke on exact source SHA before releasing.\n- [ ] Review **[PR #19](https://github.com/teodor-georgiev/Orbital-Empires/pull/19)** separately: simulation clock with pause and speed. One owner for clock source, no competing implementations in Sol PR.\n- [ ] Build **[issue #21](https://github.com/teodor-georgiev/Orbital-Empires/issues/21)** after the clock: autonomous departments (exploration, colonies, research, defense) with budgets, manual overrides and logs.\n- [ ] Build **[issue #22](https://github.com/teodor-georgiev/Orbital-Empires/issues/22)** after the clock: monthly economic rebalance and actual fleet transit/ETA.\n\n## P0.1 — Previous integrated game release verification
+## P0 — Current development priorities
+
+- [ ] Review and integrate **v0.3 Solar Frontier / Human Earth** in the dedicated PR: real-star names/distances, starting year, Sol planetary atlas and shared specs. Check Node tests and web/PWA smoke on exact source SHA before releasing.
+- [ ] Review **[PR #19](https://github.com/teodor-georgiev/Orbital-Empires/pull/19)** separately: simulation clock with pause and speed. One owner for clock source, no competing implementations in Sol PR.
+- [ ] Build **[issue #21](https://github.com/teodor-georgiev/Orbital-Empires/issues/21)** after the clock: autonomous departments (exploration, colonies, research, defense) with budgets, manual overrides and logs.
+- [ ] Build **[issue #22](https://github.com/teodor-georgiev/Orbital-Empires/issues/22)** after the clock: monthly economic rebalance and actual fleet transit/ETA.
+
+## P0.1 — Previous integrated game release verification
 
 - [ ] **Director:** Complete and review `feat/oe-v020-civics-3d-integration-20261103`; keep existing WebGL view and its 2D fallback. Run full tests and examine complete diff.
 - [ ] **Director + Lane H:** Browser-smoke a seeded campaign: menu, star selection, enter/exit solar view, tech, traditions, policies, End Turn, save/reload, 4K setting, reduced motion, responsive layout.
