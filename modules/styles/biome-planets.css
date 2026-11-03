@@ -1,0 +1,15 @@
+/* Seeded visual variation on Orbital Empires' original biome portrait atlas. */
+.oe-seeded-planet{--oe-hue:0deg;--oe-sat:1;--oe-cloud:0;--oe-rot:0deg;filter:hue-rotate(var(--oe-hue)) saturate(var(--oe-sat)) brightness(1.04) drop-shadow(0 0 8px #8dbdda40)}
+.oe-planet-portrait.oe-seeded-planet::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;opacity:calc(var(--oe-cloud)*.22);background:radial-gradient(ellipse at 25% 40%,#fff9,transparent 36%),radial-gradient(ellipse at 75% 31%,#fff9,transparent 34%);transform:rotate(var(--oe-rot))}
+.oe-focused-planet-art.oe-seeded-planet{filter:hue-rotate(var(--oe-hue)) saturate(var(--oe-sat)) drop-shadow(0 18px 55px #0ad8f33a)}
+.planet-hero .planet-art.oe-seeded-planet{filter:hue-rotate(var(--oe-hue)) saturate(var(--oe-sat)) drop-shadow(0 0 17px #77b5cf3d)!important}
+.oe-planet-portrait.oe-seeded-planet{filter:hue-rotate(var(--oe-hue)) saturate(var(--oe-sat)) drop-shadow(0 9px 24px #04090fb0)}
+.oe-available{color:#8ce6bf}.oe-unavailable{color:#cfae9d}
+.oe-specialty-card,.oe-orbital-card{border-color:#527d80!important;background:linear-gradient(135deg,#103341,#0d2635)!important}
+.oe-specialty-card .oe-build-icon,.oe-orbital-card .oe-build-icon{color:#abe7d0}
+.oe-locked-blueprints{border:1px solid #435967;border-radius:7px;margin-top:12px;background:#102736}
+.oe-locked-blueprints summary{cursor:pointer;color:#e4c594;font:700 11px var(--head);padding:11px}
+.oe-locked-blueprints ul{margin:0;padding:1px 12px 12px 30px;max-height:210px;overflow-y:auto}
+.oe-locked-blueprints li{font-size:11px;color:#bad1da;margin:6px 0}
+.oe-locked-blueprints li small{display:block;color:#a4b6c3}
+@media(max-width:600px){.oe-specialty-card,.oe-orbital-card{grid-template-columns:32px minmax(0,1fr)!important}.oe-specialty-card button,.oe-orbital-card button{grid-column:2;justify-self:start}}

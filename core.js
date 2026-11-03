@@ -2,6 +2,15 @@
 import { TRADITIONS, POLICIES, traditionCost, unityIncome, civicBonuses, canAdoptTradition, canEnactPolicy } from './modules/strategy/civics.js';
 export { TRADITIONS, POLICIES, traditionCost, unityIncome };
 import { SAVE_SCHEMA_VERSION } from './version.js';
+import { generateSpaceFeatures,canSurveySpaceSite,surveySpaceSite,hasScannedSite,validSpaceScans } from './modules/space/environment.js';
+export {generateSpaceFeatures,canSurveySpaceSite,surveySpaceSite,hasScannedSite};
+import { GOVERNMENTS, CIVICS, COUNCIL_OFFICES, LEADERS, FACTIONS, politicalStability, factionLoyalty, factionTargets, canReformGovernment, canAdoptCivic, canAppointLeader, reformGovernment, adoptCivic, appointLeader, advancePolitics, stabilityProductionFactor, validGovernmentState } from './modules/strategy/government.js';
+export { GOVERNMENTS, CIVICS, COUNCIL_OFFICES, LEADERS, FACTIONS, politicalStability, factionLoyalty, factionTargets, canReformGovernment, canAdoptCivic, canAppointLeader, reformGovernment, adoptCivic, appointLeader };
+import { advancePopulation } from './modules/simulation/population.js';
+import { BIOME_BUILDINGS, ORBITAL_BUILDINGS, biomeBuildingAllowed, buildingYield, orbitalYield } from './modules/strategy/planet-buildings.js';
+import { generateSystemBodies } from './system-model.js';
+export { BIOME_BUILDINGS, ORBITAL_BUILDINGS };
+import { NEARBY_STARS, nearbySystemSeed } from './modules/galaxy/real-stars.js';
 export const VERSION = SAVE_SCHEMA_VERSION;
 export const WORLD = { width: 1140, height: 760 };
 export const EMPIRE_TEMPLATES = [
@@ -19,6 +28,7 @@ export const BUILDINGS = [
   { id: 'exchange', name: 'Trade Nexus', icon: '◈', description: 'Galactic banking and commerce.', cost: [26, 47, 71], credit: [14, 22, 32], effect: '+5 credits / level', resource: 'credits' },
   { id: 'citadel', name: 'Defense Grid', icon: '⛨', description: 'Planetary shields and orbital defenses.', cost: [37, 59, 86], credit: [15, 22, 32], effect: '+7 defensive power / level', resource: 'defense' },
 ];
+export const ALL_BUILDINGS = [...BUILDINGS,...BIOME_BUILDINGS];
 export const SHIPS = [
   { id: 'corvette', name: 'Corvette', power: 5, alloy: 27, credits: 15, tech: null, icon: '◇', description: 'Fast, affordable early-game combat vessel.' },
   { id: 'frigate', name: 'Frigate', power: 12, alloy: 60, credits: 34, tech: 'fleet-logistics', icon: '⬡', description: 'Versatile midline combat vessel.' },
@@ -62,7 +72,7 @@ function roll(g,n){return Math.floor(rand(g)*n)}
 function pick(g,items){return items[roll(g,items.length)]}
 function connect(g,a,b){if(a===b)return;const x=g.systems[a],y=g.systems[b];if(!x.neighbors.includes(b))x.neighbors.push(b);if(!y.neighbors.includes(a))y.neighbors.push(a);}
 function generateMap(g,count){
-  const used=new Set();let tries=0;
+  const used=new Set(g.systems.map(s=>s.name));let tries=0;
   while(g.systems.length<count&&tries<count*400){
     tries++;const x=between(g,49,WORLD.width-49),y=between(g,48,WORLD.height-48);
     if(Math.pow((x-570)/625,2)+Math.pow((y-380)/440,2)>1)continue;
@@ -83,28 +93,38 @@ function generateMap(g,count){
     for(const n of ranked.slice(0,2)){if(s.neighbors.length>=5)break;if(dist(s,n)>142||n.neighbors.length>=5)continue;if(rand(g)<0.34)connect(g,s.id,n.id);}
   }
 }
-function chooseHomes(g,n){
+function chooseHomes(g,n,preferredHome=null){
   let homes=[];const candidates=g.systems.filter(s=>s.neighbors.length>=2&&s.habitability>=2);
-  let first=candidates.slice().sort((a,b)=>((a.x-360)**2+(a.y-380)**2)-((b.x-360)**2+(b.y-380)**2))[0];
+  let first=preferredHome!==null?g.systems[preferredHome]:candidates.slice().sort((a,b)=>((a.x-360)**2+(a.y-380)**2)-((b.x-360)**2+(b.y-380)**2))[0];
   homes.push(first);
   while(homes.length<n){let best=null,score=-Infinity;for(const c of candidates){if(homes.includes(c))continue;const min=Math.min(...homes.map(s=>dist(c,s)));if(min>score){score=min;best=c}}if(!best)break;homes.push(best);}
   return homes;
 }
-export function generateGame({seed='ORION-47',size=90,opponents=4,difficulty='normal'}={}){
+export function generateGame({seed='ORION-47',size=90,opponents=4,difficulty='normal',scenario='procedural',startYear=2200,playerFaction='human'}={}){
   size=clamp(Number(size)||90,40,180);opponents=clamp(Number(opponents)||4,1,6);
-  const g={version:VERSION,seed:String(seed).slice(0,40)||'ORION-47',rng:hashSeed(seed),turn:1,systems:[],empires:[],fleets:[],logs:[],nextFleetId:1,explored:[],difficulty,gameOver:null,startedAt:Date.now()};
+  startYear=Number(startYear);
+  if(!Number.isInteger(startYear)||startYear<2000||startYear>3000)throw new RangeError('Start year must be an integer from 2000 to 3000.');
+  if(!['procedural','sol'].includes(scenario))throw new RangeError('Unknown galaxy scenario.');
+  const factions={human:'Human',auralian:'Auralian',vexari:'Vexari',solari:'Solari',keth:'Keth',umbral:'Umbral',orionic:'Orionic'};
+  if(!Object.hasOwn(factions,playerFaction))throw new RangeError('Unknown player faction.');
+  if(scenario==='sol')playerFaction='human';
+  const selected=EMPIRE_TEMPLATES.find(t=>t.species===factions[playerFaction]);
+  const rivals=EMPIRE_TEMPLATES.filter(t=>t.species!==selected.species);
+  const g={version:VERSION,seed:String(seed).slice(0,40)||'ORION-47',rng:hashSeed(seed),turn:1,startYear,scenario,playerFaction,systems:[],empires:[],fleets:[],logs:[],spaceScans:{},nextFleetId:1,explored:[],difficulty,gameOver:null,startedAt:Date.now()};
+  if(scenario==='sol')g.systems.push(...NEARBY_STARS.slice(0,size).map((star,i)=>nearbySystemSeed(star,i)));
   generateMap(g,size);
-  const homes=chooseHomes(g,opponents+1);
+  const homes=chooseHomes(g,opponents+1,scenario==='sol'?0:null);
   for(let i=0;i<homes.length;i++){
-    const t=EMPIRE_TEMPLATES[i];const home=homes[i];home.owner=i;home.population=6;home.capital=true;home.buildings={foundry:1,laboratory:1,exchange:1,citadel:1};
-    g.empires.push({...t,id:i,home:home.id,credits:i===0?175:150,alloys:i===0?124:110,influence:56,techs:[],research:'orbital-industry',progress:0,unity:25,traditions:[],policies:[],wars:{},relations:{},lastEnvoy:{},eliminated:false});
+    const t=i===0?(scenario==='sol'?{...selected,name:'United Earth Directorate',motto:'From Earth to the stars.'}:selected):rivals[i-1];const home=homes[i];home.owner=i;home.population=6;home.capital=true;home.buildings={foundry:1,laboratory:1,exchange:1,citadel:1};
+    g.empires.push({...t,id:i,home:home.id,credits:i===0?175:150,alloys:i===0?124:110,influence:56,techs:[],research:'orbital-industry',progress:0,unity:25,traditions:[],policies:[],government:'directorate',civics:[],council:{},factionLoyalty:{guilds:55,scholars:55,settlers:55},wars:{},relations:{},lastEnvoy:{},eliminated:false});
     g.fleets.push({id:g.nextFleetId++,owner:i,system:home.id,ships:{corvette:3,frigate:0,cruiser:0},movedTurn:0,name:i===0?'First Expedition':'Home Guard'});
   }
   for(const e of g.empires)for(const r of g.empires)if(r.id!==e.id){e.wars[r.id]=false;e.relations[r.id]=e.id===0?0:roll(g,25)-12;}
   for(const star of g.systems)if(dist(star,homes[0])<145)g.explored.push(star.id);
-  log(g,'A new age dawns. The Terran Directorate looks to the stars.','start');
+  log(g,scenario==='sol'?'Year '+startYear+': Humanity looks beyond Earth toward Alpha Centauri.':'A new age dawns. '+g.empires[0].name+' looks to the stars.','start');
   return g;
 }
+export function getStardate(g){const start=Number.isInteger(g.startYear)?g.startYear:2201;const months=Math.max(0,g.turn-1);return `${start+Math.floor(months/12)}.${String(months%12+1).padStart(2,'0')}`;}
 function log(g,message,type='news'){g.logs.unshift({turn:g.turn,message,type});g.logs=g.logs.slice(0,130)}
 export function getNeighbors(g,id){return g.systems[id]?.neighbors.map(i=>g.systems[i])||[]}
 export function getEmpire(g,id=0){return g.empires[id]}
@@ -124,15 +144,16 @@ function modifier(emp,stat){let mod=1;
  if(emp.trait==='Expansionist'&&stat==='influence')mod+=.15;if(stat==='influence'&&has(emp,'civic-administration'))mod+=.2;
   mod+=civicBonuses(emp)[stat]||0;
  if(has(emp,'terraforming'))mod+=.12;
- return mod;
+ return mod*stabilityProductionFactor(emp);
 }
 export function systemYield(g,s){if(s.owner===null)return {credits:0,alloys:0,science:0,influence:0};
  const emp=g.empires[s.owner],quality=.72+s.habitability*.18,rich=.7+s.richness*.17,pop=s.population||2;
+  const surface=buildingYield(s),orbital=orbitalYield(s),extra=Object.fromEntries(Object.keys(surface).map(k=>[k,surface[k]+orbital[k]]));
  return {
-  credits:Math.round((3+pop*.52+s.buildings.exchange*5+(s.capital?5:0))*quality*modifier(emp,'credits')),
-  alloys:Math.round((1.8+rich*1.6+s.buildings.foundry*3+(s.capital?3:0))*modifier(emp,'alloys')),
-  science:Math.round((1.5+s.buildings.laboratory*3+(s.capital?3:0))*quality*modifier(emp,'science')),
-  influence:Math.round((s.capital?5:1)*modifier(emp,'influence'))
+  credits:Math.round((3+pop*.52+s.buildings.exchange*5+(s.capital?5:0))*quality*modifier(emp,'credits'))+extra.credits,
+  alloys:Math.round((1.8+rich*1.6+s.buildings.foundry*3+(s.capital?3:0))*modifier(emp,'alloys'))+extra.alloys,
+  science:Math.round((1.5+s.buildings.laboratory*3+(s.capital?3:0))*quality*modifier(emp,'science'))+extra.science,
+  influence:Math.round((s.capital?5:1)*modifier(emp,'influence'))+extra.influence
  };
 }
 export function income(g,id=0){return ownedSystems(g,id).reduce((a,s)=>{const v=systemYield(g,s);for(const key of Object.keys(a))a[key]+=v[key];return a;},{credits:0,alloys:0,science:0,influence:0})}
@@ -145,8 +166,31 @@ function canColonizeBy(g,id,owner){const s=g.systems[id],e=g.empires[owner];if(!
 export function canColonize(g,id){return canColonizeBy(g,id,0)}
 function colonizeBy(g,id,owner){const allowed=canColonizeBy(g,id,owner);if(!allowed.ok)return allowed;const e=g.empires[owner],s=g.systems[id];for(const [k,v] of Object.entries(allowed.cost))e[k]-=v;s.owner=owner;s.population=2+(has(e,'frontier-habitats')?1:0);s.buildings={foundry:0,laboratory:0,exchange:0,citadel:0};if(owner===0){reveal(g);log(g,`${s.name} joins the Directorate. Colonists begin settling ${s.biome.toLowerCase()} worlds.`,'colony')}else if(getVisibility(g).has(id))log(g,`${e.short} has founded a colony at ${s.name}.`,'intel');return success(`${s.name} colonized successfully.`)}
 export function colonize(g,id){return colonizeBy(g,id,0)}
-export function canBuild(g,id,type){const s=g.systems[id],e=g.empires[0],b=BUILDINGS.find(b=>b.id===type);if(!s||s.owner!==0)return failure('Select one of your colonies.');if(!b)return failure('Unknown development.');const lv=s.buildings[type];if(lv>=3)return failure('Maximum level reached.');if(e.alloys<b.cost[lv]||e.credits<b.credit[lv])return failure('Insufficient credits or alloys.');return success('Construction available.',{cost:{alloys:b.cost[lv],credits:b.credit[lv]}})}
-export function build(g,id,type){const r=canBuild(g,id,type);if(!r.ok)return r;const e=g.empires[0],s=g.systems[id];e.alloys-=r.cost.alloys;e.credits-=r.cost.credits;s.buildings[type]++;log(g,`${s.name}: ${BUILDINGS.find(b=>b.id===type).name} upgraded to level ${s.buildings[type]}.`,'build');return success('Development completed.')}
+export function canBuild(g,id,type){const s=g?.systems?.[id],e=g?.empires?.[0],b=ALL_BUILDINGS.find(b=>b.id===type);if(!s||s.owner!==0)return failure('Select one of your colonies.');if(!b)return failure('Unknown development.');if(b.allowed&&!biomeBuildingAllowed(b,s))return failure('This building is unavailable on '+s.biome+' worlds.');const lv=s.buildings?.[type]||0;if(!Number.isInteger(lv)||lv<0||lv>=3)return failure('Maximum level reached.');if(e.alloys<b.cost[lv]||e.credits<b.credit[lv])return failure('Insufficient credits or alloys.');return success('Construction available.',{cost:{alloys:b.cost[lv],credits:b.credit[lv]}})}
+export function build(g,id,type){const r=canBuild(g,id,type);if(!r.ok)return r;const e=g.empires[0],s=g.systems[id];e.alloys-=r.cost.alloys;e.credits-=r.cost.credits;s.buildings[type]=(s.buildings[type]||0)+1;log(g,`${s.name}: ${ALL_BUILDINGS.find(b=>b.id===type).name} upgraded to level ${s.buildings[type]}.`,'build');return success('Development completed.')}
+/** Survey-only orbital buildings do not create planet populations or new colony records. */
+export function canBuildOrbital(g,systemId,planetId,type){
+ const s=g?.systems?.[systemId],emp=g?.empires?.[0],b=ORBITAL_BUILDINGS.find(b=>b.id===type);
+ if(!s||s.owner!==0)return failure('Only your owned star systems can host orbital stations.');
+ if(!b)return failure('Unknown orbital development.');
+ const planet=generateSystemBodies(g.seed,s).planets.find(p=>p.id===planetId);
+ if(!planet||planet.isColonyWorld)return failure('Choose a survey-only orbital planet.');
+ if(!biomeBuildingAllowed(b,planet))return failure('This orbital building is unavailable on '+planet.biome+' worlds.');
+ const level=s.orbitalSites?.[planetId]?.[type]||0;
+ if(!Number.isInteger(level)||level<0||level>=3)return failure('Maximum orbital building level reached.');
+ if(emp.alloys<b.cost[level]||emp.credits<b.credit[level])return failure('Insufficient credits or alloys.');
+ return success('Orbital construction available.',{cost:{alloys:b.cost[level],credits:b.credit[level]}});
+}
+export function buildOrbital(g,systemId,planetId,type){
+ const allowed=canBuildOrbital(g,systemId,planetId,type);if(!allowed.ok)return allowed;
+ const s=g.systems[systemId],emp=g.empires[0],b=ORBITAL_BUILDINGS.find(x=>x.id===type);
+ emp.credits-=allowed.cost.credits;emp.alloys-=allowed.cost.alloys;
+ if(!s.orbitalSites)s.orbitalSites={};
+ if(!s.orbitalSites[planetId])s.orbitalSites[planetId]={};
+ s.orbitalSites[planetId][type]=(s.orbitalSites[planetId][type]||0)+1;
+ log(g,`${s.name}: ${b.name} upgraded in orbit of ${generateSystemBodies(g.seed,s).planets[planetId].name}.`,'build');
+ return success(`${b.name} built around ${s.name}.`);
+}
 export function canRecruit(g,systemId,shipId){const s=g.systems[systemId],emp=g.empires[0],ship=SHIPS.find(x=>x.id===shipId);if(!s||s.owner!==0)return failure('Ships require a friendly colony.');if(!ship)return failure('Unknown ship class.');if(ship.tech&&!has(emp,ship.tech))return failure(`Research ${titleFor(ship.tech)} to unlock this ship.`);if(emp.alloys<ship.alloy||emp.credits<ship.credits)return failure('Insufficient shipbuilding resources.');return success('Ship ready for construction.')}
 export function recruit(g,systemId,shipId){const valid=canRecruit(g,systemId,shipId);if(!valid.ok)return valid;const ship=SHIPS.find(x=>x.id===shipId),emp=g.empires[0];emp.alloys-=ship.alloy;emp.credits-=ship.credits;let f=g.fleets.find(f=>f.owner===0&&f.system===systemId);if(!f){f={id:g.nextFleetId++,owner:0,system:systemId,ships:{corvette:0,frigate:0,cruiser:0},movedTurn:0,name:`${g.systems[systemId].name} Squadron`};g.fleets.push(f)}f.ships[shipId]++;log(g,`${ship.name} commissioned at ${g.systems[systemId].name}.`,'military');return success(`${ship.name} commissioned.`)}
 export function combat(g,attacker,target){const defending=g.fleets.filter(f=>f.owner!==attacker.owner&&f.system===target&&isWar(g.empires[attacker.owner],g.empires[f.owner]));const s=g.systems[target];const defenderOwner=s.owner;
@@ -192,7 +236,8 @@ function aiTurn(g,emp){if(!ownedSystems(g,emp.id).length){emp.eliminated=true;re
 }
 export function endTurn(g){if(g.gameOver)return failure('This campaign has ended. Start a new galaxy to continue.');g.turn++;
  for(const e of g.empires){const y=income(g,e.id);for(const k of ['credits','alloys','influence'])e[k]+=y[k];e.unity=(e.unity||0)+unityIncome(g,e.id);if(ownedSystems(g,e.id).length)empireResearch(g,e)}
- for(const s of g.systems){if(s.owner!==null&&s.population<16&&rand(g)<(.28+s.habitability*.08))s.population++;}
+ for(const e of g.empires){const politics=advancePolitics(e);if(e.id===0&&politics.unrest)log(g,'POLITICAL UNREST: Public confidence has collapsed. Production is disrupted until stability recovers.','culture');}
+ for(const system of g.systems)if(system.owner!==null)advancePopulation(system);
  for(const e of g.empires.slice(1)){aiTurn(g,e)}
  reveal(g);
  for(const e of g.empires)if(!ownedSystems(g,e.id).length)e.eliminated=true;
@@ -202,7 +247,24 @@ export function endTurn(g){if(g.gameOver)return failure('This campaign has ended
  return success(`Turn ${g.turn} has begun.`,{income:income(g,0),newEvents:g.logs.filter(x=>x.turn===g.turn)});
 }
 export function validateGame(data){
- if(!data||data.version!==VERSION||!Array.isArray(data.systems)||!Array.isArray(data.empires)||!Array.isArray(data.fleets)||data.systems.length<40||data.systems.length>180||data.empires.length<2||data.empires.length>7)return false;
+ if(!data||data.version!==VERSION||(data.startYear!==undefined&&(!Number.isInteger(data.startYear)||data.startYear<2000||data.startYear>3000))||(data.scenario!==undefined&&!['sol','procedural'].includes(data.scenario))||!Array.isArray(data.systems)||!Array.isArray(data.empires)||!Array.isArray(data.fleets)||data.systems.length<40||data.systems.length>180||data.empires.length<2||data.empires.length>7)return false;
+ if(data.empires.some(e=>!e||!validGovernmentState(e))||!validSpaceScans(data.spaceScans))return false;
  if(!Number.isInteger(data.turn)||data.turn<1||data.turn>100000||!Number.isInteger(data.rng)||data.systems.some((s,i)=>s.id!==i||!Array.isArray(s.neighbors)||!s.neighbors.every(n=>Number.isInteger(n)&&n>=0&&n<data.systems.length)||!(s.owner===null||Number.isInteger(s.owner)&&s.owner>=0&&s.owner<data.empires.length)))return false;
+ for(const s of data.systems){
+  if(s.buildings&&(typeof s.buildings!=='object'||Array.isArray(s.buildings)||Object.entries(s.buildings).some(([key,level])=>!ALL_BUILDINGS.some(b=>b.id===key)||!Number.isInteger(level)||level<0||level>3)))return false;
+  if(s.orbitalSites!==undefined){
+   if(!s.orbitalSites||typeof s.orbitalSites!=='object'||Array.isArray(s.orbitalSites))return false;
+   const worlds=generateSystemBodies(data.seed,s).planets;
+   for(const [id,site] of Object.entries(s.orbitalSites)){
+    if(!/^(0|[1-9][0-9]*)$/.test(id)||!site||typeof site!=='object'||Array.isArray(site))return false;
+    const planet=worlds.find(p=>p.id===Number(id));
+    if(!planet||planet.isColonyWorld||s.owner===null)return false;
+    for(const [type,level] of Object.entries(site)){
+     const b=ORBITAL_BUILDINGS.find(x=>x.id===type);
+     if(!b||!biomeBuildingAllowed(b,planet)||!Number.isInteger(level)||level<1||level>3)return false;
+    }
+   }
+  }
+ }
  return true;
 }

@@ -13,6 +13,13 @@ python3 -m http.server 4173
 
 Open http://localhost:4173/. The game is not meant to be opened as a `file://` page: service workers require an HTTP/HTTPS origin. Browsers generally permit installation from HTTPS or localhost only.
 
+## v0.3.0 Solar Frontier (integration candidate)
+
+- Playable **Humans** begin on **Earth** in **Sol** with named nearby real stars: Alpha Centauri, Proxima Centauri, Barnard's Star, Wolf 359, Sirius and more. Schematic positions and fictional hyperlanes/resources are clearly distinguished from factual catalog distances.
+- Choose start year **2000–3000** (default **2200**) and one of seven playable species in procedural campaigns. Existing save files remain compatible.
+- The move to real-time-with-pause and autonomous departments is approved as a game direction, but a separate [clock PR #19](https://github.com/teodor-georgiev/Orbital-Empires/pull/19) is being developed in another lane. This Sol scenario branch **does not** replace its clock implementation.
+- Shared source of truth: [AGENTS.md](AGENTS.md), [versioned game specifications](docs/specs/INDEX.md), [editing protocol](docs/specs/EDITING_PROTOCOL.md), [ADR](docs/decisions/ADR-0001-REAL-TIME-AUTONOMY.md).
+
 ## Gameplay included in v0.2
 
 - Seeded galaxy generation, navigable hyperlanes, fog of war, interactive pan/zoom map
@@ -24,6 +31,14 @@ Open http://localhost:4173/. The game is not meant to be opened as a `file://` p
 - Installable PWA with application-shell caching for offline play after first visit
 
 Single-player games save locally in the browser (localStorage), not on the server. Clearing site data may erase progress. Multiplayer, accounts, cloud saves, and deterministic network synchronization are **not implemented**.
+
+## Living orbital environments
+
+- **Orbital environment:** deterministic starfield in WebGL and Canvas 2D fallback, visible asteroid fields, orbital comets, anomalies, rare black-hole systems and hostile void leviathans (fictional beyond Sol).
+- Orbital-object selector supports keyboard/touch; one-time asteroids cost 8 credits and award 18 alloys, comet scans grant 10 unity, anomalies grant 22 research, black-hole surveys grant 34 research/+8 influence, leviathan encounters require two corvettes and cost one for bounded rewards. Old saves remain compatible; results persist in optional spaceScans.
+- Original concept: [space environment SVG](docs/design/orbital-space-environment-concept.svg). Browser QA includes desktop/mobile screenshots.
+
+These star-system encounters are deterministic game fiction, not verified astronomy for nearby real stars. Sol retains its actual eight named planets and contains only an asteroid belt and comet from the encounter pool. No mandatory network dependencies.
 
 ## Self-host on your own VPS
 
@@ -55,6 +70,7 @@ Develop only on feature/fix branches; require a successful test workflow and rev
 
 ## Game design and parallel development
 
+- [Shared game specs, versioning and all-agent collaboration](docs/specs/INDEX.md)
 - [Game systems and milestone design](docs/GAME_DESIGN.md)
 - [Current architecture and modularization gate](docs/ARCHITECTURE.md)
 - [Master roadmap: all game systems and milestones](docs/ROADMAP.md)
@@ -100,3 +116,18 @@ The **Download game ZIP** option is GitHub's published source branch archive, no
 **PWA updates:** The service worker fetches newer app files from the hosting origin on reload when online and falls back to the cached versions offline. New Git changes reach players only after deployment; merging the reviewed `main` branch triggers Vercel production if the Git integration is configured and enabled. The browser does not forcibly restart an active game.
 
 **Donations:** The in-game Donate menu is visible, but no money is accepted until the project owner configures a verified HTTPS third-party fundraising URL in `support-config.js`. Only approved provider domains are supported; no payment form, secrets or transaction storage exists in the game. Sharing or starring the repository is available without payment.
+
+## Planet command UI and population (v0.3.0)
+
+The command menu groups core decisions and the sidebar organizes exploration, development and fleet command. Select a discovered star, enter the solar system, then click a planet in WebGL 3D or use the keyboard-accessible orbital list. The right inspector shows the selected planet; the owned primary world shows colony population, growth, carrying capacity, production and immediate infrastructure upgrades. Non-primary planets remain survey-only until a later save-schema migration.
+
+Population follows a bounded logistic curve once per strategic cycle. Capacity depends on habitability and richness, growth slows toward that limit, and legacy save schema v1 remains compatible. See [implementation plan](docs/plans/2026-11-03-planet-command-population.md).
+
+
+## Biome visuals and orbital construction (v0.3.1)
+
+Planet appearances are generated deterministically from the immutable galaxy seed, system ID and planet ID: worlds of the same type vary slightly in palette, storms, ice, clouds and rings while staying recognizable as their biome. WebGL renders original procedural surface materials; Canvas 2D uses matching biome colors. The 2D image cards retain the project's original planet atlas with small seeded color/cloud differences.
+
+Owned colonies retain four universal structures and unlock their biome-specific specialist buildings. A structure contributes real production or housing capacity each strategic cycle. Non-colony surveyed planets stay uninhabited, but owned star systems can build biome-compatible orbital installations above them; gas giants permit gas harvesters, rocky worlds mines and other types observatories. Legacy save schema v1 remains compatible: orbitalSites is optional and missing biome structures default to level zero.
+
+[Biome concept board](docs/design/seeded-biomes-building-board.svg) · [gameplay spec](docs/proposals/visual-biomes-and-planet-buildings.md).
