@@ -65,3 +65,13 @@ test('research view communicates active project and keeps locked research choice
   assert.match(focus, new RegExp('data-id="' + locked.id + '" aria-pressed="true"'));
   assert.match(focus, new RegExp('data-action="research" data-id="' + locked.id + '" disabled'));
 });
+
+test('offline PWA keeps the unified viewer and stylesheet available without a network', async () => {
+  const { readFileSync } = await import('node:fs');
+  const sw = readFileSync(new URL('../sw.js', import.meta.url), 'utf8');
+  const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  assert.match(sw, /modules\/ui\/development-workspace\.js/);
+  assert.match(sw, /modules\/styles\/command-workspace\.css/);
+  assert.match(html, /id="progress-workspace"/);
+  assert.match(html, /modules\/styles\/command-workspace\.css/);
+});
