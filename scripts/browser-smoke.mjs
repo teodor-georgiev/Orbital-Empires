@@ -46,7 +46,7 @@ async function run() {
   await page.goto(origin, { waitUntil: 'networkidle', timeout: 30000 });
   await page.locator('#modal-root .modal-close').click();
   await visible(page, '#galaxy-canvas');
-  assert.match(await page.locator('#top-turn').innerText(), /CYCLE 01/);
+  assert.match(await page.locator('#top-turn').innerText(), /^YEAR \d{4}\.01$/);
   await capture(page, 'galaxy-desktop.png');
 
   await page.locator('.sidebar .progress-nav').click();
@@ -106,9 +106,11 @@ async function run() {
   await page.locator('#solar-stage [data-action="close-solar"]').click();
   assert.equal(await page.locator('#solar-stage').isHidden(), true);
 
-  const previousTurn = Number((await page.locator('#top-turn').innerText()).match(/\d+/)[0]);
+  const currentDate=(await page.locator('#top-turn').innerText()).match(/^YEAR (\d{4})\.(\d{2})$/);
+  assert.ok(currentDate,'Stardate must expose the year and month');
+  const year=Number(currentDate[1]),month=Number(currentDate[2]);
   await page.locator('[data-action="end-turn"]').click();
-  const nextTurn = 'CYCLE ' + String(previousTurn + 1).padStart(2, '0');
+  const nextTurn='YEAR '+(year+(month===12?1:0))+'.'+String(month===12?1:month+1).padStart(2,'0');
   assert.equal(await page.locator('#top-turn').innerText(), nextTurn);
   await page.locator('#modal-root .modal-close').click();
   await page.reload({ waitUntil: 'networkidle' });
