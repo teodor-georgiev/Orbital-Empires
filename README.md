@@ -115,3 +115,11 @@ The command menu groups core decisions and the sidebar organizes exploration, de
 
 Population follows a bounded logistic curve once per strategic cycle. Capacity depends on habitability and richness, growth slows toward that limit, and legacy save schema v1 remains compatible. See [implementation plan](docs/plans/2026-11-03-planet-command-population.md).
 
+
+## Biome visuals and orbital construction (v0.3.1)
+
+Planet appearances are generated deterministically from the immutable galaxy seed, system ID and planet ID: worlds of the same type vary slightly in palette, storms, ice, clouds and rings while staying recognizable as their biome. WebGL renders original procedural surface materials; Canvas 2D uses matching biome colors. The 2D image cards retain the project's original planet atlas with small seeded color/cloud differences.
+
+Owned colonies retain four universal structures and unlock their biome-specific specialist buildings. A structure contributes real production or housing capacity each strategic cycle. Non-colony surveyed planets stay uninhabited, but owned star systems can build biome-compatible orbital installations above them; gas giants permit gas harvesters, rocky worlds mines and other types observatories. Legacy save schema v1 remains compatible: orbitalSites is optional and missing biome structures default to level zero.
+
+[Biome concept board](docs/design/seeded-biomes-building-board.svg) · [gameplay spec](docs/proposals/visual-biomes-and-planet-buildings.md).

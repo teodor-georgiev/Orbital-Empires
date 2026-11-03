@@ -2,6 +2,13 @@
 
 All published game builds use [Semantic Versioning](https://semver.org/). Version tags are created **only after** a reviewed integration and stable release, never on work-in-progress commits.
 
+## [0.3.1] — 2026-11-03 · Seeded biome planets
+
+- Original procedural WebGL planetary materials (clouds, ice, lava, gas bands, rings and terrain) with deterministic seeds and a matching Canvas fallback.
+- Slightly randomized colors and cloud treatments on the game's existing original biome portrait atlas.
+- 13 biome-specific surface buildings plus orbital harvesters, mines and observatories for survey-only worlds in player-owned star systems.
+- Functional credit/alloy/science and housing bonuses, explicit biome restrictions, immutable save schema v1, and browser/CI regression tests.
+
 ## [0.3.0] — 2026-11-03 · Preview candidate
 
 - Approved A+B+C hybrid: galaxy command, cinematic planet management and immersive orbital view with floating inspector.
