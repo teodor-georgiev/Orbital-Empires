@@ -7,7 +7,7 @@ All published game builds use [Semantic Versioning](https://semver.org/). Versio
 - Optional Human Solar Frontier scenario, starting on Earth in Sol with a curated, cited nearby-star catalog including Alpha Centauri and Proxima Centauri.
 - Editable starting year (2000–3000) and player-species selection in a procedural galaxy.
 - Sol 3D viewer shows eight real-named Solar System planets with Earth as the colony; real orbital distances displayed separately from visual scene spacing.
-- Experimental pause, 1×/2×/5×/10× and one-month stepping; existing one-cycle rules remain in use while a full time-model migration is specified.
+- Real-time-with-pause and player autonomy are approved design directions; the separate clock PR #19 remains under review, not included in this branch.
 - Shared agent contract, versioned game specifications and formal design-decision ledger.
 - Legacy saved campaigns remain compatible with schema v1.
 
