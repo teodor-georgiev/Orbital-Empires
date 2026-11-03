@@ -12,7 +12,8 @@ function artworkBiome(name){
  const aliases={'ice':'arctic','ice-world':'arctic','frozen':'arctic','tundra':'arctic','arid':'desert','ocean':'oceanic','molten':'volcanic','rocky':'barren','gas':'gas-giant','gasgiant':'gas-giant'};
  const key=aliases[slug]||slug;return PLANET_CLASSES.has(key)?key:'barren';
 }
-function gameIcon(id){const key=/^[a-z-]+$/.test(id)?id:'star';return '<svg class="ui-icon" aria-hidden="true" focusable="false"><use href="./assets/ui/interface-icons.svg#'+key+'"></use></svg>';}
+const GAME_ART_ICONS=new Set(['galaxy','colonies','progress','fleets','diplomacy','intel','credits','alloys','science','influence','unity','research','traditions','policies']);
+function gameIcon(id){const key=/^[a-z-]+$/.test(id)?id:'star';const sprite=GAME_ART_ICONS.has(key)?'strategy-icons':'interface-icons';return '<svg class="ui-icon" aria-hidden="true" focusable="false"><use href="./assets/ui/'+sprite+'.svg#'+key+'"></use></svg>';}}
 function menuAction(icon,title,note,action,primary=false){return '<button class="menu-action'+(primary?' main':'')+'" data-action="'+action+'"><span class="menu-action-icon">'+gameIcon(icon)+'</span><span>'+title+'<small>'+note+'</small></span></button>';}
 
 const $ = selector => document.querySelector(selector);
