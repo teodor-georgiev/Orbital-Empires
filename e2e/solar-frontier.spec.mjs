@@ -79,7 +79,7 @@ test('WebGL-disabled browser still shows a usable Solar System planet list', asy
     };
   });
   await page.goto('/');
-  await page.locator('#modal-root [data-action="close-modal"]').click();
+  await page.locator('#modal-root .modal-close').click();
   await page.locator('[data-action="open-solar"]').first().click();
   await expect(page.locator('#solar-renderer')).toHaveText('2D COMPATIBILITY MODE');
   await expect(page.locator('#solar-planet-list .solar-planet-option')).toHaveCount(8);
