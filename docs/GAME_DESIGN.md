@@ -1,4 +1,6 @@
-# Orbital Empires — Game Design foundations (historical v0.1)\n\n> Current implementation direction is in [v0.3.0 spec](specs/ORBITAL-EMPIRES-v0.3.0.md) and [ADR-0001](decisions/ADR-0001-REAL-TIME-AUTONOMY.md). The original v0.1 document below describes the prior turn-based design; it should not supersede newer dated decisions.
+# Orbital Empires — Game Design foundations (historical v0.1)
+
+> Current implementation direction is in [v0.3.0 spec](specs/ORBITAL-EMPIRES-v0.3.0.md) and [ADR-0001](decisions/ADR-0001-REAL-TIME-AUTONOMY.md). The original v0.1 document below describes the prior turn-based design; it should not supersede newer dated decisions.
 
 ## North star
 
