@@ -33,12 +33,12 @@ test('Solar Frontier: Earth, nearby stars, eight planets and starting-year rollo
   await expect(page.locator('#solar-planet-detail')).toContainText('Earth');
   await page.locator('#solar-planet-list .solar-planet-option').filter({ hasText: 'Mars' }).click();
   await expect(page.locator('#solar-planet-detail')).toContainText('Mars');
-  await page.locator('[data-action="close-solar"]').click();
+  await page.locator('#solar-stage [data-action="close-solar"]').first().click();
   await expect(page.locator('#solar-stage')).toBeHidden();
 
   await page.locator('[data-action="end-turn"]').click();
   await expect(page.locator('#top-turn')).toHaveText('YEAR 2250.02');
-  await page.locator('#modal-root [data-action="close-modal"]').click();
+  await page.locator('#modal-root .modal-close').click();
   await expect(page.locator('#modal-root')).toBeHidden();
   expect(errors).toEqual([]);
 });
