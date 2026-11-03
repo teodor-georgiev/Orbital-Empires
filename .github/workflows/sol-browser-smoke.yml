@@ -30,3 +30,11 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Verify Solar Frontier in real browser
         run: npx playwright test --config=e2e/playwright.config.mjs
+      - name: Save Government UI browser screenshots and traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: government-browser-qa
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: warn
