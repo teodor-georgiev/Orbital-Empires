@@ -79,7 +79,7 @@ try{
  // Verify that contextual icons also draw inside all three real Progress views.
  await evaluate('document.querySelector(".progress-nav").click();true');
  await ready('document.querySelectorAll("#progress-workspace .progress-node .progress-vector").length>4','technology icons');
- assert.ok(await evaluate('document.querySelector("#progress-workspace .progress-node .progress-vector").getBBox().width>5'),'technology symbol has visible geometry');
+ await ready('document.querySelector("#progress-workspace .progress-node .progress-vector")?.getBBox().width>5','technology symbol geometry');
  assert.ok(await evaluate('document.querySelectorAll("#progress-workspace .progress-node use[href*=empire-icon-atlas]").length>=10'),'live technologies need individual atlas icons');
  await capture('01b-progress-technology.png');
  await evaluate('document.querySelector("#progress-workspace .progress-tab[data-nav=traditions]").click();true');
