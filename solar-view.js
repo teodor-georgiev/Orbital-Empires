@@ -1,5 +1,6 @@
 /** Dependency-free WebGL solar system scene. Canvas 2D remains available on unsupported devices. */
 import { planetPalette } from './modules/visuals/planet-visual.js';
+import { buildShipMesh,buildOutpostMesh,hullOutline,shipLocalPosition,shipsInsideRectangle,nearestSelectableShip,HULL_COLORS } from './modules/visuals/ship-models.js';
 const TAU = Math.PI * 2;
 const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
 
@@ -101,6 +102,7 @@ float noise3(vec3 p){
  mix(mix(rand3(i+vec3(0,0,1)),rand3(i+vec3(1,0,1)),f.x),mix(rand3(i+vec3(0,1,1)),rand3(i+vec3(1,1,1)),f.x),f.y),f.z);
 }
 void main() {
+ if(u_mode>2.5){float shade=.32+.68*max(0.0,dot(normalize(v_normal),normalize(u_light)));gl_FragColor=vec4(u_color*shade,1.0);return;}
  if(u_mode>1.5){gl_FragColor=vec4(u_color,u_alpha);return;}
  vec3 n=normalize(v_normal);
  if(u_mode>.5){
@@ -181,7 +183,7 @@ function makeGL(gl) {
   return {program,locations,mesh,vertex,index,orbit,stars};
 }
 
-export function createSolarView(canvas,{onSelect=()=>{},onSelectSite=()=>{},quality=()=>({scale:2,maxPixels:2560*1440}),shouldAnimate=()=>true}={}) {
+export function createSolarView(canvas,{onSelect=()=>{},onSelectSite=()=>{},onSelectShips=()=>{},onSelectOutpost=()=>{},onMoveShips=()=>{},quality=()=>({scale:2,maxPixels:2560*1440}),shouldAnimate=()=>true}={}) {
   let gl=null,gfx=null,ctx=null,fallbackCanvas=null;
   function use2DFallback(){
     gl=null;gfx=null;
@@ -201,6 +203,17 @@ export function createSolarView(canvas,{onSelect=()=>{},onSelectSite=()=>{},qual
   try {gl=canvas.getContext('webgl',{alpha:true,antialias:true,preserveDrawingBuffer:false});if(gl)gfx=makeGL(gl);}catch{use2DFallback();}
   if(!gl&&!ctx)use2DFallback();
   let system=null,bodies=null,active=false,selected=0,raf=0;
+  let tacticalUnits=[],tacticalOutpost=null,selectedShipIds=new Set(),lastShipPoints=[],lastOutpostPoint=null;
+  const geometry=new Map();
+  const box=document.createElement('div');box.className='oe-ship-selection-rectangle';box.hidden=true;canvas.after(box);
+  function shipBuffer(type){
+   if(!geometry.has(type)){
+    const mesh=type==='outpost'?buildOutpostMesh():buildShipMesh(type);
+    const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,mesh,gl.STATIC_DRAW);
+    geometry.set(type,{buffer,count:mesh.length/6});
+   }
+   return geometry.get(type);
+  }
   let camera={yaw:.46,pitch:.53,distance:22};
   let width=1,height=1,dpr=1,lastPoints=[],lastSitePoints=[],pointer=null,clockBase=0;
   const at=(p,t)=>{
@@ -246,6 +259,59 @@ export function createSolarView(canvas,{onSelect=()=>{},onSelectSite=()=>{},qual
     bindPositions(gfx.vertex);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,gfx.index);
     material(position,radius,color,mode,kind,1,visual);
     gl.drawElements(gl.TRIANGLES,gfx.mesh.indices.length,gl.UNSIGNED_SHORT,0);
+  }
+  function renderTactical3D(matrix,time){
+    lastShipPoints=[];lastOutpostPoint=null;
+    if(tacticalOutpost?.level>0){
+      const atStation=[1.9,.25,1.1],mesh=shipBuffer('outpost');
+      bindPositions(mesh.buffer);material(atStation,.58,HULL_COLORS.outpost,3);
+      gl.drawArrays(gl.TRIANGLES,0,mesh.count);
+      const screen=projectPoint(atStation,matrix,width,height);
+      if(screen)lastOutpostPoint={...screen,r:28};
+    }
+    for(const [index,unit] of tacticalUnits.slice(0,320).entries()){
+      const pos=shipLocalPosition(unit,bodies,time,index);
+      const mesh=shipBuffer(unit.type),scale=unit.type==='cruiser'?.61:unit.type==='frigate'?.51:.44;
+      bindPositions(mesh.buffer);material(pos,scale,unit.owner===0?HULL_COLORS.friendly:HULL_COLORS.hostile,3);
+      gl.drawArrays(gl.TRIANGLES,0,mesh.count);
+      if(selectedShipIds.has(unit.id))lineRing(.55,0,'#8ff9e9',.95,pos);
+      const screen=projectPoint(pos,matrix,width,height);
+      if(screen)lastShipPoints.push({id:unit.id,owner:unit.owner,x:screen.x,y:screen.y,r:25,depth:screen.depth});
+    }
+  }
+  function fallbackHull(unit,x,y,r){
+    const points=hullOutline(unit.type);
+    ctx.save();ctx.translate(x,y);ctx.rotate(.4);ctx.beginPath();
+    points.forEach(([px,py],i)=>{if(i===0)ctx.moveTo(px*r,py*r);else ctx.lineTo(px*r,py*r);});ctx.closePath();
+    ctx.fillStyle=unit.owner===0?'#4f94ad':'#bf6d77';ctx.strokeStyle=unit.owner===0?'#d4f8ff':'#ffb7b7';
+    ctx.lineWidth=1.4;ctx.fill();ctx.stroke();
+    ctx.fillStyle='#94f9ff';ctx.fillRect(-2,r*.65,4,r*.35);
+    if(selectedShipIds.has(unit.id)){ctx.strokeStyle='#a8ffef';ctx.lineWidth=2.4;ctx.beginPath();ctx.arc(0,0,r*1.6,0,TAU);ctx.stroke();}
+    ctx.restore();
+  }
+  function renderTactical2D(cx,cy,scale,time){
+    lastShipPoints=[];lastOutpostPoint=null;
+    if(tacticalOutpost?.level>0){
+      const x=cx+1.9*scale,y=cy+1.1*scale*.48;
+      ctx.save();ctx.translate(x,y);ctx.fillStyle='#5da5b2';ctx.strokeStyle='#d2f8ff';ctx.lineWidth=2;
+      ctx.beginPath();for(let n=0;n<8;n++){const a=n*TAU/8;const r=n%2===0?20:8;if(n===0)ctx.moveTo(Math.cos(a)*r,Math.sin(a)*r);else ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);}ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
+      lastOutpostPoint={x,y,r:24};
+    }
+    for(const [index,unit] of tacticalUnits.slice(0,320).entries()){
+      const pos=shipLocalPosition(unit,bodies,time,index),x=cx+pos[0]*scale,y=cy+pos[2]*scale*.48;
+      fallbackHull(unit,x,y,unit.type==='cruiser'?14:unit.type==='frigate'?12:10);
+      lastShipPoints.push({id:unit.id,owner:unit.owner,x,y,r:25,depth:0});
+    }
+  }
+  function updateSelectionBox(startX,startY,endX,endY){
+    const left=Math.min(startX,endX),top=Math.min(startY,endY);
+    Object.assign(box.style,{left:left+'px',top:top+'px',width:Math.abs(startX-endX)+'px',height:Math.abs(startY-endY)+'px'});
+    box.hidden=false;
+  }
+  function emitSelection(ids,add=false){
+    const next=add?new Set(selectedShipIds):new Set();
+    for(const id of ids){if(add&&next.has(id))next.delete(id);else next.add(id);}
+    selectedShipIds=next;onSelectShips([...next]);
   }
   function lineRing(radius,angle,color,opacity=.29,center=[0,0,0]){
     const coordinates=[];
@@ -324,6 +390,7 @@ export function createSolarView(canvas,{onSelect=()=>{},onSelectSite=()=>{},qual
     }
     lastPoints=points;
     drawSpaceObjects(matrix,time);
+    renderTactical3D(matrix,time);
   }
   function fallbackSphere(x,y,r,color,star=false){
     const g=ctx.createRadialGradient(x-r*.32,y-r*.34,1,x,y,r);
@@ -392,6 +459,7 @@ export function createSolarView(canvas,{onSelect=()=>{},onSelectSite=()=>{},qual
       }
       lastSitePoints.push({id:site.id,x,y,r:site.kind==='blackHole'?22:18,depth:0});
     }
+    renderTactical2D(cx,cy,scale,time);
   }
   function tick(){
     if(!active)return;
@@ -400,12 +468,15 @@ export function createSolarView(canvas,{onSelect=()=>{},onSelectSite=()=>{},qual
     raf=requestAnimationFrame(tick);
   }
   function open(nextSystem,nextBodies){
-    system=nextSystem;bodies=nextBodies;selected=0;lastSitePoints=[];camera={yaw:.46,pitch:.53,distance:22};
+    system=nextSystem;bodies=nextBodies;selected=0;lastSitePoints=[];lastShipPoints=[];selectedShipIds.clear();camera={yaw:.46,pitch:.53,distance:22};
     clockBase=performance.now();active=true;resize();if(!raf)raf=requestAnimationFrame(tick);
   }
-  function close(){active=false;system=null;bodies=null;lastPoints=[];lastSitePoints=[];if(raf)cancelAnimationFrame(raf);raf=0;}
+  function close(){active=false;system=null;bodies=null;lastPoints=[];lastSitePoints=[];lastShipPoints=[];box.hidden=true;selectedShipIds.clear();if(raf)cancelAnimationFrame(raf);raf=0;}
   function pickPlanet(x,y){
     if(!active)return;
+    const ship=nearestSelectableShip(lastShipPoints,x,y);
+    if(ship){emitSelection([ship.id],pointer?.shift);return;}
+    if(lastOutpostPoint&&Math.hypot(lastOutpostPoint.x-x,lastOutpostPoint.y-y)<lastOutpostPoint.r){onSelectOutpost();return;}
     const candidates=[
       ...lastPoints.filter(p=>Math.hypot(x-p.x,y-p.y)<p.r).map(p=>({...p,kind:'planet'})),
       ...lastSitePoints.filter(p=>Math.hypot(x-p.x,y-p.y)<p.r).map(p=>({...p,kind:'site'}))
@@ -416,25 +487,29 @@ export function createSolarView(canvas,{onSelect=()=>{},onSelectSite=()=>{},qual
     }
   }
   canvas.addEventListener('pointerdown',event=>{
-    if(!active)return;
-    pointer={id:event.pointerId,x:event.clientX,y:event.clientY,lastX:event.clientX,lastY:event.clientY,moved:false};
+    if(!active||event.button===2)return;
+    pointer={id:event.pointerId,x:event.clientX,y:event.clientY,lastX:event.clientX,lastY:event.clientY,moved:false,shift:event.shiftKey,
+      mode:event.pointerType==='touch'||event.altKey||event.button===1?'camera':'select'};
     canvas.setPointerCapture(event.pointerId);
   });
   canvas.addEventListener('pointermove',event=>{
     if(!pointer||event.pointerId!==pointer.id)return;
     const dx=event.clientX-pointer.lastX,dy=event.clientY-pointer.lastY;
     if(Math.hypot(event.clientX-pointer.x,event.clientY-pointer.y)>5)pointer.moved=true;
-    if(pointer.moved){camera=clampSolarCamera({...camera,yaw:camera.yaw-dx*.007,pitch:camera.pitch+dy*.006});}
+    if(pointer.moved){if(pointer.mode==='camera')camera=clampSolarCamera({...camera,yaw:camera.yaw-dx*.007,pitch:camera.pitch+dy*.006});else{const rect=canvas.getBoundingClientRect();updateSelectionBox(pointer.x-rect.left,pointer.y-rect.top,event.clientX-rect.left,event.clientY-rect.top);}}
     pointer.lastX=event.clientX;pointer.lastY=event.clientY;
   });
   canvas.addEventListener('pointerup',event=>{
     if(!pointer||event.pointerId!==pointer.id)return;
-    if(!pointer.moved){const r=canvas.getBoundingClientRect();pickPlanet(event.clientX-r.left,event.clientY-r.top);}
-    pointer=null;
+    const r=canvas.getBoundingClientRect();
+    if(pointer.mode==='select'&&pointer.moved){emitSelection(shipsInsideRectangle(lastShipPoints,{x1:pointer.x-r.left,y1:pointer.y-r.top,x2:event.clientX-r.left,y2:event.clientY-r.top}),pointer.shift);}
+    else if(!pointer.moved){pickPlanet(event.clientX-r.left,event.clientY-r.top);}
+    box.hidden=true;pointer=null;
   });
-  canvas.addEventListener('pointercancel',()=>pointer=null);
+  canvas.addEventListener('pointercancel',()=>{pointer=null;box.hidden=true;});
+  canvas.addEventListener('contextmenu',event=>{if(!active)return;event.preventDefault();if(!selectedShipIds.size)return;const r=canvas.getBoundingClientRect();const x=(event.clientX-r.left)/r.width*14-7,y=(event.clientY-r.top)/r.height*14-7;onMoveShips([Math.max(-7,Math.min(7,x)),Math.max(-7,Math.min(7,y))]);});
   canvas.addEventListener('wheel',event=>{if(!active)return;event.preventDefault();camera=clampSolarCamera({...camera,distance:camera.distance*(event.deltaY<0?.9:1.1)});},{passive:false});
   window.addEventListener('resize',resize);
   canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();use2DFallback();resize();});
-  return {open,close,resize,selectPlanet(id){selected=id;},resetCamera(){camera={yaw:.46,pitch:.53,distance:22};},is3D(){return Boolean(gl&&gfx);},isActive(){return active;}};
+  return {open,close,resize,selectPlanet(id){selected=id;},setTacticalState(units,outpost){tacticalUnits=units||[];tacticalOutpost=outpost||null;selectedShipIds=new Set([...selectedShipIds].filter(id=>tacticalUnits.some(u=>u.id===id)));},setSelectedShips(ids){selectedShipIds=new Set(ids||[]);},getVisibleShips(){return lastShipPoints.map(x=>({...x}));},resetCamera(){camera={yaw:.46,pitch:.53,distance:22};},is3D(){return Boolean(gl&&gfx);},isActive(){return active;}};
 }
