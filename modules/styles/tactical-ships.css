@@ -1,0 +1,30 @@
+/* Tactical system overlay — narrow extension of the existing command UI, not a replacement. */
+.oe-solar-command-panel{position:absolute;top:83px;left:15px;width:min(248px,30%);max-height:calc(100% - 215px);overflow:auto;z-index:6;display:flex;flex-direction:column;gap:9px;padding:12px;border-radius:8px;background:linear-gradient(145deg,rgba(5,19,30,.91),rgba(11,35,48,.85));border:1px solid rgba(92,154,169,.5);box-shadow:0 12px 28px #0308108c;color:#d5ebee;scrollbar-width:thin;overscroll-behavior:contain}
+.oe-tactical-caption{font:700 12px Rajdhani,'Arial Narrow',sans-serif;letter-spacing:1.5px;color:#8ddfe5;border-bottom:1px solid #37606b;padding-bottom:4px}
+.oe-station-summary{display:flex;flex-direction:column;gap:4px;font:13px Rajdhani,sans-serif}
+.oe-station-summary b{font-size:15px;color:#dcf9f5}.oe-station-summary small{font-size:11px;color:#9bcbd0}
+.oe-solar-command-panel button{cursor:pointer;border:1px solid #366575;background:#183646;color:#d9f4f3;border-radius:5px;padding:7px 6px;font:700 11px Rajdhani,'Arial Narrow',sans-serif}
+.oe-solar-command-panel button:hover,.oe-solar-command-panel button:focus-visible{border-color:#8ce7f0;background:#285464}
+.oe-solar-command-panel button:disabled{opacity:.4;cursor:not-allowed}
+.oe-unit-list{display:flex;flex-wrap:wrap;gap:4px;max-height:116px;overflow-y:auto;scrollbar-width:thin}
+.oe-unit-button{display:flex;flex-direction:column;gap:2px;align-items:start;min-width:87px;flex:1;font-size:10px!important;text-align:left}
+.oe-unit-button small{font-size:9px;color:#87b4c3;text-transform:uppercase}
+.oe-unit-button.selected{outline:2px solid #a4fff1;background:#17616a!important;color:#fff}
+.oe-tactical-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+.oe-tactical-actions button{min-width:0;white-space:normal}
+.oe-unit-tip{font:11px/1.4 'DM Sans',sans-serif;color:#95b9c5;margin:0}
+.oe-ship-selection-rectangle{position:absolute;z-index:4;pointer-events:none;border:1.5px dashed #a4fff2;background:rgba(67,240,219,.10);box-shadow:inset 0 0 12px #4bf4db1c}
+.oe-ship-selection-rectangle[hidden]{display:none}
+#solar-canvas.oe-target-mode{cursor:crosshair}
+@media(max-width:750px){
+ .oe-solar-command-panel{left:7px;top:76px;width:min(166px,43%);max-height:calc(100% - 232px);padding:8px;gap:5px}
+ .oe-tactical-caption{font-size:10px;letter-spacing:.8px}.oe-tactical-actions button{font-size:9px;padding:6px 3px}
+ .oe-station-summary b{font-size:12px}.oe-station-summary small{font-size:10px}
+ .oe-unit-button{min-width:100%;font-size:9px!important}
+ .solar-instructions{font-size:7px;letter-spacing:0}
+}
+@media(max-width:480px){
+ .oe-solar-command-panel{top:74px;width:145px;max-height:calc(100% - 255px)}
+ .oe-tactical-actions{grid-template-columns:1fr 1fr}.oe-tactical-actions button{padding:5px 2px}
+ .oe-unit-list{max-height:68px}
+}
