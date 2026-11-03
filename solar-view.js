@@ -232,7 +232,7 @@ export function createSolarView(canvas,{onSelect=()=>{}}={}) {
     for(const p of bodies.planets){
       const phase=p.phase+time*.095/Math.pow(p.orbitRadius,1.05),x=cx+Math.cos(phase)*p.orbitRadius*scale,y=cy+Math.sin(phase)*p.orbitRadius*scale*.48;
       const radius=Math.max(5,p.radius*scale);fallbackSphere(x,y,radius,p.color);
-      lastPoints.push({id:p.id,x,y,r:Math.max(16,r+8),depth:0});
+      lastPoints.push({id:p.id,x,y,r:Math.max(16,radius+8),depth:0});
     }
   }
   function tick(){
