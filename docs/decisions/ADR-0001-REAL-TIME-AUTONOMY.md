@@ -13,7 +13,7 @@
 Adopt approach (2), exposing 0/1/2/5/10x clock speeds and one-month stepping. v0.3 first introduces the controller over existing turn rules; no claims that old resource production is rebalanced. Preserve `endTurn(g)` as compatibility API while progressively extracting `advanceMonth(g)`, which will own deterministic economy, research, diplomacy, fleet routes and AI decision scheduling.
 
 ## Next stages
-- v0.3: Sol scenario, real nearby stars, date selection, pause/speed/month stepping.
+- v0.3 Solar Frontier: Human Sol scenario, real nearby stars and date selection. PR #19 separately develops first pause/speed controls; integrate only after its tests and browser QA.
 - v0.4: Player organization AI for exploration/economy/research/defense with budget reserves, manual overrides, decision explanations.
 - v0.5: Monthly yields, population growth scaling, fleet travel times and backtesting of AI policies; migrate saved state only if required.
 - v0.6: deeper trade, diplomacy, events and political factions.
