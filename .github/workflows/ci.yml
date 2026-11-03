@@ -27,3 +27,10 @@ jobs:
       - name: Validate standalone PWA assets
         run: |
           node -e 'const fs=require("fs");const m=JSON.parse(fs.readFileSync("manifest.webmanifest","utf8"));for(const i of m.icons){if(!fs.existsSync(i.src))process.exit(1)}for(const f of ["index.html","app.js","core.js","solar-view.js","system-model.js","style.css","sw.js"]){if(!fs.existsSync(f))process.exit(1)}if(!fs.readFileSync("index.html","utf8").includes("manifest.webmanifest"))process.exit(1);console.log("PWA assets OK")'
+      - name: Browser interaction smoke test (Chromium)
+        run: |
+          set -euo pipefail
+          CHROME_BIN="$(command -v google-chrome || command -v chromium || command -v chromium-browser)"
+          test -n "$CHROME_BIN"
+          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/orbital-smoke-http.log 2>&1 &
+          CHROME_BIN="$CHROME_BIN" node tests/e2e/browser-smoke.mjs
