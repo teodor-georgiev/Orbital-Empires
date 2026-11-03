@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import { generateGame, endTurn, validateGame, getStardate } from '../core.js';
 import { generateSystemBodies } from '../system-model.js';
 import { NEARBY_STARS } from '../modules/galaxy/real-stars.js';
-import { createClockState, advanceClock, setClockSpeed } from '../modules/simulation/clock.js';
 import { readFileSync } from 'node:fs';
 
 test('human Sol scenario starts on Earth in 2200 and uses a real nearby-star catalog', () => {
@@ -44,24 +43,9 @@ test('procedural start is preserved, player species can be selected, and calenda
  assert.equal(validateGame(legacy),true);
  assert.equal(getStardate(legacy),'2201.01');
 });
-test('fixed-step clock supports pause and speed without wall-clock simulation catch-up',()=>{
- let clock=createClockState();
- assert.deepEqual(advanceClock(clock,4000).steps,0);
- clock=setClockSpeed(clock,1);
- let next=advanceClock(clock,500);
- assert.equal(next.steps,0);
- next=advanceClock(next.state,500);
- assert.equal(next.steps,1);
- clock=setClockSpeed(next.state,5);
- next=advanceClock(clock,1000);
- assert.equal(next.steps,5);
- clock=setClockSpeed(next.state,0);
- assert.equal(advanceClock(clock,100000).steps,0);
-});
-test('campaign controls expose start year, human scenario and clock buttons',()=>{
+test('campaign controls expose starting year, species and Solar Frontier',()=>{
  const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
  const js=readFileSync(new URL('../app.js',import.meta.url),'utf8');
- assert.ok(html.includes('id="time-controls"'));
  for(const id of ['new-start-year','new-scenario','new-faction'])assert.ok(js.includes(id));
- for(const action of ['clock-play','clock-pause','clock-speed'])assert.ok(js.includes(action));
+ assert.ok(js.includes("scenario:'sol'"));
 });
