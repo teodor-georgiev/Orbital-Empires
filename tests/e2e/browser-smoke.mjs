@@ -66,6 +66,10 @@ try{
  assert.ok(await evaluate('!!document.querySelector(".command-group-label")'));
  await evaluate('document.querySelector(".oe-home-continue").click();true');
  await ready('document.getElementById("modal-root").hidden&&!!document.querySelector("[data-action=open-solar]")','galaxy after menu resume');
+ // Regression: CSS display:flex must not override the Progress section's hidden attribute.
+ assert.ok(await evaluate("document.getElementById('progress-workspace').hidden&&getComputedStyle(document.getElementById('progress-workspace')).display==='none'&&document.getElementById('progress-workspace').offsetHeight===0"),'hidden Progress section must not occupy the galaxy scene');
+ const galaxyGeometry=JSON.parse(await evaluate("JSON.stringify(({top:document.getElementById('map-viewport').getBoundingClientRect().top,height:document.getElementById('map-viewport').getBoundingClientRect().height}))"));
+ assert.ok(galaxyGeometry.top<310&&galaxyGeometry.height>450,'galaxy canvas must fill command surface, not be pushed below an invisible panel: '+JSON.stringify(galaxyGeometry));
  await capture('01-galaxy-desktop.png');
  // Verify that contextual icons also draw inside all three real Progress views.
  await evaluate('document.querySelector(".progress-nav").click();true');
@@ -85,6 +89,7 @@ try{
  await ready('!document.getElementById("solar-stage").hidden&&document.querySelectorAll("[data-action=solar-planet]").length>=4','3D or 2D solar scene');
  assert.ok(await evaluate('!!document.querySelector(".oe-population-card")'));
  assert.ok(await evaluate('document.body.classList.contains("oe-orbital-mode")&&!document.body.classList.contains("oe-planet-focus")'));
+ assert.ok(await evaluate("getComputedStyle(document.getElementById('progress-workspace')).display==='none'"),'hidden Progress viewer cannot squeeze orbital system');
  await capture('02-orbital-system-desktop.png');
  const prior=await evaluate('parseFloat(document.querySelector(".oe-population-head b").textContent)');
  assert.ok(Number.isFinite(prior)&&prior>0);
@@ -136,6 +141,23 @@ try{
  await ready('!document.getElementById("solar-stage").hidden','mobile orbital scene');
  await evaluate('document.getElementById("solar-focus-planet").click();true');
  await ready('document.body.classList.contains("oe-planet-focus")','mobile focused planet');
+ // Mobile regression: navigation must be above the scene and the planet card
+ // must not be obstructed by the orbital-objects chooser.
+ const mobileVisual=JSON.parse(await evaluate(`JSON.stringify((()=>{
+   const nav=document.querySelector('.sidebar'),panel=document.querySelector('.solar-planet-panel'),
+     card=document.querySelector('.oe-focus-caption'),viewport=document.querySelector('.map-viewport'),
+     bar=document.querySelector('.game-nav');
+   return {navTop:nav.getBoundingClientRect().top,navBottom:nav.getBoundingClientRect().bottom,
+     sceneTop:viewport.getBoundingClientRect().top,cardHeight:card.getBoundingClientRect().height,
+     cardWidth:card.getBoundingClientRect().width,sceneHeight:viewport.getBoundingClientRect().height,
+     chooser:getComputedStyle(panel).display,navScrollWidth:bar.scrollWidth,
+     navContainsLabels:bar.textContent.includes('Government')&&bar.textContent.includes('Progress')};
+ })())`));
+ assert.ok(mobileVisual.navTop<255&&mobileVisual.navBottom<=mobileVisual.sceneTop+2,
+   'mobile command nav must appear before galaxy/planet view: '+JSON.stringify(mobileVisual));
+ assert.equal(mobileVisual.chooser,'none','planet-focused action card must not be covered by orbital chooser');
+ assert.ok(mobileVisual.cardWidth>275&&mobileVisual.cardHeight>70&&mobileVisual.navContainsLabels,
+   'planet focus controls and labeled nav must remain legible: '+JSON.stringify(mobileVisual));
  await capture('04-focused-planet-mobile.png');
  const mobileLayout=await evaluate(`JSON.stringify({viewport:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth,offenders:[...document.querySelectorAll('*')].filter(el=>{const r=el.getBoundingClientRect();return r.width>0&&r.right>window.innerWidth+4}).slice(0,16).map(el=>({tag:el.tagName,class:el.className?.baseVal||el.className||'',right:Math.round(el.getBoundingClientRect().right),width:Math.round(el.getBoundingClientRect().width)}))})`);
  console.log('MOBILE_LAYOUT',mobileLayout);
