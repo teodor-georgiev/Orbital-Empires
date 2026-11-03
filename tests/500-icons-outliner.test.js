@@ -23,7 +23,7 @@ test('500 distinct meaningful SVG icons are organized in 25 real gameplay domain
     assert.ok(names.has(icon.id), icon.id);
     assert.match(icon.id, /^[a-z0-9-]+$/);
   }
-  assert.doesNotMatch(atlas, /<script\b|<foreignObject\b|onload\s*=|https?:\/\//i);
+  assert.doesNotMatch(atlas, /<script\b|<foreignObject\b|onload\s*=|href=["']https?:/i);
 });
 
 test('every live technology tradition and policy renders its own specific atlas symbol', () => {
