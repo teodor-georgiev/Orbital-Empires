@@ -1,5 +1,8 @@
 /* Orbital Empires — deterministic, dependency-free turn-based 4X simulation. */
-export const VERSION = 1;
+import { TRADITIONS, POLICIES, traditionCost, unityIncome, civicBonuses, canAdoptTradition, canEnactPolicy } from './modules/strategy/civics.js';
+export { TRADITIONS, POLICIES, traditionCost, unityIncome };
+import { SAVE_SCHEMA_VERSION } from './version.js';
+export const VERSION = SAVE_SCHEMA_VERSION;
 export const WORLD = { width: 1140, height: 760 };
 export const EMPIRE_TEMPLATES = [
   { name: 'Terran Directorate', short: 'TERRAN', color: '#46d9dc', motto: 'Knowledge is our frontier.', species: 'Human', trait: 'Adaptive' },
@@ -34,6 +37,10 @@ export const TECHS = [
   { id: 'capital-ships', name: 'Capital Shipyards', branch: 'Military', cost: 142, prereqs: ['shield-matrix'], description: 'Shipyards can assemble heavy Cruisers.', bonus: 'Cruisers unlocked', color: '#ed929d' },
   { id: 'terraforming', name: 'Planetary Engineering', branch: 'Exploration', cost: 131, prereqs: ['colonial-charters'], description: 'Improve colony productivity and capacity by 25%.', bonus: '+25% colony output', color: '#7ed2e9' },
   { id: 'stellar-nexus', name: 'Stellar Nexus', branch: 'Science', cost: 157, prereqs: ['quantum-labs'], description: 'Interlinked research institutes multiply discoveries.', bonus: '+35% science', color: '#7ed2e9' },
+  { id: 'culture-networks', name: 'Cultural Networks', branch: 'Civics', cost: 89, prereqs: ['stellar-survey'], description: 'Shared galactic institutions accelerate the rise of traditions.', bonus: '+20% unity', color: '#c3a9ef' },
+  { id: 'frontier-habitats', name: 'Frontier Habitats', branch: 'Exploration', cost: 132, prereqs: ['colonial-charters'], description: 'New frontier colonies start with an extra population unit.', bonus: '+1 starting population', color: '#7ed2e9' },
+  { id: 'exotic-materials', name: 'Exotic Materials', branch: 'Industry', cost: 170, prereqs: ['synthetic-smelting'], description: 'Rare-matter extraction increases alloy output.', bonus: '+15% alloys', color: '#e6b581' },
+  { id: 'civic-administration', name: 'Galactic Administration', branch: 'Civics', cost: 149, prereqs: ['culture-networks','fusion-grid'], description: 'A federated bureaucracy strengthens influence throughout the empire.', bonus: '+20% influence', color: '#c3a9ef' },
 ];
 const PREFIX = ['Ar', 'Bel', 'Cor', 'Den', 'Eri', 'Fal', 'Gai', 'Hel', 'Ixo', 'Jor', 'Kel', 'Lor', 'Mer', 'Niv', 'Oph', 'Pra', 'Qua', 'Rig', 'Sar', 'Tal', 'Umb', 'Vel', 'Wey', 'Xan', 'Yor', 'Zen', 'Astra', 'Ceti', 'Cygn', 'Drac'];
 const SUFFIX = ['ion', 'aris', 'ora', ' Prime', ' IX', 'or', 'eus', 'une', 'a', 'os', 'ara', 'ium', 'eti', 'ax', 'is', 'eron', 'ilia', 'orion', 'eth', 'ore'];
@@ -90,7 +97,7 @@ export function generateGame({seed='ORION-47',size=90,opponents=4,difficulty='no
   const homes=chooseHomes(g,opponents+1);
   for(let i=0;i<homes.length;i++){
     const t=EMPIRE_TEMPLATES[i];const home=homes[i];home.owner=i;home.population=6;home.capital=true;home.buildings={foundry:1,laboratory:1,exchange:1,citadel:1};
-    g.empires.push({...t,id:i,home:home.id,credits:i===0?175:150,alloys:i===0?124:110,influence:56,techs:[],research:'orbital-industry',progress:0,wars:{},relations:{},lastEnvoy:{},eliminated:false});
+    g.empires.push({...t,id:i,home:home.id,credits:i===0?175:150,alloys:i===0?124:110,influence:56,techs:[],research:'orbital-industry',progress:0,unity:25,traditions:[],policies:[],wars:{},relations:{},lastEnvoy:{},eliminated:false});
     g.fleets.push({id:g.nextFleetId++,owner:i,system:home.id,ships:{corvette:3,frigate:0,cruiser:0},movedTurn:0,name:i===0?'First Expedition':'Home Guard'});
   }
   for(const e of g.empires)for(const r of g.empires)if(r.id!==e.id){e.wars[r.id]=false;e.relations[r.id]=e.id===0?0:roll(g,25)-12;}
@@ -111,10 +118,11 @@ export function getVisibility(g,id=0){
 export function hasSeen(g,id){return g.explored.includes(id)||getVisibility(g).has(id)}
 export function reveal(g){const vis=getVisibility(g);for(const id of vis)if(!g.explored.includes(id))g.explored.push(id)}
 function modifier(emp,stat){let mod=1;
- if(stat==='alloys'){if(has(emp,'orbital-industry'))mod+=.2;if(has(emp,'synthetic-smelting'))mod+=.25;if(emp.trait==='Industrial')mod+=.15;}
+ if(stat==='alloys'){if(has(emp,'orbital-industry'))mod+=.2;if(has(emp,'synthetic-smelting'))mod+=.25;if(has(emp,'exotic-materials'))mod+=.15;if(emp.trait==='Industrial')mod+=.15;}
  if(stat==='credits'){if(has(emp,'fusion-grid'))mod+=.2;if(has(emp,'planetary-banking'))mod+=.3;if(emp.trait==='Diplomatic')mod+=.12;}
  if(stat==='science'){if(has(emp,'quantum-labs'))mod+=.3;if(has(emp,'stellar-nexus'))mod+=.35;if(emp.trait==='Scientific')mod+=.16;}
- if(emp.trait==='Expansionist'&&stat==='influence')mod+=.15;
+ if(emp.trait==='Expansionist'&&stat==='influence')mod+=.15;if(stat==='influence'&&has(emp,'civic-administration'))mod+=.2;
+  mod+=civicBonuses(emp)[stat]||0;
  if(has(emp,'terraforming'))mod+=.12;
  return mod;
 }
@@ -128,14 +136,14 @@ export function systemYield(g,s){if(s.owner===null)return {credits:0,alloys:0,sc
  };
 }
 export function income(g,id=0){return ownedSystems(g,id).reduce((a,s)=>{const v=systemYield(g,s);for(const key of Object.keys(a))a[key]+=v[key];return a;},{credits:0,alloys:0,science:0,influence:0})}
-export function score(g,id=0){const e=g.empires[id];return ownedSystems(g,id).length*24+e.techs.length*18+g.fleets.filter(f=>f.owner===id).reduce((n,f)=>n+fleetPower(g,f),0)*.45+Math.floor(e.credits/25);}
-export function fleetPower(g,f){let p=SHIPS.reduce((sum,ship)=>sum+(f.ships[ship.id]||0)*ship.power,0);const e=g.empires[f.owner];if(has(e,'fleet-logistics'))p*=1.1;if(has(e,'shield-matrix'))p*=1.2;if(e.trait==='Militaristic')p*=1.15;return Math.round(p);}
+export function score(g,id=0){const e=g.empires[id];return ownedSystems(g,id).length*24+e.techs.length*18+g.fleets.filter(f=>f.owner===id).reduce((n,f)=>n+fleetPower(g,f),0)*.45+Math.floor(e.credits/25)+(e.traditions?.length||0)*15;}
+export function fleetPower(g,f){let p=SHIPS.reduce((sum,ship)=>sum+(f.ships[ship.id]||0)*ship.power,0);const e=g.empires[f.owner];if(has(e,'fleet-logistics'))p*=1.1;if(has(e,'shield-matrix'))p*=1.2;if(e.trait==='Militaristic')p*=1.15;p*=1+civicBonuses(e).fleet;return Math.round(p);}
 export function availableTechs(emp){return TECHS.filter(t=>!has(emp,t.id)&&t.prereqs.every(id=>has(emp,id)))}
 export function chooseResearch(g,id){const e=g.empires[0],t=TECHS.find(t=>t.id===id);if(!t)return failure('Unknown technology.');if(has(e,id))return failure('This technology is already researched.');if(!t.prereqs.every(p=>has(e,p)))return failure('Prerequisite technologies are missing.');e.research=id;return success(`Research focus set to ${t.name}.`)}
-export function colonyCost(g,id=0){const e=g.empires[id],discount=has(e,'colonial-charters')?.75:1;return {credits:Math.ceil(70*discount),alloys:42,influence:Math.ceil(18*discount)};}
+export function colonyCost(g,id=0){const e=g.empires[id],discount=Math.max(.5,(has(e,'colonial-charters')?.75:1)-civicBonuses(e).colonization);return {credits:Math.ceil(70*discount),alloys:42,influence:Math.ceil(18*discount)};}
 function canColonizeBy(g,id,owner){const s=g.systems[id],e=g.empires[owner];if(!s)return failure('Unknown system.');if(s.owner!==null)return failure('This system is already claimed.');if(!s.neighbors.some(n=>g.systems[n].owner===owner))return failure('Colonies must connect to an existing star system.');const c=colonyCost(g,owner);if(Object.keys(c).some(k=>e[k]<c[k]))return failure('Not enough resources to establish a colony.');return success('Ready to colonize.',{cost:c})}
 export function canColonize(g,id){return canColonizeBy(g,id,0)}
-function colonizeBy(g,id,owner){const allowed=canColonizeBy(g,id,owner);if(!allowed.ok)return allowed;const e=g.empires[owner],s=g.systems[id];for(const [k,v] of Object.entries(allowed.cost))e[k]-=v;s.owner=owner;s.population=2;s.buildings={foundry:0,laboratory:0,exchange:0,citadel:0};if(owner===0){reveal(g);log(g,`${s.name} joins the Directorate. Colonists begin settling ${s.biome.toLowerCase()} worlds.`,'colony')}else if(getVisibility(g).has(id))log(g,`${e.short} has founded a colony at ${s.name}.`,'intel');return success(`${s.name} colonized successfully.`)}
+function colonizeBy(g,id,owner){const allowed=canColonizeBy(g,id,owner);if(!allowed.ok)return allowed;const e=g.empires[owner],s=g.systems[id];for(const [k,v] of Object.entries(allowed.cost))e[k]-=v;s.owner=owner;s.population=2+(has(e,'frontier-habitats')?1:0);s.buildings={foundry:0,laboratory:0,exchange:0,citadel:0};if(owner===0){reveal(g);log(g,`${s.name} joins the Directorate. Colonists begin settling ${s.biome.toLowerCase()} worlds.`,'colony')}else if(getVisibility(g).has(id))log(g,`${e.short} has founded a colony at ${s.name}.`,'intel');return success(`${s.name} colonized successfully.`)}
 export function colonize(g,id){return colonizeBy(g,id,0)}
 export function canBuild(g,id,type){const s=g.systems[id],e=g.empires[0],b=BUILDINGS.find(b=>b.id===type);if(!s||s.owner!==0)return failure('Select one of your colonies.');if(!b)return failure('Unknown development.');const lv=s.buildings[type];if(lv>=3)return failure('Maximum level reached.');if(e.alloys<b.cost[lv]||e.credits<b.credit[lv])return failure('Insufficient credits or alloys.');return success('Construction available.',{cost:{alloys:b.cost[lv],credits:b.credit[lv]}})}
 export function build(g,id,type){const r=canBuild(g,id,type);if(!r.ok)return r;const e=g.empires[0],s=g.systems[id];e.alloys-=r.cost.alloys;e.credits-=r.cost.credits;s.buildings[type]++;log(g,`${s.name}: ${BUILDINGS.find(b=>b.id===type).name} upgraded to level ${s.buildings[type]}.`,'build');return success('Development completed.')}
@@ -161,6 +169,8 @@ export function declareWar(g,id){const player=g.empires[0],enemy=g.empires[id];i
 export function sendEnvoy(g,id){const e=g.empires[0],r=g.empires[id];if(!r||id===0||r.eliminated)return failure('Choose a rival empire.');if(e.wars[id])return failure('Diplomacy is suspended during war.');if(e.lastEnvoy[id]===g.turn)return failure('An envoy has already visited this turn.');if(e.influence<12)return failure('Not enough influence to send an envoy.');e.influence-=12;e.relations[id]=clamp((e.relations[id]||0)+21,-100,100);r.relations[0]=clamp((r.relations[0]||0)+21,-100,100);e.lastEnvoy[id]=g.turn;log(g,`An envoy improved diplomatic ties with ${r.short}.`,'diplomacy');return success('Diplomatic relations improved by 21.')}
 export function offerPeace(g,id){const p=g.empires[0],enemy=g.empires[id];if(!enemy||!p.wars[id])return failure('You are not at war with this empire.');const ps=score(g,0),es=score(g,id);if(ps<es*.95&&ownedSystems(g,id).length>1)return failure('Your rival refuses peace while it holds the advantage.');p.wars[id]=false;enemy.wars[0]=false;p.relations[id]=-35;enemy.relations[0]=-35;log(g,`Peace treaty signed with ${enemy.short}.`,'diplomacy');return success('A peace treaty has been signed.')}
 function empireResearch(g,e){if(!e.research||has(e,e.research))e.research=availableTechs(e)[0]?.id||null;if(!e.research)return;const t=TECHS.find(t=>t.id===e.research);if(!t||!t.prereqs.every(p=>has(e,p))){e.research=availableTechs(e)[0]?.id||null;return;}e.progress+=income(g,e.id).science;while(e.research){const cur=TECHS.find(t=>t.id===e.research);if(!cur||e.progress<cur.cost)break;e.progress-=cur.cost;e.techs.push(cur.id);if(e.id===0)log(g,`RESEARCH COMPLETE: ${cur.name}. ${cur.bonus}.`,'research');e.research=availableTechs(e)[0]?.id||null;}}
+export function adoptTradition(g,id){const valid=canAdoptTradition(g,id);if(!valid.ok)return valid;const e=g.empires[0],t=TRADITIONS.find(x=>x.id===id);e.unity=(e.unity||0)-traditionCost(e);(e.traditions??=[]).push(id);log(g,`TRADITION ADOPTED: ${t.name}. ${t.bonus}.`,'culture');return success(`${t.name} adopted.`);}
+export function enactPolicy(g,id){const valid=canEnactPolicy(g,id);if(!valid.ok)return valid;const e=g.empires[0],p=POLICIES.find(x=>x.id===id);e.influence-=20;e.policies=(e.policies||[]).filter(x=>POLICIES.find(z=>z.id===x)?.slot!==p.slot);e.policies.push(id);log(g,`SOCIAL POLICY: ${p.name}. ${p.bonus}.`,'culture');return success(`${p.name} enacted.`);}
 function aiRecruit(g,emp){const system=ownedSystems(g,emp.id).find(s=>s.capital)||ownedSystems(g,emp.id)[0];if(!system)return;const ship=SHIPS.slice().reverse().find(ship=>(!ship.tech||has(emp,ship.tech))&&emp.alloys>=ship.alloy&&emp.credits>=ship.credits);if(!ship)return;emp.alloys-=ship.alloy;emp.credits-=ship.credits;let f=g.fleets.find(x=>x.owner===emp.id&&x.system===system.id);if(!f){f={id:g.nextFleetId++,owner:emp.id,system:system.id,ships:{corvette:0,frigate:0,cruiser:0},movedTurn:0,name:`${emp.short} Armada`};g.fleets.push(f)}f.ships[ship.id]++;}
 function aiTurn(g,emp){if(!ownedSystems(g,emp.id).length){emp.eliminated=true;return;}
  const colonies=ownedSystems(g,emp.id),choices=[];for(const s of colonies)for(const n of getNeighbors(g,s.id))if(n.owner===null&&!choices.includes(n.id))choices.push(n.id);
@@ -181,7 +191,7 @@ function aiTurn(g,emp){if(!ownedSystems(g,emp.id).length){emp.eliminated=true;re
  }
 }
 export function endTurn(g){if(g.gameOver)return failure('This campaign has ended. Start a new galaxy to continue.');g.turn++;
- for(const e of g.empires){const y=income(g,e.id);for(const k of ['credits','alloys','influence'])e[k]+=y[k];if(ownedSystems(g,e.id).length)empireResearch(g,e)}
+ for(const e of g.empires){const y=income(g,e.id);for(const k of ['credits','alloys','influence'])e[k]+=y[k];e.unity=(e.unity||0)+unityIncome(g,e.id);if(ownedSystems(g,e.id).length)empireResearch(g,e)}
  for(const s of g.systems){if(s.owner!==null&&s.population<16&&rand(g)<(.28+s.habitability*.08))s.population++;}
  for(const e of g.empires.slice(1)){aiTurn(g,e)}
  reveal(g);
