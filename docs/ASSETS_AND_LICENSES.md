@@ -1,5 +1,7 @@
 # Online references and reuse policy
 
+**Stellaris/Steam Workshop reuse audit:** [model origins, license clearance, and safe standalone alternatives](STELLARIS_ASSET_PROVENANCE.md). No Stellaris Workshop files are authorized for commercial reuse merely by being publicly downloadable.
+
 Reviewed 2026-11-03. **Inspiration is not permission to clone copyrighted game expression.**
 
 | Source | Use | License / constraint |
