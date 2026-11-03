@@ -57,7 +57,9 @@ Develop only on feature/fix branches; require a successful test workflow and rev
 
 - [Game systems and milestone design](docs/GAME_DESIGN.md)
 - [Current architecture and modularization gate](docs/ARCHITECTURE.md)
-- [Four ChatGPT lanes and GitHub branch ownership](docs/PARALLEL_LANES.md)
+- [Master roadmap: all game systems and milestones](docs/ROADMAP.md)
+- [Priority-ordered feature backlog and GitHub issues](docs/DEVELOPMENT_BACKLOG.md)
+- [Eight ChatGPT development lanes and GitHub branch ownership](docs/PARALLEL_LANES.md)
 - [Online references, asset sources and license safety](docs/ASSETS_AND_LICENSES.md)
 
 Shared integration branch: `feat/turn-based-4x-pwa`. Build feature modules in separate branches and bring them into this branch through reviewed PRs. Current code is dependency-free JavaScript; do not replace the stack silently.
