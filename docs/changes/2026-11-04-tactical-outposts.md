@@ -18,3 +18,8 @@
 - Run existing full `npm test`, browser smoke, and Playwright workflows on the exact final commit before merge or release. Screenshot comparison with original SVG mockup required.
 - This feature PR must not merge directly into `main` ahead of the monthly clock branch. If either base evolves, rebase/reconcile and rerun all checks.
 - Limits: ships currently use persistent individual identities with one local order per fleet; transit remains strategic one hyperlane/month, not physics-based continuous acceleration. Command UI displays at most 65 ship buttons and renders at most 320 representative 3D hulls for performance.
+
+## Fleet movement usability upgrade
+- Direct one-click destination choices in the Fleet Operations inspector display accurate ETA and create real saved route orders, rather than requiring a hidden two-stage galaxy selection.
+- Selected ships in the solar view can choose **Send via Hyperlane**, splitting a selected subset into its own fleet where necessary, then returning to Galaxy Command. Right-click a discovered system to order the selected fleet immediately.
+- Added Playwright coverage for selecting a fleet, issuing a route, stepping one month, persisting travel, and bridging selected ships from the system view.

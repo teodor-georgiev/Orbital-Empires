@@ -28,3 +28,11 @@
  .oe-tactical-actions{grid-template-columns:1fr 1fr}.oe-tactical-actions button{padding:5px 2px}
  .oe-unit-list{max-height:68px}
 }
+
+/* One-click navigable destinations in Fleet Operations (galaxy and solar bridge). */
+.oe-fleet-destinations{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;max-height:280px;overflow:auto;scrollbar-width:thin}
+.oe-fleet-destinations button{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;min-width:0;padding:10px 8px;text-align:left;background:#112e3f;border:1px solid #356978;border-radius:6px;color:#e1f9fa;cursor:pointer}
+.oe-fleet-destinations button:hover,.oe-fleet-destinations button:focus-visible{border-color:#a5f6ed;background:#225363}
+.oe-fleet-destinations strong{overflow-wrap:anywhere;font:700 12px Rajdhani,sans-serif}
+.oe-fleet-destinations small{white-space:nowrap;font:700 10px Rajdhani,sans-serif;color:#86cccf}
+@media(max-width:550px){.oe-fleet-destinations{grid-template-columns:1fr}}
