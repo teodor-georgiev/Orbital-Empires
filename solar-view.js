@@ -69,7 +69,7 @@ varying vec3 v_normal;
 void main() {
   v_normal = a_normal;
   gl_Position = u_viewproj * vec4(a_position*u_radius + u_offset, 1.0);
-  gl_PointSize = 1.7;
+  gl_PointSize = 2.7;
 }`;
 const FRAGMENT = `
 precision mediump float;
