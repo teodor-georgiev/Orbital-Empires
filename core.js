@@ -245,8 +245,8 @@ export function endTurn(g){if(g.gameOver)return failure('This campaign has ended
  return success(`Turn ${g.turn} has begun.`,{income:income(g,0),newEvents:g.logs.filter(x=>x.turn===g.turn)});
 }
 export function validateGame(data){
- if(data.empires.some(e=>!e||!validGovernmentState(e)))return false;
  if(!data||data.version!==VERSION||(data.startYear!==undefined&&(!Number.isInteger(data.startYear)||data.startYear<2000||data.startYear>3000))||(data.scenario!==undefined&&!['sol','procedural'].includes(data.scenario))||!Array.isArray(data.systems)||!Array.isArray(data.empires)||!Array.isArray(data.fleets)||data.systems.length<40||data.systems.length>180||data.empires.length<2||data.empires.length>7)return false;
+ if(data.empires.some(e=>!e||!validGovernmentState(e)))return false;
  if(!Number.isInteger(data.turn)||data.turn<1||data.turn>100000||!Number.isInteger(data.rng)||data.systems.some((s,i)=>s.id!==i||!Array.isArray(s.neighbors)||!s.neighbors.every(n=>Number.isInteger(n)&&n>=0&&n<data.systems.length)||!(s.owner===null||Number.isInteger(s.owner)&&s.owner>=0&&s.owner<data.empires.length)))return false;
  for(const s of data.systems){
   if(s.buildings&&(typeof s.buildings!=='object'||Array.isArray(s.buildings)||Object.entries(s.buildings).some(([key,level])=>!ALL_BUILDINGS.some(b=>b.id===key)||!Number.isInteger(level)||level<0||level>3)))return false;
