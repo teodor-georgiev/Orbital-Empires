@@ -1,5 +1,6 @@
 import { VERSION, WORLD, BUILDINGS, SHIPS, TECHS, TRADITIONS, POLICIES, traditionCost, unityIncome, adoptTradition, enactPolicy, generateGame, getEmpire, ownedSystems, getVisibility, hasSeen, getNeighbors, income, systemYield, score, fleetPower, availableTechs, colonyCost, canColonize, colonize, canBuild, build, canRecruit, recruit, canMove, moveFleet, chooseResearch, declareWar, sendEnvoy, offerPeace, endTurn, validateGame } from './core.js';
 import { planetsForSystem, drawSolarSystem } from './modules/galaxy/planets.js';
+import { APP_VERSION } from './version.js';
 
 const SAVE_KEY = 'orbital-empires-save-v1';
 const $ = selector => document.querySelector(selector);
@@ -40,6 +41,7 @@ function render(){
   $('#resource-bar').innerHTML=resources.map(([icon,label,key])=>`<div class="resource"><span class="resource-icon">${icon}</span><div class="resource-info"><small>${label}</small><strong>${key==='science'?fmt(yieldNow.science):fmt(player[key]||0)}<i>${key==='science'?'/ TURN':key==='unity'?`+${unityIncome(game)}`:`+${fmt(yieldNow[key])}`}</i></strong></div></div>`).join('');
   $('#profile-metrics').innerHTML=`<div class="profile-metric"><strong>${territory.length}</strong><small>COLONIES</small></div><div class="profile-metric"><strong>${totalFleets().length}</strong><small>FLEETS</small></div><div class="profile-metric"><strong>${player.techs.length}</strong><small>TECHS</small></div>`;
   $('#top-turn').textContent=`CYCLE ${String(game.turn).padStart(2,'0')}`;
+  $('#build-version').textContent=`BUILD v${APP_VERSION} · SINGLE PLAYER`;
   $('#map-summary').textContent=mapView==='solar'? `${planetsForSystem(systems[selectedId]).length} orbiting worlds · ${systems[selectedId].star} · ${systems[selectedId].feature}` : `${systems.length} star systems · ${game.empires.filter(e=>!e.eliminated).length} civilizations · ${territory.length} controlled`;
   $('#map-title').textContent=mapView==='solar'?systems[selectedId].name:'Galactic Sector 01';
   document.querySelectorAll('[data-view]').forEach(b=>{b.classList.toggle('active',b.dataset.view===mapView);b.setAttribute('aria-pressed',String(b.dataset.view===mapView));});
