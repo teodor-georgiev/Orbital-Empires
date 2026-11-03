@@ -123,3 +123,49 @@
   .progress-tab span{margin-left:2px}
   .progress-node-identity .progress-vector{width:25px;height:25px}
 }
+
+
+/* v0.3.1 visual repair: a hidden Progress panel must never claim the
+   map's flex height. This is intentionally scoped, not a UI redesign. */
+.progress-workspace[hidden]{display:none!important}
+
+/* Restore the labeled command bar previously reviewed for compact screens.
+   The old mobile CSS put all seven primary actions after the galaxy scene. */
+@media(max-width:750px){
+ .main-layout .sidebar{
+   order:0;position:relative;z-index:12;display:block;
+   flex:0 0 58px;width:100%;height:58px;min-height:58px;max-height:58px;
+   overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;
+   background:#0b192b;border-top:0;border-bottom:1px solid #30495d;
+   scrollbar-width:thin
+ }
+ .main-layout .sidebar .game-nav{
+   display:flex;flex-direction:row;justify-content:flex-start;align-items:center;
+   width:max-content;min-width:100%;height:57px;gap:5px;margin:0;padding:6px 9px;
+   overflow:visible
+ }
+ .main-layout .sidebar .nav-link{
+   display:flex;flex:0 0 auto;flex-direction:row;justify-content:flex-start;
+   min-width:126px;max-width:192px;width:auto;height:43px;min-height:43px;
+   gap:7px;padding:4px 9px!important;text-align:left;justify-content:flex-start!important;
+   white-space:normal;font-size:12px!important;line-height:1.2
+ }
+ .main-layout .sidebar .nav-icon{
+   flex:0 0 25px;min-width:25px;width:25px;height:27px
+ }
+ .main-layout .galaxy-wrapper{order:1;min-width:0}
+ .main-layout .inspector{order:2}
+}
+
+/* Planet focus uses the same scene as orbit selection. On narrow phones the
+   orbital-object chooser sat directly over the focused planet's action card.
+   Keep the chooser in SYSTEM mode; VIEW ORBITS returns to it from PLANET. */
+@media(max-width:550px){
+ body.oe-planet-focus .solar-planet-panel{display:none!important}
+ body.oe-planet-focus .oe-focus-caption{
+   left:8px;right:8px;bottom:7px;max-width:none;
+   max-height:calc(100% - 72px);overflow-y:auto;
+   z-index:6
+ }
+ body.oe-planet-focus .oe-focused-planet-art{top:34%}
+}

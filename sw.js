@@ -1,6 +1,6 @@
 /* Static asset shell: network-first online to make new Git/Vercel builds visible on reload,
    cache-first fallback offline. Local game saves stay in localStorage, never this cache. */
-const CACHE='orbital-empires-app-0.3.1-biome-government-space-progress-icons-v1';
+const CACHE='orbital-empires-app-0.3.1-visual-layout-hotfix-1';
 const OFFLINE_FILES=['./','./index.html','./style.css','./modules/styles/cinematic-ui.css','./modules/styles/distribution.css','./modules/styles/solar-frontier.css','./modules/galaxy/real-stars.js','./modules/styles/planet-command.css','./modules/simulation/population.js','./assets/ui/interface-icons.svg','./assets/ui/strategy-icons.svg','./assets/ui/gallery.html','./assets/planet-portraits/atlas.webp','./assets/original/emblems/terran.svg','./app.js','./core.js','./version.js','./support-config.js','./modules/strategy/civics.js','./modules/strategy/government.js','./modules/styles/government.css','./modules/styles/biome-planets.css','./modules/strategy/planet-buildings.js','./modules/visuals/planet-visual.js','./modules/space/environment.js','./modules/styles/space-environment.css','./modules/styles/command-workspace.css','./modules/ui/development-workspace.js','./modules/styles/expansion.css','./system-model.js','./solar-view.js','./manifest.webmanifest','./assets/icon.svg','./assets/icon-192.png','./assets/icon-512.png'];
 self.addEventListener('install',event=>{
  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(OFFLINE_FILES)).then(()=>self.skipWaiting()));
