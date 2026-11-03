@@ -17,6 +17,37 @@ const GROUP_ICONS = {
   policies: { Economy: 'policy-economy', Society: 'policy-society', Defense: 'policy-defense' }
 };
 const STATE_ICONS = { completed: 'state-completed', researching: 'state-active', available: 'state-available', locked: 'state-locked' };
+const ITEM_ART = {
+  research: {
+    'orbital-industry':'technology-orbital-industry', 'stellar-survey':'technology-stellar-survey',
+    'fusion-grid':'technology-fusion-grid', 'fleet-logistics':'technology-fleet-logistics',
+    'quantum-labs':'technology-quantum-laboratories', 'colonial-charters':'technology-frontier-charters',
+    'synthetic-smelting':'technology-synthetic-smelting', 'planetary-banking':'technology-galactic-markets',
+    'shield-matrix':'technology-shield-matrix', 'capital-ships':'technology-capital-shipyards',
+    'terraforming':'technology-terraforming', 'stellar-nexus':'technology-stellar-nexus',
+    'culture-networks':'technology-cultural-networks', 'frontier-habitats':'technology-frontier-habitats',
+    'exotic-materials':'technology-exotic-materials', 'civic-administration':'technology-civic-administration'
+  },
+  traditions: {
+    'frontier-spirit':'traditions-frontier-spirit','pathfinders':'traditions-pathfinders',
+    'settlers-covenant':'traditions-settlers-covenant','merchant-leagues':'traditions-merchant-leagues',
+    'orbital-artisans':'traditions-orbital-artisans','golden-age':'traditions-golden-age',
+    'scientific-method':'traditions-scientific-method','living-archives':'traditions-living-archives',
+    'cosmic-insight':'traditions-cosmic-insight'
+  },
+  policies: {
+    'open-markets':'policies-open-markets','directed-industry':'policies-directed-industry',
+    'academic-freedom':'policies-academic-freedom','civic-service':'policies-civic-service',
+    'fleet-doctrine':'policies-fleet-doctrine','diplomatic-corps':'policies-diplomatic-corps'
+  }
+};
+export const developmentItemIconKey = (page, id) => ITEM_ART[page]?.[id] || null;
+function itemIcon(page, item, className = 'progress-vector') {
+  const key = developmentItemIconKey(page, item.id);
+  return key ? '<svg class="' + className + '" aria-hidden="true" focusable="false"><use href="./assets/ui/empire-icon-atlas.svg#' + key + '"></use></svg>'
+    : strategyIcon(developmentIconKey(page, item[PAGES[page].groups]), className);
+}
+
 function strategyIcon(id, className = 'progress-vector') {
   return '<svg class="' + className + '" aria-hidden="true" focusable="false"><use href="./assets/ui/strategy-icons.svg#' + id + '"></use></svg>';
 }
@@ -58,7 +89,7 @@ function node(game, page, item, chosen, previous) {
   const connected = previous && (item.prereqs || []).includes(previous.id);
   return '<button type="button" class="progress-node ' + statusClass + (connected ? ' connected' : '') + (chosen ? ' selected' : '') +
     '" data-action="select-development" data-id="' + escapeText(item.id) + '" aria-pressed="' + String(chosen) + '">' +
-    '<span class="progress-node-top"><span class="progress-node-identity">' + strategyIcon(developmentIconKey(page, item[PAGES[page].groups])) +
+    '<span class="progress-node-top"><span class="progress-node-identity">' + itemIcon(page, item) +
     '<span class="progress-node-state">' + escapeText(state.status) + '</span></span><span class="progress-node-symbol">' +
     strategyIcon(STATE_ICONS[statusClass], 'progress-status-vector') + '</span></span>' +
     '<strong>' + escapeText(item.name) + '</strong><span class="progress-node-effect">' + escapeText(item.bonus) + '</span>' +
@@ -97,7 +128,7 @@ function details(game, page, item) {
     : state.active ? 'Current research focus' : info.verb;
   return '<aside class="progress-detail" aria-label="Selected ' + info.noun + ' details">' +
     '<span class="progress-detail-eyebrow">' + escapeText(item[PAGES[page].groups]) + ' / ' + escapeText(info.title) + '</span>' +
-    '<div class="progress-detail-icon">' + strategyIcon(developmentIconKey(page, item[PAGES[page].groups]), 'progress-detail-vector') + '</div>' +
+    '<div class="progress-detail-icon">' + itemIcon(page, item, 'progress-detail-vector') + '</div>' +
     '<h3>' + escapeText(item.name) + '</h3><p>' + escapeText(description) + '</p>' +
     '<div class="progress-effect"><small>EMPIRE EFFECT</small><strong>' + escapeText(item.bonus) + '</strong></div>' +
     '<div class="progress-details-row"><span>Prerequisites</span><b>' + escapeText(requiredLabel) + '</b></div>' + meta +
