@@ -2,6 +2,16 @@
 
 All published game builds use [Semantic Versioning](https://semver.org/). Version tags are created **only after** a reviewed integration and stable release, never on work-in-progress commits.
 
+## [0.3.1] — 2026-11-03 · GitHub Pages release candidate
+
+- Seeded distant starfield rendered in WebGL and 2D fallback, with bounded asteroid-belt rocks and observable moving comet/anomaly markers.
+- Accessible orbital-object selector, including mouse and keyboard inspection. Asteroid and comet sites can be mined/surveyed; rare fictional procedural star systems may contain black-hole gravity wells or hostile void leviathans.
+- One-time resource/research effects: asteroids cost 8 credits and award 18 alloys, comet scans grant 10 unity, anomalies grant research, black holes grant research/influence, and leviathan engagements require two corvettes and sacrifice one.
+- Sol keeps the real named eight-planet system and has only an asteroid belt and comet from the new encounter pool. Special objects in other star systems are fictional.
+- Save schema v1 preserved with optional bounded orbital-scan state; no repeated mining, no mandatory network connection or runtime dependencies.
+- Government/Council integration from PR #32, real-star Solar Frontier and asymptotic population growth remain included.
+- Browser tests cover desktop/mobile, PWA save persistence, and WebGL-disabled fallback. Public GitHub Pages deployment depends on the separately reviewed release.
+
 ## [0.3.0] — 2026-11-03 · Preview candidate
 
 - Approved A+B+C hybrid: galaxy command, cinematic planet management and immersive orbital view with floating inspector.
