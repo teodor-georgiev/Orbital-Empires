@@ -66,11 +66,16 @@ try{
  assert.ok(await evaluate('!!document.querySelector(".command-group-label")'));
  await evaluate('document.querySelector(".oe-home-continue").click();true');
  await ready('document.getElementById("modal-root").hidden&&!!document.querySelector("[data-action=open-solar]")','galaxy after menu resume');
+ assert.ok(await evaluate('document.querySelectorAll("#strategic-outliner [data-action=select-system]").length>0'),'4X colony outliner must contain real selectable colonies');
+ assert.ok(await evaluate('document.querySelectorAll("#strategic-outliner [data-action=select-fleet]").length>0'),'4X fleet outliner must show existing fleets');
+ assert.ok(await evaluate('document.querySelector("#strategic-outliner").getBoundingClientRect().height>50'),'4X desktop outliner must be visible');
+ assert.ok(await evaluate('document.querySelector("#strategic-outliner .outliner-icon").getBBox().width>4'),'first atlas icon must have visible geometry');
  await capture('01-galaxy-desktop.png');
  // Verify that contextual icons also draw inside all three real Progress views.
  await evaluate('document.querySelector(".progress-nav").click();true');
  await ready('document.querySelectorAll("#progress-workspace .progress-node .progress-vector").length>4','technology icons');
  assert.ok(await evaluate('document.querySelector("#progress-workspace .progress-node .progress-vector").getBBox().width>5'),'technology symbol has visible geometry');
+ assert.ok(await evaluate('document.querySelectorAll("#progress-workspace .progress-node use[href*=empire-icon-atlas]").length>=10'),'live technologies need individual atlas icons');
  await capture('01b-progress-technology.png');
  await evaluate('document.querySelector("#progress-workspace .progress-tab[data-nav=traditions]").click();true');
  await ready('document.querySelectorAll("#progress-workspace .progress-node .progress-vector").length>=9','traditions icon nodes');
@@ -151,6 +156,15 @@ try{
    clip:{x:0,y:0,width:Math.ceil(gallerySize.width),height:Math.ceil(gallerySize.height),scale:1}});
  writeFileSync(join(screenshots,'05-strategy-icons-full.png'),Buffer.from(image.data,'base64'));
 
+ // Original searchable 500-icon atlas: verify all symbols, filters and rendering in Chromium.
+ await command('Page.navigate',{url:'http://127.0.0.1:4173/assets/ui/empire-icon-gallery.html'});
+ await ready('document.readyState==="complete"&&document.querySelectorAll(".token").length===500','500 icon atlas gallery');
+ assert.ok(await evaluate('document.querySelector(".token .glyph svg").getBBox().width>4'),'500 atlas symbol must draw');
+ await evaluate('document.querySelector("[data-group=ships]").click();true');
+ await ready('document.querySelectorAll(".token:not([hidden])").length===20','ships icon category filter');
+ await evaluate('document.querySelector("[data-group=all]").click();true');
+ await ready('document.querySelectorAll(".token:not([hidden])").length===500','reset all icon categories');
+ await capture('06-500-icon-atlas.png');
  assert.equal(messages.length,0,'No uncaught browser exceptions: '+messages.join('; '));
  console.log('Browser smoke OK: seeded planet visuals, biome colony upgrades, gas harvester, save/reload, mobile');
 }catch(err){
