@@ -36,3 +36,13 @@
 .oe-fleet-destinations strong{overflow-wrap:anywhere;font:700 12px Rajdhani,sans-serif}
 .oe-fleet-destinations small{white-space:nowrap;font:700 10px Rajdhani,sans-serif;color:#86cccf}
 @media(max-width:550px){.oe-fleet-destinations{grid-template-columns:1fr}}
+
+/* The existing planet-command layout moves the planet list LEFT on wide orbital views.
+   Keep unit commands in the free center lane, not over the planet list or inspector. */
+@media(min-width:951px){
+ body.oe-orbital-mode .oe-solar-command-panel{left:214px;right:auto;top:79px;width:min(238px,calc(100% - 590px));z-index:6;}
+}
+@media(min-width:751px) and (max-width:950px){
+ body.oe-orbital-mode .oe-solar-command-panel{left:10px;right:auto;top:76px;width:min(198px,37%);}
+}
+body.oe-planet-focus .oe-solar-command-panel{display:none;}
