@@ -60,8 +60,9 @@ try{
  await command('Page.enable');
  await command('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
  await ready('document.readyState==="complete"&&!!document.querySelector(".oe-home-menu")','command menu');
- assert.equal(await evaluate('document.querySelectorAll(".game-nav .nav-link").length'),9);
- assert.ok(await evaluate('!!document.querySelector("[data-nav=government]")'));
+ assert.equal(await evaluate('document.querySelectorAll(".game-nav .nav-link").length'),7);
+ assert.ok(await evaluate('!!document.querySelector("[data-nav=government]")&&!!document.querySelector(".progress-nav")'));
+ assert.ok(await evaluate('!!document.querySelector("#progress-workspace")'));
  assert.ok(await evaluate('!!document.querySelector(".command-group-label")'));
  await evaluate('document.querySelector(".oe-home-continue").click();true');
  await ready('document.getElementById("modal-root").hidden&&!!document.querySelector("[data-action=open-solar]")','galaxy after menu resume');
@@ -116,7 +117,7 @@ try{
  await ready('document.getElementById("modal-root").hidden','resume saved game');
  assert.ok(await evaluate('document.getElementById("top-turn").textContent.includes("02")'),'turn persists after reload');
  await command('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
- assert.ok(await evaluate('document.querySelectorAll(".game-nav .nav-link").length===9'));
+ assert.ok(await evaluate('document.querySelectorAll(".game-nav .nav-link").length===7'));
  await evaluate('document.querySelector("[data-action=open-solar]").click();true');
  await ready('!document.getElementById("solar-stage").hidden','mobile orbital scene');
  await evaluate('document.getElementById("solar-focus-planet").click();true');
