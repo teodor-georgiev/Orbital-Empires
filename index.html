@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="modules/styles/expansion.css" />
   <link rel="stylesheet" href="modules/styles/cinematic-ui.css" />
   <link rel="stylesheet" href="modules/styles/distribution.css" />
+  <link rel="stylesheet" href="modules/styles/command-workspace.css" />
   <title>Orbital Empires — A Turn-Based 4X Galaxy</title>
 </head>
 <body>
@@ -36,13 +37,11 @@
           <div class="profile-sub">THE FRONTIER IS OURS</div>
           <div id="profile-metrics" class="profile-metrics"></div>
         </div>
-        <div class="nav-head">STRATEGIC SYSTEMS <span>08</span></div>
+        <div class="nav-head">COMMAND CENTER <span>06</span></div>
         <nav class="game-nav" aria-label="Game sections">
           <button data-nav="system" class="nav-link active"><span class="nav-icon"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="./assets/ui/interface-icons.svg#galaxy"></use></svg></span> Galaxy Command <span class="nav-indicator"></span></button>
           <button data-nav="colonies" class="nav-link"><span class="nav-icon"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="./assets/ui/interface-icons.svg#colonies"></use></svg></span> Colonies <span class="nav-indicator"></span></button>
-          <button data-nav="research" class="nav-link"><span class="nav-icon"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="./assets/ui/interface-icons.svg#research"></use></svg></span> Research <span class="nav-indicator"></span></button>
-          <button data-nav="traditions" class="nav-link"><span class="nav-icon"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="./assets/ui/interface-icons.svg#traditions"></use></svg></span> Traditions <span class="nav-indicator"></span></button>
-          <button data-nav="policies" class="nav-link"><span class="nav-icon"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="./assets/ui/interface-icons.svg#policies"></use></svg></span> Social Policies <span class="nav-indicator"></span></button>
+          <button data-nav="research" class="nav-link progress-nav" title="Technology, Traditions and Policies"><span class="nav-icon"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="./assets/ui/interface-icons.svg#research"></use></svg></span> Progress <span class="nav-indicator"></span></button>
           <button data-nav="military" class="nav-link"><span class="nav-icon"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="./assets/ui/interface-icons.svg#fleets"></use></svg></span> Fleets & Shipyard <span class="nav-indicator"></span></button>
           <button data-nav="diplomacy" class="nav-link"><span class="nav-icon"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="./assets/ui/interface-icons.svg#diplomacy"></use></svg></span> Diplomacy <span class="nav-indicator"></span></button>
           <button data-nav="intel" class="nav-link"><span class="nav-icon"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="./assets/ui/interface-icons.svg#intel"></use></svg></span> Empire Intel <span class="nav-indicator"></span></button>
@@ -51,6 +50,7 @@
       </aside>
       <main class="galaxy-wrapper">
         <div class="map-top"><div><span class="eyebrow cyan">EXPLORATION OVERVIEW</span><h1>Galactic Sector <span>01</span></h1><p id="map-summary">Survey the stars. Shape the galaxy.</p></div><div class="map-mode"><span class="map-mode-pulse"></span> LIVE STRATEGIC MAP <span class="map-mode-dot">·</span> TURN BASED</div></div>
+        <section id="progress-workspace" class="progress-workspace" aria-label="Empire development" hidden></section>
         <div id="map-viewport" class="map-viewport"><canvas id="galaxy-canvas" aria-label="Interactive galaxy map. Select a visible star system to inspect it." role="img"></canvas><section id="solar-stage" class="solar-stage" aria-label="Interactive orbital system view" hidden>
           <div class="solar-ambient" aria-hidden="true"></div><div class="solar-star-halo" aria-hidden="true"></div>
           <canvas id="solar-canvas" tabindex="0" aria-label="Solar system scene. Drag to orbit camera, scroll to zoom, click planets to select. Use planet list for keyboard access."></canvas>
