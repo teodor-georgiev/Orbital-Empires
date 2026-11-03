@@ -126,6 +126,12 @@ try{
  const mobileLayout=await evaluate(`JSON.stringify({viewport:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth,offenders:[...document.querySelectorAll('*')].filter(el=>{const r=el.getBoundingClientRect();return r.width>0&&r.right>window.innerWidth+4}).slice(0,16).map(el=>({tag:el.tagName,class:el.className?.baseVal||el.className||'',right:Math.round(el.getBoundingClientRect().right),width:Math.round(el.getBoundingClientRect().width)}))})`);
  console.log('MOBILE_LAYOUT',mobileLayout);
  assert.ok(await evaluate('document.documentElement.scrollWidth<=document.documentElement.clientWidth+3'),'no mobile horizontal overflow');
+ // Check the new icon gallery in a real browser, not just SVG source text.
+ await command('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
+ await command('Page.navigate',{url:'http://127.0.0.1:4173/assets/ui/gallery.html'});
+ await ready('document.readyState==="complete"&&document.querySelectorAll(".icon-card").length===31','new vector gallery');
+ assert.ok(await evaluate('document.querySelector(".main-icon")?.getBBox().width>5'),'strategy sprite geometry must be visible');
+ await capture('05-strategy-icon-gallery.png');
  assert.equal(messages.length,0,'No uncaught browser exceptions: '+messages.join('; '));
  console.log('Browser smoke OK: seeded planet visuals, biome colony upgrades, gas harvester, save/reload, mobile');
 }catch(err){
