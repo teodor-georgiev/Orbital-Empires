@@ -58,3 +58,15 @@ Develop only on feature/fix branches; require a successful test workflow and rev
 - [Online references, asset sources and license safety](docs/ASSETS_AND_LICENSES.md)
 
 Shared integration branch: `feat/turn-based-4x-pwa`. Build feature modules in separate branches and bring them into this branch through reviewed PRs. Current code is dependency-free JavaScript; do not replace the stack silently.
+
+## Download optional Kenney art and PixiJS
+
+From a network-connected development machine with Node.js 22+:
+
+```bash
+npm run assets:fetch
+```
+
+This fetches **Kenney Space Kit (3D ZIP)**, **Kenney Simple Space (2D ZIP)** and a **self-hostable pinned PixiJS v8.22.0 ES module** into `assets/vendor/` with a SHA-256 `manifest.json`. Downloads are deliberately gitignored and not included in the existing deployment, so game startup and offline PWA behavior remain unchanged. The archives are not automatically extracted or rendered; a separate reviewed UI/graphics change must integrate the selected assets. See [asset provenance and licensing](docs/ASSETS_AND_LICENSES.md).
+
+PixiJS renders **2D**, not Kenney's native 3D GLB files. Models need pre-rendered sprites or a separately selected 3D renderer. If the archive source changes, reverify its CC0 license before changing the download URL.
