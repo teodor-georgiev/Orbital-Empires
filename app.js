@@ -3,6 +3,7 @@ import { generateSystemBodies, selectSystemPlanet } from './system-model.js';
 import { createSolarView } from './solar-view.js';
 import { APP_VERSION } from './version.js';
 import { configuredDonationUrl } from './support-config.js';
+import { isDevelopmentPage, renderDevelopment } from './modules/ui/development-workspace.js';
 
 const SAVE_KEY = 'orbital-empires-save-v1';
 const PLANET_CLASSES=new Set(['terran','oceanic','desert','jungle','arctic','barren','volcanic','gas-giant']);
@@ -20,6 +21,7 @@ const escapeHTML = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const fmt = n => Math.round(n).toLocaleString('en-US');
 const fragment = (markup)=>markup;
 let game, activePage='system', selectedId=0, selectedFleetId=null, modalType=null, deferredInstallPrompt=null;
+let selectedDevelopmentId=null, developmentFilter='all';
 const SETTINGS_KEY='orbital-empires-settings-v1';
 const QUALITY={performance:{scale:1,maxPixels:1920*1080,delay:65,stars:100},balanced:{scale:2,maxPixels:2560*1440,delay:36,stars:270},ultra4k:{scale:3,maxPixels:3840*2160,delay:32,stars:470}};
 const THEMES=['command','nebula','imperial'];
@@ -91,8 +93,25 @@ function render(){
   $('#footer-status').textContent=game.gameOver?'CAMPAIGN COMPLETE':'GALACTIC NETWORK CONNECTED';
   const directive=territory.length<3?['Expand the frontier','Claim three systems to secure your first sector.',territory.length/3]:player.techs.length<2?['Discover new technologies','Research two technologies to advance your empire.',player.techs.length/2]:totalFleets().reduce((n,f)=>n+fleetPower(game,f),0)<55?['Establish galactic security','Build a fleet worth 55 combat power.',totalFleets().reduce((n,f)=>n+fleetPower(game,f),0)/55]:['Unite the frontier','Control 65% of the galaxy for Dominion victory.',territory.length/(systems.length*.65)];
   $('#directive-title').textContent=directive[0];$('#directive-description').textContent=directive[1];$('#directive-progress i').style.width=`${Math.round(Math.min(1,directive[2])*100)}%`;
-  for(const btn of document.querySelectorAll('[data-nav]')){btn.classList.toggle('active',btn.dataset.nav===activePage)}
-  const inspector=$('#inspector');inspector.innerHTML=renderInspector();
+  const isProgress = isDevelopmentPage(activePage);
+  $('.main-layout').classList.toggle('progress-mode', isProgress);
+  const workspace = $('#progress-workspace');
+  const previousBoard = workspace.querySelector('.progress-board');
+  const previousScroll = previousBoard ? [previousBoard.scrollLeft, previousBoard.scrollTop] : [0, 0];
+  workspace.hidden = !isProgress;
+  if (isProgress) {
+    workspace.innerHTML = renderDevelopment(game, activePage, selectedDevelopmentId, developmentFilter);
+    const board = workspace.querySelector('.progress-board');
+    if (board) { board.scrollLeft = previousScroll[0]; board.scrollTop = previousScroll[1]; }
+    $('#inspector').innerHTML = '';
+  } else {
+    workspace.innerHTML = '';
+    $('#inspector').innerHTML = renderInspector();
+  }
+  for (const button of document.querySelectorAll('[data-nav]')) {
+    const isPrimaryProgress = button.classList.contains('progress-nav') && isProgress;
+    button.classList.toggle('active', button.dataset.nav === activePage || isPrimaryProgress);
+  }
   const turnBtn=$('[data-action="end-turn"]');turnBtn.disabled=!!game.gameOver;
   if(solarOpen)renderSolarHud();
 }
@@ -225,7 +244,15 @@ $('#modal-root').addEventListener('click',e=>{if(e.target.id==='modal-root'&&mod
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(modalType)closeModal();else if(solarOpen)closeSolarSystem();return;}if(e.target instanceof HTMLInputElement||e.target instanceof HTMLSelectElement)return;if(e.key==='Enter'&&modalType===null&&game&&!game.gameOver&&e.ctrlKey){e.preventDefault();handleAction('end-turn',{})}if(e.key==='?'&&modalType===null)openModal('guide');});
 
 document.addEventListener('click',event=>{
- const nav=event.target.closest('[data-nav]');if(nav){if(solarOpen)closeSolarSystem();activePage=nav.dataset.nav;render();return;}
+ const nav=event.target.closest('[data-nav]');
+ if(nav){
+  const wasProgress=isDevelopmentPage(activePage);
+  if(solarOpen)closeSolarSystem();
+  if(activePage!==nav.dataset.nav){selectedDevelopmentId=null;developmentFilter='all';}
+  activePage=nav.dataset.nav;render();
+  if(wasProgress&&!isDevelopmentPage(activePage))requestAnimationFrame(resizeCanvas);
+  return;
+ }
  const action=event.target.closest('[data-action]');if(!action||action.disabled)return;
  handleAction(action.dataset.action,action.dataset);
 });
@@ -240,6 +267,21 @@ function handleAction(action,data){
   case 'guide':openModal('guide');break;
   case 'settings':openModal('settings');break;
   case 'save-settings':{settings.quality=$('#gfx-quality').value;settings.theme=$('#ui-theme').value;settings.motion=$('#motion-mode').value;try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings))}catch{}closeModal();applySettings();render();notice('Display settings applied.');break;}
+  case 'select-development': {
+    selectedDevelopmentId=data.id;
+    render();
+    const chosen=[...document.querySelectorAll('#progress-workspace [data-action="select-development"]')].find(node=>node.dataset.id===data.id);
+    chosen?.focus({preventScroll:true});
+    break;
+  }
+  case 'filter-development': {
+    developmentFilter=data.filter;
+    selectedDevelopmentId=null;
+    render();
+    const chosen=[...document.querySelectorAll('#progress-workspace [data-action="filter-development"]')].find(node=>node.dataset.filter===data.filter);
+    chosen?.focus({preventScroll:true});
+    break;
+  }
   case 'adopt-tradition':act(adoptTradition(game,data.id));break;
   case 'enact-policy':act(enactPolicy(game,data.id));break;
   case 'save':if(persist())notice('Campaign saved to this browser.');break;
