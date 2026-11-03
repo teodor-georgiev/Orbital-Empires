@@ -92,3 +92,34 @@
  .progress-detail{min-height:300px}
 }
 @media(prefers-reduced-motion:reduce){.progress-node{transition:none}}
+
+/* Preserve main's reviewed labeled mobile navigation across Progress, galaxy, and orbital scenes. */
+@media(max-width:760px){
+ .main-layout,.main-layout.progress-mode{display:flex;flex-direction:column}
+ .main-layout > .sidebar{
+   order:0;position:sticky;top:0;z-index:30;display:flex;flex:0 0 auto;
+   min-height:58px;max-height:58px;flex-direction:row;align-items:center;
+   overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;
+   background:#0b192b;border-bottom:1px solid #30495d;scrollbar-width:thin
+ }
+ .main-layout > .sidebar .commander-profile,
+ .main-layout > .sidebar .nav-head,
+ .main-layout > .sidebar .sidebar-bottom{display:none}
+ .main-layout > .sidebar .game-nav{
+   display:flex;flex:none;flex-direction:row;align-items:center;gap:5px;
+   min-width:max-content;padding:5px 8px;overflow:visible
+ }
+ .main-layout > .sidebar .game-nav .command-group-label{display:none}
+ .main-layout > .sidebar .nav-link{
+   flex:0 0 auto;min-width:116px;width:auto;min-height:42px;height:42px;
+   display:flex;flex-direction:row;align-items:center;justify-content:flex-start;
+   padding:0 9px!important;gap:7px;font-size:11px!important;line-height:1.2;
+   white-space:nowrap;text-align:left
+ }
+ .main-layout > .sidebar .nav-icon{flex:0 0 24px;min-width:24px;width:24px;height:25px}
+ .main-layout > .sidebar .nav-link .nav-indicator{display:none}
+ .main-layout > .galaxy-wrapper{order:1}
+ .main-layout > .inspector{order:2}
+ .main-layout.progress-mode .galaxy-wrapper{min-height:320px;height:auto}
+ .main-layout.progress-mode .progress-workspace{overflow:visible}
+}
