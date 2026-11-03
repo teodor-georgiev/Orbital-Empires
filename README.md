@@ -32,6 +32,14 @@ Open http://localhost:4173/. The game is not meant to be opened as a `file://` p
 
 Single-player games save locally in the browser (localStorage), not on the server. Clearing site data may erase progress. Multiplayer, accounts, cloud saves, and deterministic network synchronization are **not implemented**.
 
+## Living orbital environments
+
+- **Orbital environment:** deterministic starfield in WebGL and Canvas 2D fallback, visible asteroid fields, orbital comets, anomalies, rare black-hole systems and hostile void leviathans (fictional beyond Sol).
+- Orbital-object selector supports keyboard/touch; one-time asteroids cost 8 credits and award 18 alloys, comet scans grant 10 unity, anomalies grant 22 research, black-hole surveys grant 34 research/+8 influence, leviathan encounters require two corvettes and cost one for bounded rewards. Old saves remain compatible; results persist in optional spaceScans.
+- Original concept: [space environment SVG](docs/design/orbital-space-environment-concept.svg). Browser QA includes desktop/mobile screenshots.
+
+These star-system encounters are deterministic game fiction, not verified astronomy for nearby real stars. Sol retains its actual eight named planets and contains only an asteroid belt and comet from the encounter pool. No mandatory network dependencies.
+
 ## Self-host on your own VPS
 
 This package provides a hardened static Nginx container that listens **only on 127.0.0.1:8087 on the server**, leaving an existing HTTPS reverse proxy and ports 80/443 untouched.

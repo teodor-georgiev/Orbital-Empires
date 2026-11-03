@@ -2,6 +2,8 @@
 import { TRADITIONS, POLICIES, traditionCost, unityIncome, civicBonuses, canAdoptTradition, canEnactPolicy } from './modules/strategy/civics.js';
 export { TRADITIONS, POLICIES, traditionCost, unityIncome };
 import { SAVE_SCHEMA_VERSION } from './version.js';
+import { generateSpaceFeatures,canSurveySpaceSite,surveySpaceSite,hasScannedSite,validSpaceScans } from './modules/space/environment.js';
+export {generateSpaceFeatures,canSurveySpaceSite,surveySpaceSite,hasScannedSite};
 import { GOVERNMENTS, CIVICS, COUNCIL_OFFICES, LEADERS, FACTIONS, politicalStability, factionLoyalty, factionTargets, canReformGovernment, canAdoptCivic, canAppointLeader, reformGovernment, adoptCivic, appointLeader, advancePolitics, stabilityProductionFactor, validGovernmentState } from './modules/strategy/government.js';
 export { GOVERNMENTS, CIVICS, COUNCIL_OFFICES, LEADERS, FACTIONS, politicalStability, factionLoyalty, factionTargets, canReformGovernment, canAdoptCivic, canAppointLeader, reformGovernment, adoptCivic, appointLeader };
 import { advancePopulation } from './modules/simulation/population.js';
@@ -108,7 +110,7 @@ export function generateGame({seed='ORION-47',size=90,opponents=4,difficulty='no
   if(scenario==='sol')playerFaction='human';
   const selected=EMPIRE_TEMPLATES.find(t=>t.species===factions[playerFaction]);
   const rivals=EMPIRE_TEMPLATES.filter(t=>t.species!==selected.species);
-  const g={version:VERSION,seed:String(seed).slice(0,40)||'ORION-47',rng:hashSeed(seed),turn:1,startYear,scenario,playerFaction,systems:[],empires:[],fleets:[],logs:[],nextFleetId:1,explored:[],difficulty,gameOver:null,startedAt:Date.now()};
+  const g={version:VERSION,seed:String(seed).slice(0,40)||'ORION-47',rng:hashSeed(seed),turn:1,startYear,scenario,playerFaction,systems:[],empires:[],fleets:[],logs:[],spaceScans:{},nextFleetId:1,explored:[],difficulty,gameOver:null,startedAt:Date.now()};
   if(scenario==='sol')g.systems.push(...NEARBY_STARS.slice(0,size).map((star,i)=>nearbySystemSeed(star,i)));
   generateMap(g,size);
   const homes=chooseHomes(g,opponents+1,scenario==='sol'?0:null);
@@ -246,7 +248,7 @@ export function endTurn(g){if(g.gameOver)return failure('This campaign has ended
 }
 export function validateGame(data){
  if(!data||data.version!==VERSION||(data.startYear!==undefined&&(!Number.isInteger(data.startYear)||data.startYear<2000||data.startYear>3000))||(data.scenario!==undefined&&!['sol','procedural'].includes(data.scenario))||!Array.isArray(data.systems)||!Array.isArray(data.empires)||!Array.isArray(data.fleets)||data.systems.length<40||data.systems.length>180||data.empires.length<2||data.empires.length>7)return false;
- if(data.empires.some(e=>!e||!validGovernmentState(e)))return false;
+ if(data.empires.some(e=>!e||!validGovernmentState(e))||!validSpaceScans(data.spaceScans))return false;
  if(!Number.isInteger(data.turn)||data.turn<1||data.turn>100000||!Number.isInteger(data.rng)||data.systems.some((s,i)=>s.id!==i||!Array.isArray(s.neighbors)||!s.neighbors.every(n=>Number.isInteger(n)&&n>=0&&n<data.systems.length)||!(s.owner===null||Number.isInteger(s.owner)&&s.owner>=0&&s.owner<data.empires.length)))return false;
  for(const s of data.systems){
   if(s.buildings&&(typeof s.buildings!=='object'||Array.isArray(s.buildings)||Object.entries(s.buildings).some(([key,level])=>!ALL_BUILDINGS.some(b=>b.id===key)||!Number.isInteger(level)||level<0||level>3)))return false;

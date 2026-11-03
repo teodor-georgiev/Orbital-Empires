@@ -70,7 +70,7 @@ varying vec3 v_normal;
 void main() {
   v_normal = a_normal;
   gl_Position = u_viewproj * vec4(a_position*u_radius + u_offset, 1.0);
-  gl_PointSize = 1.7;
+  gl_PointSize = 2.7;
 }`;
 const FRAGMENT = `
 precision mediump float;
@@ -176,12 +176,12 @@ function makeGL(gl) {
   const mesh=sphereMesh();
   const vertex=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,vertex);gl.bufferData(gl.ARRAY_BUFFER,mesh.vertices,gl.STATIC_DRAW);
   const index=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,index);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,mesh.indices,gl.STATIC_DRAW);
-  const orbit=gl.createBuffer();
+  const orbit=gl.createBuffer(),stars=gl.createBuffer();
   gl.enable(gl.DEPTH_TEST);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
-  return {program,locations,mesh,vertex,index,orbit};
+  return {program,locations,mesh,vertex,index,orbit,stars};
 }
 
-export function createSolarView(canvas,{onSelect=()=>{},quality=()=>({scale:2,maxPixels:2560*1440}),shouldAnimate=()=>true}={}) {
+export function createSolarView(canvas,{onSelect=()=>{},onSelectSite=()=>{},quality=()=>({scale:2,maxPixels:2560*1440}),shouldAnimate=()=>true}={}) {
   let gl=null,gfx=null,ctx=null,fallbackCanvas=null;
   function use2DFallback(){
     gl=null;gfx=null;
@@ -202,7 +202,7 @@ export function createSolarView(canvas,{onSelect=()=>{},quality=()=>({scale:2,ma
   if(!gl&&!ctx)use2DFallback();
   let system=null,bodies=null,active=false,selected=0,raf=0;
   let camera={yaw:.46,pitch:.53,distance:22};
-  let width=1,height=1,dpr=1,lastPoints=[],pointer=null,clockBase=0;
+  let width=1,height=1,dpr=1,lastPoints=[],lastSitePoints=[],pointer=null,clockBase=0;
   const at=(p,t)=>{
     const angle=p.phase + t*.095/Math.pow(p.orbitRadius,1.05);
     return [Math.cos(angle)*p.orbitRadius,Math.sin(angle)*p.inclination*p.orbitRadius,Math.sin(angle)*p.orbitRadius];
@@ -259,14 +259,56 @@ export function createSolarView(canvas,{onSelect=()=>{},quality=()=>({scale:2,ma
     gl.drawArrays(gl.LINE_STRIP,0,129);
     gl.depthMask(true);
   }
+  function drawStars(){
+    const stars=bodies.backgroundStars||[];
+    if(!stars.length)return;
+    const vertices=new Float32Array(stars.length*6);
+    stars.forEach((s,i)=>{const n=i*6;vertices[n]=s.x;vertices[n+1]=s.y;vertices[n+2]=s.z;vertices[n+4]=1;});
+    bindPositions(gfx.stars);
+    gl.bufferData(gl.ARRAY_BUFFER,vertices,gl.DYNAMIC_DRAW);
+    gl.disable(gl.DEPTH_TEST);
+    material([0,0,0],1,'#bedcf1',2,0,.74);
+    gl.drawArrays(gl.POINTS,0,stars.length);
+    gl.enable(gl.DEPTH_TEST);
+  }
+  function sitePosition(site,time){
+    if(site.kind==='blackHole')return [0,0,0];
+    return at(site,site.kind==='comet'?time*2.1:time);
+  }
+  function drawSpaceObjects(matrix,time){
+    lastSitePoints=[];
+    if(!bodies.sites?.length)return;
+    const belt=bodies.sites.find(s=>s.kind==='asteroid');
+    if(belt){
+      // Bounded, deterministic belt geometry; same spatial field in 2D and 3D.
+      for(let i=0;i<28;i++){
+        const angle=i*2.399963+(.06*Math.sin(i*7)),radius=belt.orbitRadius+Math.sin(i*18)*.17;
+        ball([Math.cos(angle)*radius,Math.sin(i*9)*.08,Math.sin(angle)*radius],.035+(i%3)*.013,i%3===0?'#d9bea0':'#8fa5b8',0);
+      }
+    }
+    for(const site of bodies.sites){
+      const pos=sitePosition(site,time);
+      const color=site.kind==='comet'?'#bdeefa':site.kind==='anomaly'?'#b39ae9':site.kind==='blackHole'?'#bd8eee':site.kind==='leviathan'?'#e28eac':'#c4a78e';
+      if(site.kind==='comet'){ball(pos,.115,color,1);for(let i=1;i<=3;i++)ball([pos[0]-.22*i,pos[1]+.02*i,pos[2]+.16*i],.065/(i*.8),color,1);}
+      if(site.kind==='anomaly'){ball(pos,.17,color,1);ball([pos[0]+.17,pos[1]+.1,pos[2]],.045,'#f2dfef',1);}
+      if(site.kind==='leviathan'){ball(pos,.22,color);ball([pos[0]-.20,pos[1]-.05,pos[2]-.08],.09,'#f2bac3');ball([pos[0]+.22,pos[1]-.07,pos[2]-.08],.08,'#9a608c');}
+      if(site.kind==='blackHole'){lineRing(.9,0,color,.7);lineRing(1.1,.16,'#7a68b2',.45);}
+      const screen=projectPoint(pos,matrix,width,height);
+      if(screen)lastSitePoints.push({id:site.id,x:screen.x,y:screen.y,r:site.kind==='blackHole'?24:21,depth:screen.depth});
+    }
+  }
   function drawGL(matrix,time){
     gl.viewport(0,0,canvas.width,canvas.height);
-    gl.clearColor(.014,.026,.049,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+    gl.clearColor(.012,.023,.045,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
     assignUniforms(matrix,time);
+    drawStars();
     for(const p of bodies.planets){lineRing(p.orbitRadius,p.inclination,p.id===selected?'#8adfeb':'#6e90ab',p.id===selected?.55:.20);}
     lineRing(bodies.belt.orbitRadius,0,'#a68b78',.24);
     gl.clear(gl.DEPTH_BUFFER_BIT);
-    ball([0,0,0],bodies.star.radius,bodies.star.color,1);
+    if(bodies.star.kind==='black-hole'){
+      lineRing(1.08,.22,'#8f78cc',.67);lineRing(1.34,-.12,'#b2777d',.38);
+      ball([0,0,0],bodies.star.radius,'#050511',2);
+    }else ball([0,0,0],bodies.star.radius,bodies.star.color,1);
     const points=[];
     for(const p of bodies.planets){
       const pos=at(p,time);ball(pos,p.radius*1.3,p.color,0,p.biome==='Gas Giant'?2:0,p.visual);
@@ -281,6 +323,7 @@ export function createSolarView(canvas,{onSelect=()=>{},quality=()=>({scale:2,ma
       }
     }
     lastPoints=points;
+    drawSpaceObjects(matrix,time);
   }
   function fallbackSphere(x,y,r,color,star=false){
     const g=ctx.createRadialGradient(x-r*.32,y-r*.34,1,x,y,r);
@@ -307,16 +350,47 @@ export function createSolarView(canvas,{onSelect=()=>{},quality=()=>({scale:2,ma
     if(v?.rings){ctx.beginPath();ctx.ellipse(x,y,r*1.94,r*.5,-.1,0,TAU);ctx.strokeStyle=pal[2];ctx.globalAlpha=.65;ctx.lineWidth=Math.max(2,r*.18);ctx.stroke();ctx.globalAlpha=1;}
   }
   function draw2D(time){
-    ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,width,height);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.fillStyle='#031020';ctx.fillRect(0,0,width,height);
+    for(const star of bodies.backgroundStars||[]){
+      const x=((star.x/230+.5+camera.yaw/TAU)%1+1)%1*width;
+      const y=((.5-star.y/260+camera.pitch*.05)%1+1)%1*height;
+      ctx.globalAlpha=star.brightness*.85;ctx.fillStyle=star.blue?'#b7d6ff':'#e2f4fa';
+      ctx.fillRect(x,y,star.brightness>0.85?1.7:1,star.brightness>0.85?1.7:1);
+    }
+    ctx.globalAlpha=1;
     const cx=width/2,cy=height/2,scale=Math.min(width/29,height/20)*22/camera.distance;
     ctx.strokeStyle='rgba(120,177,197,.19)';ctx.lineWidth=1;
     for(const p of bodies.planets){ctx.beginPath();ctx.ellipse(cx,cy,p.orbitRadius*scale,p.orbitRadius*scale*.48,0,0,TAU);ctx.stroke();}
-    fallbackSphere(cx,cy,Math.max(18,bodies.star.radius*scale),bodies.star.color,true);
+    if(bodies.star.kind==='black-hole'){
+      ctx.strokeStyle='#ad84d9';ctx.lineWidth=5;ctx.beginPath();ctx.ellipse(cx,cy,Math.max(17,1.1*scale),Math.max(8,.42*scale),-.22,0,TAU);ctx.stroke();
+      ctx.fillStyle='#03030b';ctx.beginPath();ctx.arc(cx,cy,Math.max(12,bodies.star.radius*scale),0,TAU);ctx.fill();
+    }else fallbackSphere(cx,cy,Math.max(18,bodies.star.radius*scale),bodies.star.color,true);
     lastPoints=[];
     for(const p of bodies.planets){
       const phase=p.phase+time*.095/Math.pow(p.orbitRadius,1.05),x=cx+Math.cos(phase)*p.orbitRadius*scale,y=cy+Math.sin(phase)*p.orbitRadius*scale*.48;
       const radius=Math.max(5,p.radius*scale);fallbackPlanet(x,y,radius,p);
       lastPoints.push({id:p.id,x,y,r:Math.max(23,radius+12),depth:0});
+    }
+    lastSitePoints=[];
+    for(const site of bodies.sites||[]){
+      if(site.kind==='asteroid'){
+        for(let i=0;i<78;i++){
+          const angle=i*2.399963,r=site.orbitRadius*scale+Math.sin(i*19)*3;
+          ctx.fillStyle=i%3===0?'#cbb197':'#6f899c';
+          ctx.fillRect(cx+Math.cos(angle)*r,cy+Math.sin(angle)*r*.48,1.3+i%3*.5,1.3+i%3*.5);
+        }
+      }
+      const phase=site.phase+time*.095/Math.pow(site.orbitRadius,1.05);
+      const x=site.kind==='blackHole'?cx:cx+Math.cos(phase)*site.orbitRadius*scale;
+      const y=site.kind==='blackHole'?cy:cy+Math.sin(phase)*site.orbitRadius*scale*.48;
+      if(site.kind!=='asteroid'&&site.kind!=='blackHole'){
+        const colors={comet:'#bdebf5',anomaly:'#ba9cf4',leviathan:'#ef98a9'};
+        const color=colors[site.kind]||'#d9c3a1';
+        ctx.fillStyle=color;ctx.beginPath();ctx.arc(x,y,site.kind==='leviathan'?7:5,0,TAU);ctx.fill();
+        if(site.kind==='comet'){ctx.strokeStyle='#7bbdde';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-24,y+12);ctx.stroke();}
+      }
+      lastSitePoints.push({id:site.id,x,y,r:site.kind==='blackHole'?22:18,depth:0});
     }
   }
   function tick(){
@@ -326,14 +400,20 @@ export function createSolarView(canvas,{onSelect=()=>{},quality=()=>({scale:2,ma
     raf=requestAnimationFrame(tick);
   }
   function open(nextSystem,nextBodies){
-    system=nextSystem;bodies=nextBodies;selected=0;camera={yaw:.46,pitch:.53,distance:22};
+    system=nextSystem;bodies=nextBodies;selected=0;lastSitePoints=[];camera={yaw:.46,pitch:.53,distance:22};
     clockBase=performance.now();active=true;resize();if(!raf)raf=requestAnimationFrame(tick);
   }
-  function close(){active=false;system=null;bodies=null;lastPoints=[];if(raf)cancelAnimationFrame(raf);raf=0;}
+  function close(){active=false;system=null;bodies=null;lastPoints=[];lastSitePoints=[];if(raf)cancelAnimationFrame(raf);raf=0;}
   function pickPlanet(x,y){
     if(!active)return;
-    const candidates=lastPoints.filter(p=>Math.hypot(x-p.x,y-p.y)<p.r).sort((a,b)=>Math.hypot(x-a.x,y-a.y)-Math.hypot(x-b.x,y-b.y));
-    if(candidates.length){selected=candidates[0].id;onSelect(selected);}
+    const candidates=[
+      ...lastPoints.filter(p=>Math.hypot(x-p.x,y-p.y)<p.r).map(p=>({...p,kind:'planet'})),
+      ...lastSitePoints.filter(p=>Math.hypot(x-p.x,y-p.y)<p.r).map(p=>({...p,kind:'site'}))
+    ].sort((a,b)=>Math.hypot(x-a.x,y-a.y)-Math.hypot(x-b.x,y-b.y));
+    if(candidates.length){
+      const target=candidates[0];if(target.kind==='site')onSelectSite(target.id);
+      else{selected=target.id;onSelect(selected);}
+    }
   }
   canvas.addEventListener('pointerdown',event=>{
     if(!active)return;
