@@ -64,11 +64,11 @@ try{
  assert.ok(await evaluate('!!document.querySelector(".oe-population-card")'));
  const prior=await evaluate('parseFloat(document.querySelector(".oe-population-head b").textContent)');
  assert.ok(Number.isFinite(prior)&&prior>0);
- await evaluate('document.querySelector("[data-action=solar-planet][data-id=\"1\"]").click();true');
- await ready('document.querySelector("[data-action=solar-planet][data-id=\"1\"]').getAttribute("aria-pressed")==="true"&&document.getElementById("inspector").textContent.includes("Survey-only planet")','survey-only planet selected');
+ await evaluate('document.querySelector("[data-action=solar-planet][data-id=1]").click();true');
+ await ready('document.querySelector("[data-action=solar-planet][data-id=1]').getAttribute("aria-pressed")==="true"&&document.getElementById("inspector").textContent.includes("Survey-only planet")','survey-only planet selected');
  assert.equal(await evaluate('document.querySelectorAll(".oe-build-card").length'),0);
- await evaluate('document.querySelector("[data-action=solar-planet][data-id=\"0\"]").click();true');
- await ready('document.querySelector("[data-action=solar-planet][data-id=\"0\"]').getAttribute("aria-pressed")==="true"&&!!document.querySelector(".oe-population-card")','primary colony world selected');
+ await evaluate('document.querySelector("[data-action=solar-planet][data-id=0]").click();true');
+ await ready('document.querySelector("[data-action=solar-planet][data-id=0]').getAttribute("aria-pressed")==="true"&&!!document.querySelector(".oe-population-card")','primary colony world selected');
  assert.equal(await evaluate('document.querySelectorAll(".oe-build-card").length'),4);
  await evaluate('document.querySelector("[data-action=end-turn]").click();true');
  await ready('document.getElementById("top-turn").textContent.includes("02")','manual cycle advance');
