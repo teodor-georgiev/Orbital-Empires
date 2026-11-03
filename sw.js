@@ -1,6 +1,6 @@
 /* Static asset shell: network-first online to make new Git/Vercel builds visible on reload,
    cache-first fallback offline. Local game saves stay in localStorage, never this cache. */
-const CACHE='orbital-empires-app-0.3.0-planet-ui';
+const CACHE='orbital-empires-app-0.2.2-planet-ui';
 const OFFLINE_FILES=['./','./index.html','./style.css','./modules/styles/cinematic-ui.css','./modules/styles/distribution.css','./modules/styles/planet-command.css','./modules/simulation/population.js','./assets/ui/interface-icons.svg','./assets/planet-portraits/atlas.webp','./assets/original/emblems/terran.svg','./app.js','./core.js','./version.js','./support-config.js','./modules/strategy/civics.js','./modules/styles/expansion.css','./system-model.js','./solar-view.js','./manifest.webmanifest','./assets/icon.svg','./assets/icon-192.png','./assets/icon-512.png'];
 self.addEventListener('install',event=>{
  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(OFFLINE_FILES)).then(()=>self.skipWaiting()));

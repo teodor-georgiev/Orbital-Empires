@@ -51,12 +51,14 @@ function maybeSelectFleetForSystem(id){const fs=game.fleets.filter(f=>f.owner===
 function openSolarSystem(id=selectedId){
   const system=game?.systems[id];
   if(!system || !hasSeen(game,system.id)){notice('This star system must be discovered before you can enter it.','error');return;}
-  selectedId=id;activePage='system';selectedPlanet=0;
+  selectedId=id;activePage='system';
   solarBodies=generateSystemBodies(game.seed,system);
+  selectedPlanet=solarBodies.planets.find(p=>p.isColonyWorld)?.id??0;
   solarOpen=true;
   const stage=$('#solar-stage');stage.hidden=false;viewport.classList.add('system-mode');
   $('#map-tooltip').hidden=true;
   solar.open(system,solarBodies);
+  solar.selectPlanet(selectedPlanet);
   render();
 }
 function closeSolarSystem(){

@@ -2,7 +2,7 @@
 
 All published game builds use [Semantic Versioning](https://semver.org/). Version tags are created **only after** a reviewed integration and stable release, never on work-in-progress commits.
 
-## [0.3.0] — 2026-11-03 · Planet command redesign
+## [0.2.2] — 2026-11-03 · Planet command redesign
 
 - Rebuilt command menu, grouped empire navigation, and unified planet management inspector.
 - Click or select any charted planet to inspect survey details; the primary world exposes colony production and immediate building upgrades.

@@ -13,7 +13,14 @@ python3 -m http.server 4173
 
 Open http://localhost:4173/. The game is not meant to be opened as a `file://` page: service workers require an HTTP/HTTPS origin. Browsers generally permit installation from HTTPS or localhost only.
 
-## Gameplay included in v0.3
+## v0.3.0 Solar Frontier (integration candidate)
+
+- Playable **Humans** begin on **Earth** in **Sol** with named nearby real stars: Alpha Centauri, Proxima Centauri, Barnard's Star, Wolf 359, Sirius and more. Schematic positions and fictional hyperlanes/resources are clearly distinguished from factual catalog distances.
+- Choose start year **2000–3000** (default **2200**) and one of seven playable species in procedural campaigns. Existing save files remain compatible.
+- The move to real-time-with-pause and autonomous departments is approved as a game direction, but a separate [clock PR #19](https://github.com/teodor-georgiev/Orbital-Empires/pull/19) is being developed in another lane. This Sol scenario branch **does not** replace its clock implementation.
+- Shared source of truth: [AGENTS.md](AGENTS.md), [versioned game specifications](docs/specs/INDEX.md), [editing protocol](docs/specs/EDITING_PROTOCOL.md), [ADR](docs/decisions/ADR-0001-REAL-TIME-AUTONOMY.md).
+
+## Gameplay included in v0.2
 
 - Seeded galaxy generation, navigable hyperlanes, fog of war, interactive pan/zoom map
 - Click through into solar systems with WebGL 3D planets and moons, camera rotation, zoom and Canvas 2D fallback. Visual-only planets retain the existing core-colony mechanics.
@@ -55,6 +62,7 @@ Develop only on feature/fix branches; require a successful test workflow and rev
 
 ## Game design and parallel development
 
+- [Shared game specs, versioning and all-agent collaboration](docs/specs/INDEX.md)
 - [Game systems and milestone design](docs/GAME_DESIGN.md)
 - [Current architecture and modularization gate](docs/ARCHITECTURE.md)
 - [Master roadmap: all game systems and milestones](docs/ROADMAP.md)
@@ -82,7 +90,7 @@ The repository includes **18 original vector game sprites** in `assets/original/
 
 `npm run assets:fetch` also fetches Kenney's CC0 **Planets** and **Sci-Fi RTS** packs from creator-uploaded OpenGameArt files, alongside the original Kenney packs and PixiJS; all downloaded archives stay gitignored under `assets/vendor/`. See [asset license and provenance inventory](docs/ASSETS_AND_LICENSES.md).
 
-## Exploring a solar system (v0.3)
+## Exploring a solar system (v0.2)
 
 Choose a discovered star and click **Enter Solar System** (or click the same star twice). Drag to orbit the 3D camera, scroll to zoom and click/select a planet from the orbital list. Use **Back to Galaxy** or Escape to return. Colony actions remain in the right inspector; additional orbital bodies are illustrative until the individual planet economy milestone. See [the implementation plan](docs/plans/2026-11-03-solar-system-3d.md).
 ## Illustrated planet portraits and command menu
@@ -101,8 +109,8 @@ The **Download game ZIP** option is GitHub's published source branch archive, no
 
 **Donations:** The in-game Donate menu is visible, but no money is accepted until the project owner configures a verified HTTPS third-party fundraising URL in `support-config.js`. Only approved provider domains are supported; no payment form, secrets or transaction storage exists in the game. Sharing or starring the repository is available without payment.
 
-## Planet command UI and population (v0.3)
+## Planet command UI and population (v0.2.2)
 
-The command menu groups core decisions and the sidebar organizes exploration, development and fleet command. Select a discovered star, enter the solar system, then click a planet in 3D or use the keyboard-accessible orbital list. The right inspector shows the selected planet; owned primary worlds show colony population, a growth/capacity meter, production and immediate infrastructure upgrades. Non-primary planets remain survey-only until future save-schema changes support individual planet colonies.
+The command menu groups core decisions and the sidebar organizes exploration, development and fleet command. Select a discovered star, enter the solar system, then click a planet in WebGL 3D or use the keyboard-accessible orbital list. The right inspector shows the selected planet; the owned primary world shows colony population, growth, carrying capacity, production and immediate infrastructure upgrades. Non-primary planets remain survey-only until a later save-schema migration.
 
-Population now follows a bounded logistic curve each cycle: its maximum is derived from habitability and richness, and the growth rate gradually slows as that capacity fills. This retains legacy save schema v1 and replaces random +1-B population jumps. See [implementation plan](docs/plans/2026-11-03-planet-command-population.md).
+Population follows a bounded logistic curve once per strategic cycle. Capacity depends on habitability and richness, growth slows toward that limit, and legacy save schema v1 remains compatible. See [implementation plan](docs/plans/2026-11-03-planet-command-population.md).
