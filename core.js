@@ -1,7 +1,8 @@
 /* Orbital Empires — deterministic, dependency-free turn-based 4X simulation. */
 import { TRADITIONS, POLICIES, traditionCost, unityIncome, civicBonuses, canAdoptTradition, canEnactPolicy } from './modules/strategy/civics.js';
 export { TRADITIONS, POLICIES, traditionCost, unityIncome };
-export const VERSION = 1;
+import { SAVE_SCHEMA_VERSION } from './version.js';
+export const VERSION = SAVE_SCHEMA_VERSION;
 export const WORLD = { width: 1140, height: 760 };
 export const EMPIRE_TEMPLATES = [
   { name: 'Terran Directorate', short: 'TERRAN', color: '#46d9dc', motto: 'Knowledge is our frontier.', species: 'Human', trait: 'Adaptive' },
