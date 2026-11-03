@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#07111e" />
-  <meta name="description" content="Orbital Empires — an original turn-based galactic 4X strategy game. Explore, expand, exploit, and conquer. Play offline." />
+  <meta name="description" content="Orbital Empires — an original real-time monthly galactic 4X strategy game. Explore, expand, exploit, and conquer. Play offline." />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Orbital Empires" />
@@ -18,7 +18,8 @@
   <link rel="stylesheet" href="modules/styles/solar-frontier.css" />
   <link rel="stylesheet" href="modules/styles/planet-command.css" />
   <link rel="stylesheet" href="modules/styles/government.css" />
-  <title>Orbital Empires — A Turn-Based 4X Galaxy</title>
+  <link rel="stylesheet" href="modules/styles/monthly-time.css" />
+  <title>Orbital Empires — Living Galaxy Strategy</title>
 </head>
 <body>
   <div class="app-shell">
@@ -28,7 +29,7 @@
         <span class="brand-copy"><strong>ORBITAL <em>EMPIRES</em></strong><small>GALACTIC COMMAND // 4X</small></span>
       </div>
       <div class="resource-bar" id="resource-bar" aria-label="Empire resources"></div>
-      <div class="header-actions"><span id="top-turn" class="top-turn">CYCLE 01</span><button class="icon-button header-menu" data-action="menu" title="Main menu" aria-label="Main menu"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="./assets/ui/interface-icons.svg#menu"></use></svg></button><button class="icon-button" data-action="settings" title="Display settings" aria-label="Display settings"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="./assets/ui/interface-icons.svg#settings"></use></svg></button><button class="icon-button header-help" data-action="guide" title="How to play" aria-label="How to play"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="./assets/ui/interface-icons.svg#help"></use></svg></button><button class="turn-btn" data-action="end-turn">END TURN <span>→</span></button></div>
+      <div class="header-actions"><span id="top-turn" class="top-turn">CYCLE 01</span><button class="icon-button header-menu" data-action="menu" title="Main menu" aria-label="Main menu"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="./assets/ui/interface-icons.svg#menu"></use></svg></button><button class="icon-button" data-action="settings" title="Display settings" aria-label="Display settings"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="./assets/ui/interface-icons.svg#settings"></use></svg></button><button class="icon-button header-help" data-action="guide" title="How to play" aria-label="How to play"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="./assets/ui/interface-icons.svg#help"></use></svg></button><div class="oe-time-controls" role="group" aria-label="Simulation clock"><button id="oe-clock-toggle" data-action="clock-toggle" aria-pressed="false" title="Pause or resume autonomous monthly simulation">Ⅱ PAUSE</button><button data-action="clock-speed" data-speed="normal" aria-pressed="true" title="Normal: 1.4 seconds per month">1×</button><button data-action="clock-speed" data-speed="fast" aria-pressed="false" title="Fast: 0.55 seconds per month">3×</button><button data-action="clock-speed" data-speed="rapid" aria-pressed="false" title="Rapid: 0.18 seconds per month">8×</button><button data-action="step-month" title="Advance exactly one month while paused">+1M</button></div></div>
     </header>
     <div class="main-layout">
       <aside class="sidebar">
@@ -57,7 +58,7 @@
         <div class="sidebar-bottom"><div class="mission-card"><span class="mission-header">◉ CURRENT DIRECTIVE</span><strong id="directive-title">Expand the frontier</strong><p id="directive-description">Claim your first neighboring star system.</p><div id="directive-progress" class="mission-progress"><i></i></div></div><div class="sidebar-tools"><button data-action="new" title="New campaign"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="./assets/ui/interface-icons.svg#new"></use></svg> New galaxy</button><button data-action="save" title="Save progress"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="./assets/ui/interface-icons.svg#save"></use></svg> Save</button></div><button data-action="install" id="install-btn" class="sidebar-install"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="./assets/ui/interface-icons.svg#install"></use></svg> Install game <span>OFFLINE-READY</span></button><div class="sidebar-distribution"><button data-action="download-menu" title="Download and backups"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="./assets/ui/interface-icons.svg#download"></use></svg> DOWNLOAD</button><button data-action="donate-menu" title="Support development"><svg class="ui-icon" aria-hidden="true" focusable="false"><use href="./assets/ui/interface-icons.svg#heart"></use></svg> DONATE</button></div></div>
       </aside>
       <main class="galaxy-wrapper">
-        <div class="map-top"><div><span class="eyebrow cyan">STAR CHART / GALACTIC OVERVIEW</span><h1>Galactic Sector <span>01</span></h1><p id="map-summary">Survey the stars. Shape the galaxy.</p></div><div class="map-mode"><span class="map-mode-pulse"></span> LIVE STRATEGIC MAP <span class="map-mode-dot">·</span> TURN BASED</div></div>
+        <div class="map-top"><div><span class="eyebrow cyan">STAR CHART / GALACTIC OVERVIEW</span><h1>Galactic Sector <span>01</span></h1><p id="map-summary">Survey the stars. Shape the galaxy.</p></div><div class="map-mode"><span class="map-mode-pulse"></span> LIVE STRATEGIC MAP <span class="map-mode-dot">·</span> MONTHLY SIMULATION</div></div>
         <div id="map-viewport" class="map-viewport"><canvas id="galaxy-canvas" aria-label="Interactive galaxy map. Select a visible star system to inspect it." role="img"></canvas><section id="solar-stage" class="solar-stage" aria-label="Interactive orbital system view" hidden>
           <div class="solar-ambient" aria-hidden="true"></div><div class="solar-star-halo" aria-hidden="true"></div>
           <canvas id="solar-canvas" tabindex="0" aria-label="Solar system scene. Drag to orbit camera, scroll to zoom, click planets to select. Use planet list for keyboard access."></canvas><section id="planet-focus-stage" class="oe-planet-focus-stage" aria-label="Focused selected planet" hidden></section>
