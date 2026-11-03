@@ -1,0 +1,22 @@
+/* Original orbital exploration chrome, layered onto existing planet-command layout. */
+.solar-sites{border-top:1px solid #426071;margin-top:7px;padding:6px 0 0;flex:0 0 auto;max-height:36%;min-height:0}
+.solar-sites summary{display:flex;align-items:center;justify-content:space-between;cursor:pointer;list-style:none;gap:5px;padding:5px 6px 8px;color:#e4c58e;font:700 10px var(--head);letter-spacing:1px}
+.solar-sites summary::-webkit-details-marker{display:none}
+.solar-sites summary::before{content:'▸';color:#9dd9db;margin-right:4px;transition:transform .15s}
+.solar-sites[open] summary::before{transform:rotate(90deg)}
+.solar-site-list{display:flex;flex-direction:column;gap:5px;max-height:145px;overflow-y:auto;padding:2px 1px 4px;scrollbar-width:thin}
+.solar-site-option{width:100%;display:grid;grid-template-columns:23px minmax(0,1fr);gap:6px;min-height:42px;padding:7px 5px;border:1px solid #31485b;border-radius:5px;color:#d7e7ec;text-align:left;background:#0d2435;font-size:10px;cursor:pointer}
+.solar-site-option:hover,.solar-site-option:focus-visible{border-color:#d7b982;background:#18384a}
+.solar-site-option.selected{border-color:#b5dccd;background:#1d3e42}
+.solar-site-option:disabled{opacity:.75}
+.solar-site-symbol{display:grid;place-items:center;font-size:19px;color:var(--site-color,#c8daec);align-self:center}
+.solar-site-copy{min-width:0;display:flex;flex-direction:column;gap:2px}
+.solar-site-copy strong{font:700 10px/1.3 var(--head);overflow-wrap:anywhere}
+.solar-site-copy small{font:9px/1.3 'DM Sans',sans-serif;color:#9ab9c9}
+.oe-site-reward{display:grid;grid-template-columns:1fr;gap:8px;padding:11px;background:linear-gradient(130deg,#193747,#0d2634);border:1px solid #48728a;border-radius:8px}
+.oe-site-reward strong{font-size:13px;color:#f5d9a7}
+.oe-site-reward p{margin:0;color:#d0e2e8;font:12px/1.5 'DM Sans',sans-serif}
+.oe-site-reward button{min-height:43px;white-space:normal}
+.oe-site-notice{font:11px/1.55 'DM Sans',sans-serif;color:#a8cad3}
+@media(max-width:750px){.solar-sites{max-height:35%}.solar-site-list{max-height:116px}.solar-site-option{min-height:38px;padding:5px 3px}.solar-site-symbol{font-size:16px}.solar-sites summary{font-size:9px;letter-spacing:0}}
+@media(prefers-reduced-motion:reduce){.solar-sites summary::before{transition:none}}
