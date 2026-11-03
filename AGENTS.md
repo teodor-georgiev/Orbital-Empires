@@ -14,7 +14,7 @@ All ChatGPT, Claude, Codex and other coding sessions use **this GitHub repositor
 
 ## Architecture constraints
 - Browser-first offline single-player. Existing JavaScript ES modules with no mandatory runtime dependencies, Canvas/WebGL fallback, Node 22+ tests.
-- Real-time-with-pause is the **approved strategic direction**. v0.3 uses an initial fixed-step clock around existing turn resolution; department autonomy and continuous fleet transit are not yet shipped.
+- Real-time-with-pause is the **approved strategic direction**. v0.3 adds Human Sol and historical-star setup; pause/speed controls are in a separate development PR #19 and cannot be assumed shipped. Department autonomy and continuous fleet transit are not yet shipped.
 - No copied proprietary code, art, screenshots or faction IP from Ascendance, Stellaris or other titles.
 - Retain saves: semantic release version (`version.js`) differs from save schema version. A breaking save schema change needs migration tests.
 - Real-star names, published distances and Solar System planet names are factual; **map projection, hyperlanes, governments, economy and non-Sol worlds are fictional gameplay**.
