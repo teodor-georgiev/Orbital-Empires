@@ -23,3 +23,8 @@
 - Unit tests for auto-created outposts, upgrades, damage, capture, legacy saves, selectable individual IDs, deterministic split/merge, per-planet orders and invalid action rejection.
 - Chromium and Playwright interactions for selection, box selection, command issuance, month progression and save/reload.
 - Actual desktop/mobile screenshots compared to the original design. PR draft until visual review and all CI checks are green.
+
+## Implementation and ownership update
+- Gameplay changes implemented on dedicated branch `feat/oe-outposts-tactical-ship-command-20261104`, stacked on real-time monthly PR #37. This is not merged or deployed.
+- Original visual mockup: `docs/design/system-command-selection-concept.svg`; awaiting owner selection and desktop/mobile screenshot review under the repository's picture-first gate.
+- Core state and optional v1 save keys implemented. Developer-preview integration and browser test results are authoritative; do not describe feature as live until CI and release checks pass.

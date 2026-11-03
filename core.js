@@ -288,6 +288,7 @@ export function upgradeOutpost(g,systemId){
  return success('Outpost upgraded to '+OUTPOST_TIERS[upgraded.level].name+'.');
 }
 export function orderSelectedShips(g,ids,order){
+ if(!Array.isArray(ids)||!ids.length)return failure('Select friendly ships first.');
  if(g.gameOver)return failure('The campaign has ended.');
  const first=g.fleets.find(f=>f.owner===0&&f.units?.some(u=>ids?.includes(u.id)));
  if(!first)return failure('Select friendly ships first.');

@@ -100,7 +100,7 @@ function closeSolarSystem(){
 function renderSolarHud(){
   if(!solarOpen||!solarBodies)return;
   const system=game.systems[selectedId],planet=selectSystemPlanet(solarBodies,selectedPlanet)||solarBodies.planets[0];
- const roster=shipUnitRoster(game,system.id),post=getOutpost(system),friendly=roster.filter(u=>u.owner===0);
+ const roster=shipUnitRoster(game,system.id).filter(u=>u.owner===0||getVisibility(game).has(system.id)),post=getOutpost(system),friendly=roster.filter(u=>u.owner===0);
  selectedShipIds=selectedShipIds.filter(id=>friendly.some(u=>u.id===id));
  solar.setTacticalState(roster,post);solar.setSelectedShips(selectedShipIds);
   $('#solar-system-name').textContent=system.name.toUpperCase()+' SYSTEM';
