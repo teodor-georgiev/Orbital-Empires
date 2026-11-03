@@ -67,6 +67,12 @@ async function run() {
   const selectedResearch = await page.locator('#progress-workspace .progress-detail h3').innerText();
   await page.locator('#progress-workspace .progress-detail-action [data-action="research"]').click();
   assert.match(await page.locator('#progress-workspace .progress-current-project').innerText(), new RegExp(selectedResearch));
+  const commandIcon = await page.locator('#progress-workspace .progress-node-identity .progress-vector').first().evaluate(el => {
+    const bounds = el.getBBox();
+    return { width: bounds.width, height: bounds.height, href: el.querySelector('use')?.getAttribute('href') };
+  });
+  assert.ok(commandIcon.width > 5 && commandIcon.height > 5 && commandIcon.href?.includes('strategy-icons.svg#'),
+    'Semantically grouped strategy icon must draw at usable size: ' + JSON.stringify(commandIcon));
   await capture(page, 'progress-technology-desktop.png');
 
   await page.locator('#progress-workspace .progress-tab[data-nav="traditions"]').click();
@@ -138,6 +144,15 @@ async function run() {
   const viewport = await page.evaluate(() => ({ contentWidth: document.documentElement.scrollWidth, viewportWidth: window.innerWidth }));
   assert.ok(viewport.contentWidth <= viewport.viewportWidth + 4, 'mobile page must not overflow horizontally: ' + JSON.stringify(viewport));
   await capture(page, 'progress-mobile.png');
+  // Preview the full first-party visual language in one screenshot for review.
+  const iconPage = await context.newPage();
+  watch(iconPage);
+  await iconPage.setViewportSize({ width: 1440, height: 900 });
+  await iconPage.goto(origin + '/assets/ui/gallery.html', { waitUntil: 'networkidle' });
+  assert.equal(await iconPage.locator('.icon-card').count(), 30);
+  const sampleSymbol = await iconPage.locator('.main-icon').first().evaluate(svg => svg.getBBox().width);
+  assert.ok(sampleSymbol > 5, 'New icon gallery references must render actual geometry');
+  await capture(iconPage, 'strategy-icon-gallery.png');
   assert.deepEqual(errors, [], 'Browser page errors or missing local assets');
   await context.close();
   console.log('PASS: galaxy, three progress tabs, prerequisites, nonmutating selection, solar scene, End Turn, save/reload, mobile layout');
