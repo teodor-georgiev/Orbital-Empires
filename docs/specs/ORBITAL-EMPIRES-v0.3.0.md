@@ -7,7 +7,7 @@
 
 ## Goal and player promise
 
-A browser-based, self-hostable, installable single-player 4X about guiding a civilization that can eventually manage its own routine affairs. You control government priorities and key actions, while independent departments develop the empire. Unlike v0.2's entirely manual End Turn play, the **v0.3 clock prototype** adds a controllable auto-advancing simulation; it does not yet implement the full automation departments.
+A browser-based, self-hostable, installable single-player 4X about guiding a civilization that can eventually manage its own routine affairs. You control government priorities and key actions, while independent departments develop the empire. Unlike v0.2's entirely manual End Turn play, the v0.3 Solar Frontier adds Humans, real nearby stars and calendar setup; time controls are owned by **separate PR #19** and not in this branch. Full autonomous departments remain unimplemented.
 
 ## Game setup
 
@@ -22,10 +22,10 @@ A browser-based, self-hostable, installable single-player 4X about guiding a civ
 - The names and rough distances of nearby stars are scientific facts. Other game properties (hyperlanes, habitability, mineral wealth, generated non-Sol planets, rival empires) are inventions, not a catalog of discovered planets.
 - Map topology stays a connected seeded graph. Numeric system IDs and path legality must remain stable; a saved Sol scenario uses its explicit stored neighbors.
 
-## Time and player agency in v0.3
+## Time and player agency — separate clock PR #19
 
-- Fixed logical **one-month** steps, initially resolved by existing `endTurn` game rules; no floating-point frame-rate-dependent economic actions. This is a **transitional implementation**: old per-turn yields, instant fleet movement and baseline AI still exist. It is *not* a fully simulated continuous economy or orbital physics engine.
-- Controls: **Pause / Play / 1× / 2× / 5× / 10× / Step one month**. Proposal calibration: **1× = one game month per wall-clock second**. Unpaused speeds multiply this rate. Time is paused on startup, while modal menus are open, on browser-tab hiding, and on game over. Hidden-tab time is not replayed on return.
+- Fixed logical **one-month** steps, initially resolved by existing `endTurn` game rules; no floating-point frame-rate-dependent economic actions. It is a **transitional design**: old per-turn yields, instant fleet movement and baseline AI still exist. It is *not* a fully simulated continuous economy or orbital physics engine.
+- The desired final controls include **Pause / Play / adjustable speed / Step one month**. PR #19 currently implements a different interim tick-clock with slow/normal/fast and four phases per strategic cycle; its implementation and tests must be reviewed on their own merits before integration. Time is paused on startup, while modal menus are open, on browser-tab hiding, and on game over. Hidden-tab time is not replayed on return.
 - Drawing and gameplay clocks are separate; rendering can be fluid even when game state changes on discrete ticks. User can direct fleets, colonies, technology, traditions, and diplomacy at any time.
 - **Not yet included:** movement transit/ETA, monthly economic rebalancing, treasury budgets, player department automation, automating diplomacy, fully continuous physics. Those belong to v0.4/v0.5 and require tests and optionally a future save-schema migration.
 
@@ -45,7 +45,7 @@ Player-set priorities outrank AI. A manual order locks that object from autonomo
 - [ ] Start a new Sol campaign in chosen year; Earth and Sol are home; Alpha Centauri and other real nearby stars visible and cataloged.
 - [ ] All eight named Sol planets render in the system view and Earth is selectable.
 - [ ] A procedural game still works; faction choice changes player empire; old saves pass validation and load without schema migration.
-- [ ] Clock pauses, steps once, scales correctly at different speeds and does not catch up while browser hidden.
+- [ ] Starting year and month display update correctly with manual End Turn; PR #19 separately validates pause/speed and hidden-tab behavior.
 - [ ] Existing AI, research, traditions, policies, save/load, graphics settings and PWA continue functioning.
 - [ ] CI, accessible UI smoke and deployed version checked on exact head. Only then publish v0.3 as a verified preview.
 
