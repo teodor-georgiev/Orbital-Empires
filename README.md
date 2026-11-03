@@ -13,6 +13,13 @@ python3 -m http.server 4173
 
 Open http://localhost:4173/. The game is not meant to be opened as a `file://` page: service workers require an HTTP/HTTPS origin. Browsers generally permit installation from HTTPS or localhost only.
 
+## v0.3.0 Solar Frontier (integration candidate)
+
+- Playable **Humans** start on **Earth** in **Sol** with named nearby real stars (Alpha Centauri, Proxima Centauri, Barnard's Star, Wolf 359, Sirius). The map and hyperlanes are schematic fictional gameplay, not a physical star atlas.
+- Choose campaign start year **2000–3000** (default **2200**) and playable species in the procedural scenario. Existing saved campaigns are not reset.
+- Pause or run the strategic simulation automatically at **1×, 2×, 5× or 10×**, or step one month at a time. This is a transitional fixed-step clock using the existing turn rules, **not** fully autonomous government or continuous ship transit yet.
+- [Shared game specifications](docs/specs/INDEX.md), [coding-agent instructions](AGENTS.md), [versioned spec editing protocol](docs/specs/EDITING_PROTOCOL.md), [real-time-with-pause decision](docs/decisions/ADR-0001-REAL-TIME-AUTONOMY.md).
+
 ## Gameplay included in v0.2
 
 - Seeded galaxy generation, navigable hyperlanes, fog of war, interactive pan/zoom map
@@ -55,6 +62,7 @@ Develop only on feature/fix branches; require a successful test workflow and rev
 
 ## Game design and parallel development
 
+- [Current versioned game spec and all-agent collaboration protocol](docs/specs/INDEX.md)
 - [Game systems and milestone design](docs/GAME_DESIGN.md)
 - [Current architecture and modularization gate](docs/ARCHITECTURE.md)
 - [Master roadmap: all game systems and milestones](docs/ROADMAP.md)
