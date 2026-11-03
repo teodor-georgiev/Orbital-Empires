@@ -203,7 +203,7 @@ export function createSolarView(canvas,{onSelect=()=>{},onSelectSite=()=>{},onSe
   try {gl=canvas.getContext('webgl',{alpha:true,antialias:true,preserveDrawingBuffer:false});if(gl)gfx=makeGL(gl);}catch{use2DFallback();}
   if(!gl&&!ctx)use2DFallback();
   let system=null,bodies=null,active=false,selected=0,raf=0;
-  let tacticalUnits=[],tacticalOutpost=null,selectedShipIds=new Set(),lastShipPoints=[],lastOutpostPoint=null;
+  let tacticalUnits=[],tacticalOutpost=null,moveTargetMode=false,selectedShipIds=new Set(),lastShipPoints=[],lastOutpostPoint=null;
   const geometry=new Map();
   const box=document.createElement('div');box.className='oe-ship-selection-rectangle';box.hidden=true;canvas.after(box);
   function shipBuffer(type){
@@ -471,9 +471,10 @@ export function createSolarView(canvas,{onSelect=()=>{},onSelectSite=()=>{},onSe
     system=nextSystem;bodies=nextBodies;selected=0;lastSitePoints=[];lastShipPoints=[];selectedShipIds.clear();camera={yaw:.46,pitch:.53,distance:22};
     clockBase=performance.now();active=true;resize();if(!raf)raf=requestAnimationFrame(tick);
   }
-  function close(){active=false;system=null;bodies=null;lastPoints=[];lastSitePoints=[];lastShipPoints=[];box.hidden=true;selectedShipIds.clear();if(raf)cancelAnimationFrame(raf);raf=0;}
+  function close(){active=false;system=null;bodies=null;lastPoints=[];lastSitePoints=[];lastShipPoints=[];box.hidden=true;selectedShipIds.clear();moveTargetMode=false;canvas.classList.remove('oe-target-mode');if(raf)cancelAnimationFrame(raf);raf=0;}
   function pickPlanet(x,y){
     if(!active)return;
+    if(moveTargetMode){moveTargetMode=false;canvas.classList.remove('oe-target-mode');onMoveShips([Math.max(-7,Math.min(7,x/width*14-7)),Math.max(-7,Math.min(7,y/height*14-7))]);return;}
     const ship=nearestSelectableShip(lastShipPoints,x,y);
     if(ship){emitSelection([ship.id],pointer?.shift);return;}
     if(lastOutpostPoint&&Math.hypot(lastOutpostPoint.x-x,lastOutpostPoint.y-y)<lastOutpostPoint.r){onSelectOutpost();return;}
@@ -511,5 +512,5 @@ export function createSolarView(canvas,{onSelect=()=>{},onSelectSite=()=>{},onSe
   canvas.addEventListener('wheel',event=>{if(!active)return;event.preventDefault();camera=clampSolarCamera({...camera,distance:camera.distance*(event.deltaY<0?.9:1.1)});},{passive:false});
   window.addEventListener('resize',resize);
   canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();use2DFallback();resize();});
-  return {open,close,resize,selectPlanet(id){selected=id;},setTacticalState(units,outpost){tacticalUnits=units||[];tacticalOutpost=outpost||null;selectedShipIds=new Set([...selectedShipIds].filter(id=>tacticalUnits.some(u=>u.id===id)));},setSelectedShips(ids){selectedShipIds=new Set(ids||[]);},getVisibleShips(){return lastShipPoints.map(x=>({...x}));},resetCamera(){camera={yaw:.46,pitch:.53,distance:22};},is3D(){return Boolean(gl&&gfx);},isActive(){return active;}};
+  return {open,close,resize,selectPlanet(id){selected=id;},setTacticalState(units,outpost){tacticalUnits=units||[];tacticalOutpost=outpost||null;selectedShipIds=new Set([...selectedShipIds].filter(id=>tacticalUnits.some(u=>u.id===id)));},setSelectedShips(ids){selectedShipIds=new Set(ids||[]);},setMoveMode(value){moveTargetMode=Boolean(value);canvas.classList.toggle('oe-target-mode',moveTargetMode);},getVisibleShips(){return lastShipPoints.map(x=>({...x}));},resetCamera(){camera={yaw:.46,pitch:.53,distance:22};},is3D(){return Boolean(gl&&gfx);},isActive(){return active;}};
 }
