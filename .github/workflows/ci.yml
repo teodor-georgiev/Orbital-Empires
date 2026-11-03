@@ -20,8 +20,10 @@ jobs:
           node --check app.js
           node --check core.js
           node --check sw.js
+          node --check solar-view.js
+          node --check system-model.js
       - name: Run simulation tests
         run: npm test
       - name: Validate standalone PWA assets
         run: |
-          node -e 'const fs=require("fs");const m=JSON.parse(fs.readFileSync("manifest.webmanifest","utf8"));for(const i of m.icons){if(!fs.existsSync(i.src))process.exit(1)}for(const f of ["index.html","app.js","core.js","style.css","sw.js"]){if(!fs.existsSync(f))process.exit(1)}if(!fs.readFileSync("index.html","utf8").includes("manifest.webmanifest"))process.exit(1);console.log("PWA assets OK")'
+          node -e 'const fs=require("fs");const m=JSON.parse(fs.readFileSync("manifest.webmanifest","utf8"));for(const i of m.icons){if(!fs.existsSync(i.src))process.exit(1)}for(const f of ["index.html","app.js","core.js","solar-view.js","system-model.js","style.css","sw.js"]){if(!fs.existsSync(f))process.exit(1)}if(!fs.readFileSync("index.html","utf8").includes("manifest.webmanifest"))process.exit(1);console.log("PWA assets OK")'
