@@ -1,12 +1,6 @@
 # Orbital Empires
 
-An original **real-time-with-pause 4X strategy game** for the browser, designed for self-hosting and offline-capable installation (PWA).
-
-## Autonomous monthly simulation (development candidate)
-
-The galaxy begins in **January 2200** in the default Sol campaign, then advances through **every calendar month automatically** while the game is visible and the menu is closed. The header provides Pause/Play, 1×/3×/8× speeds and +1 month while paused. Economy, population, politics, rival decisions and technology resolve every month from the same fixed-step game logic; rendering is independent of simulation speed. Closing or hiding the tab suspends time without catching up elapsed real-world time.
-
-Select a fleet and a known destination to assign a shortest legal hyperlane route. Fleets move one hop per simulated month, show remaining ETA, and can receive Hold Position orders. Illegal or newly blocked routes stop automatically. No multiplayer or physics-scale continuous movement is claimed. This is an integration candidate on a feature PR, **not** proof that the public build is updated.
+An original **turn-based 4X strategy game** for the browser, designed for self-hosting and offline-capable installation (PWA).
 
 ## Play locally
 
@@ -37,6 +31,14 @@ Open http://localhost:4173/. The game is not meant to be opened as a `file://` p
 - Installable PWA with application-shell caching for offline play after first visit
 
 Single-player games save locally in the browser (localStorage), not on the server. Clearing site data may erase progress. Multiplayer, accounts, cloud saves, and deterministic network synchronization are **not implemented**.
+
+## Living orbital environments
+
+- **Orbital environment:** deterministic starfield in WebGL and Canvas 2D fallback, visible asteroid fields, orbital comets, anomalies, rare black-hole systems and hostile void leviathans (fictional beyond Sol).
+- Orbital-object selector supports keyboard/touch; one-time asteroids cost 8 credits and award 18 alloys, comet scans grant 10 unity, anomalies grant 22 research, black-hole surveys grant 34 research/+8 influence, leviathan encounters require two corvettes and cost one for bounded rewards. Old saves remain compatible; results persist in optional spaceScans.
+- Original concept: [space environment SVG](docs/design/orbital-space-environment-concept.svg). Browser QA includes desktop/mobile screenshots.
+
+These star-system encounters are deterministic game fiction, not verified astronomy for nearby real stars. Sol retains its actual eight named planets and contains only an asteroid belt and comet from the encounter pool. No mandatory network dependencies.
 
 ## Self-host on your own VPS
 
@@ -121,3 +123,11 @@ The command menu groups core decisions and the sidebar organizes exploration, de
 
 Population follows a bounded logistic curve once per strategic cycle. Capacity depends on habitability and richness, growth slows toward that limit, and legacy save schema v1 remains compatible. See [implementation plan](docs/plans/2026-11-03-planet-command-population.md).
 
+
+## Biome visuals and orbital construction (v0.3.1)
+
+Planet appearances are generated deterministically from the immutable galaxy seed, system ID and planet ID: worlds of the same type vary slightly in palette, storms, ice, clouds and rings while staying recognizable as their biome. WebGL renders original procedural surface materials; Canvas 2D uses matching biome colors. The 2D image cards retain the project's original planet atlas with small seeded color/cloud differences.
+
+Owned colonies retain four universal structures and unlock their biome-specific specialist buildings. A structure contributes real production or housing capacity each strategic cycle. Non-colony surveyed planets stay uninhabited, but owned star systems can build biome-compatible orbital installations above them; gas giants permit gas harvesters, rocky worlds mines and other types observatories. Legacy save schema v1 remains compatible: orbitalSites is optional and missing biome structures default to level zero.
+
+[Biome concept board](docs/design/seeded-biomes-building-board.svg) · [gameplay spec](docs/proposals/visual-biomes-and-planet-buildings.md).

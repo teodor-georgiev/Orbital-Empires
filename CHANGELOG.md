@@ -2,12 +2,17 @@
 
 All published game builds use [Semantic Versioning](https://semver.org/). Version tags are created **only after** a reviewed integration and stable release, never on work-in-progress commits.
 
-## [Unreleased] — Monthly simulation and fleet routing (feature candidate)
+## [0.3.1] — 2026-11-03 · Seeded biome planets
 
-- Replaces the player-facing End Turn button with Play/Pause, 1×/3×/8× and single-month stepping. Default campaign starts in January 2200, and the fixed-step game advances autonomously when the page is active.
-- Economy, research, rival AI, politics and population advance each month; no offline catch-up. A compatibility `endTurn` alias remains for existing tests and integrations.
-- Player fleet movement gains queued multi-hop legal hyperlane routes, one-hop-per-month transit, ETA, hold orders and blocked-route handling. Legacy direct movement remains an API for backwards compatibility.
-- Adds deterministic clock/routing tests and a mandatory per-feature documentation gate. No save-schema bump; fleet route is an optional field.
+- **Orbital environment:** deterministic starfield in WebGL and Canvas 2D fallback, visible asteroid fields, orbital comets, anomalies, rare black-hole systems and hostile void leviathans (fictional beyond Sol).
+- Orbital-object selector supports keyboard/touch; one-time asteroids cost 8 credits and award 18 alloys, comet scans grant 10 unity, anomalies grant 22 research, black-hole surveys grant 34 research/+8 influence, leviathan encounters require two corvettes and cost one for bounded rewards. Old saves remain compatible; results persist in optional spaceScans.
+- Original concept: [space environment SVG](docs/design/orbital-space-environment-concept.svg). Browser QA includes desktop/mobile screenshots.
+
+
+- Original procedural WebGL planetary materials (clouds, ice, lava, gas bands, rings and terrain) with deterministic seeds and a matching Canvas fallback.
+- Slightly randomized colors and cloud treatments on the game's existing original biome portrait atlas.
+- 13 biome-specific surface buildings plus orbital harvesters, mines and observatories for survey-only worlds in player-owned star systems.
+- Functional credit/alloy/science and housing bonuses, explicit biome restrictions, immutable save schema v1, and browser/CI regression tests.
 
 ## [0.3.0] — 2026-11-03 · Preview candidate
 

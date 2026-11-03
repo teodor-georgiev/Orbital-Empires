@@ -2,12 +2,13 @@
  * Population is measured in billions; no random growth spikes or real-time timers.
  * All owners use the same equation. This module does not migrate the save format.
  */
+import { biomeHousingBonus } from '../strategy/planet-buildings.js';
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
 export function populationCapacity(system){
  if(!system||system.owner===null||system.owner===undefined)return 0;
  const habitat=clamp(Number(system.habitability)||1,1,3);
  const richness=clamp(Number(system.richness)||1,1,4);
- return 6+4*habitat+richness;
+ return 6+4*habitat+richness+biomeHousingBonus(system);
 }
 export function populationGrowth(system){
  const capacity=populationCapacity(system);
