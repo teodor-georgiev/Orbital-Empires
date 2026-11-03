@@ -1,4 +1,5 @@
 /* Traditions, unity and mutually exclusive social-policy slots. */
+import { governanceBonuses, stabilityProductionFactor } from './government.js';
 export const TRADITIONS=[
  {id:'frontier-spirit',name:'Frontier Spirit',track:'Expansion',prereqs:[],bonus:'Colonization costs -12%',effects:{colonization:.12}},
  {id:'pathfinders',name:'Star Pathfinders',track:'Expansion',prereqs:['frontier-spirit'],bonus:'Fleet strength +8%',effects:{fleet:.08}},
@@ -22,6 +23,7 @@ export function civicBonuses(emp){
  const ids=[...(Array.isArray(emp?.traditions)?emp.traditions:[]),...(Array.isArray(emp?.policies)?emp.policies:[])];
  const sum={credits:0,alloys:0,science:0,influence:0,fleet:0,colonization:0,unity:0};
  for(const id of ids){const item=TRADITIONS.find(t=>t.id===id)||POLICIES.find(t=>t.id===id);if(item)for(const [key,value] of Object.entries(item.effects))sum[key]+=value;}
+ for(const [key,value] of Object.entries(governanceBonuses(emp)))sum[key]+=value;
  return sum;
 }
 export function traditionCost(emp){const n=Array.isArray(emp?.traditions)?emp.traditions.length:0;return 32+24*n+Math.floor(n/3)*12;}
@@ -30,7 +32,7 @@ export function unityIncome(game,owner=0){
  const colonies=game.systems.filter(s=>s.owner===owner);
  const basic=colonies.reduce((n,s)=>n+3+(s.capital?3:0),0);
  const bonus=civicBonuses(emp).unity+(emp.techs?.includes('culture-networks')?.2:0);
- return Math.round(basic*(1+bonus));
+ return Math.round(basic*(1+bonus)*stabilityProductionFactor(emp));
 }
 export function canAdoptTradition(game,id){
  const emp=game.empires[0],item=TRADITIONS.find(t=>t.id===id);
