@@ -19,6 +19,17 @@ Dependencies, risks and explicitly deferred functionality
 Requested release version and acceptance gate
 ```
 
+## Visual implementation protocol (binding to all lanes)
+
+When UI/UX or significant art is in scope, `AGENTS.md` requires **image first → visual selection → implementation → screenshot verification**. A feature PR must provide:
+
+- **Before coding:** an attached original visual mockup/picture and mobile-width treatment, plus the issue/PR link and selected design.
+- **After coding:** screenshots of the actual frontend at desktop and mobile widths, deviations from the selected picture, interaction and accessibility results.
+- **Gate:** no broad menu/planet-panel/HUD redesign merges without those artifacts and ordinary CI/browser checks. A concept image is not a substitute for a functional browser test.
+- **Exceptions:** minor copy/invisible engine work/small repairs may document why a new picture was unnecessary.
+
+The existing planet command redesign in PR #23 was coded before this rule and must meet the visual-review gate before release. Avoid retrospective claims that a later picture preceded that implementation.
+
 ## Version controls
 1. Release tag `vMAJOR.MINOR.PATCH` only after approved release, not for every PR. Keep `package.json`, `version.js`, initial HTML build label, PWA cache and `CHANGELOG.md` synchronized.
 2. Save schema is independently versioned. `SAVE_SCHEMA_VERSION = 1` remains valid in v0.3. New optional fields may have backwards-compatible defaults; structural conversions require explicit versioned migration.
