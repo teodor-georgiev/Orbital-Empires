@@ -1,4 +1,4 @@
-import { VERSION, WORLD, BUILDINGS, SHIPS, TECHS, TRADITIONS, POLICIES, traditionCost, unityIncome, adoptTradition, enactPolicy, generateGame, getEmpire, ownedSystems, getVisibility, hasSeen, getNeighbors, income, systemYield, score, fleetPower, availableTechs, colonyCost, canColonize, colonize, canBuild, build, canRecruit, recruit, canMove, moveFleet, chooseResearch, declareWar, sendEnvoy, offerPeace, endTurn, validateGame } from './core.js';
+import { VERSION, WORLD, BUILDINGS, SHIPS, TECHS, TRADITIONS, POLICIES, GOVERNMENTS, CIVICS, COUNCIL_OFFICES, LEADERS, FACTIONS, politicalStability, factionLoyalty, factionTargets, canReformGovernment, canAdoptCivic, canAppointLeader, reformGovernment, adoptCivic, appointLeader, traditionCost, unityIncome, adoptTradition, enactPolicy, generateGame, getEmpire, ownedSystems, getVisibility, hasSeen, getNeighbors, income, systemYield, score, fleetPower, availableTechs, colonyCost, canColonize, colonize, canBuild, build, canRecruit, recruit, canMove, moveFleet, chooseResearch, declareWar, sendEnvoy, offerPeace, endTurn, validateGame } from './core.js';
 import { generateSystemBodies, selectSystemPlanet } from './system-model.js';
 import { createSolarView } from './solar-view.js';
 import { APP_VERSION } from './version.js';
@@ -102,7 +102,7 @@ function header(kicker,title,description,meta='SYSTEM ONLINE'){
 function section(title,body){return `<section class="subsection"><div class="section-label">${title}</div>${body}</section>`;}
 function stat(label,val,cls=''){return `<div class="stat-cell"><small>${label}</small><strong class="${cls}">${val}</strong></div>`;}
 function btn(action,label,cls='action-primary',attrs=''){return `<button class="${cls}" data-action="${action}" ${attrs}>${label}</button>`;}
-function renderInspector(){switch(activePage){case 'colonies':return renderColonies();case 'research':return renderResearch();case 'military':return renderMilitary();case 'diplomacy':return renderDiplomacy();case 'intel':return renderIntel();case 'traditions':return renderTraditions();case 'policies':return renderPolicies();default:return renderSystem();}}
+function renderInspector(){switch(activePage){case 'colonies':return renderColonies();case 'research':return renderResearch();case 'military':return renderMilitary();case 'diplomacy':return renderDiplomacy();case 'intel':return renderIntel();case 'traditions':return renderTraditions();case 'policies':return renderPolicies();case 'government':return renderGovernment();default:return renderSystem();}}
 function renderSystem(){const s=game.systems[selectedId],seen=hasSeen(game,s.id),visible=getVisibility(game).has(s.id);
  if(!seen)return header('LONG-RANGE SENSORS','Uncharted Sector','This star system is beyond current sensor range. Move a fleet or establish nearby colonies to reveal it.','NO SIGNAL')+`<div class="inspector-body">${section('EXPLORATION STATUS','<div class="empty-message"><div class="empty-icon">◌</div>Unknown star system. Explore with a fleet.</div>')}</div>`;
  const y=systemYield(game,s),owner=s.owner===0?'DIRECTORATE CONTROL':s.owner===null?'UNCLAIMED':game.empires[s.owner].short.toUpperCase();
@@ -132,6 +132,43 @@ function renderPolicies(){const e=game.empires[0],active=e.policies||[],slots=['
  const groups=slots.map(slot=>`<div class="civic-group"><h3>◈ ${slot.toUpperCase()} POLICY SLOT</h3>${POLICIES.filter(p=>p.slot===slot).map(p=>{const done=active.includes(p.id);return `<button class="civic-tile ${done?'done':''}" data-action="enact-policy" data-id="${p.id}" ${done||e.influence<20?'disabled':''}><strong>${done?'✓ ':'◇ '}${escapeHTML(p.name)}</strong><small>${escapeHTML(p.description)}</small><span class="status">${done?'ACTIVE POLICY':escapeHTML(p.bonus)+' · 20 INFLUENCE TO ENACT'}</span></button>`}).join('')}</div>`).join('');
  return header('SOCIETAL FRAMEWORK','Social Policies','Choose one active law in each slot. Replacing a policy costs 20 influence and immediately changes empire bonuses.','SENATE ONLINE')+`<div class="inspector-body">${section('POLICY OVERVIEW',`<div class="civic-stats"><div class="civic-stat"><small>INFLUENCE</small><strong>${fmt(e.influence)} ◇</strong></div><div class="civic-stat"><small>ACTIVE POLICIES</small><strong>${active.length} / 3</strong></div></div>`)}${section('ENACT LEGISLATION',`<div class="civic-path">${groups}</div>`)}</div>`;
 }
+
+function renderGovernment(){
+  const empire=game.empires[0],current=empire.government||'directorate',stability=politicalStability(empire),targets=factionTargets(empire);
+  const governmentCards=GOVERNMENTS.map(gov=>{
+    const selected=current===gov.id,allowed=canReformGovernment(game,gov.id);
+    return `<button class="government-option ${selected?'selected':''}" data-action="reform-government" data-id="${gov.id}" ${!allowed.ok?'disabled':''} title="${escapeHTML(selected?'Current government':allowed.message)}"><span class="government-option-heading"><strong>${escapeHTML(gov.name)}</strong><small>${selected?'IN FORCE':'40 INFLUENCE'}</small></span><span class="government-option-description">${escapeHTML(gov.description)}</span><span class="government-option-bonus">${escapeHTML(gov.bonus)}</span></button>`;
+  }).join('');
+  const civicGroups=['Constitution','Development'].map(slot=>{
+    const cards=CIVICS.filter(c=>c.slot===slot).map(c=>{
+      const selected=(empire.civics||[]).includes(c.id),allowed=canAdoptCivic(game,c.id);
+      return `<button class="government-option ${selected?'selected':''}" data-action="adopt-civic" data-id="${c.id}" ${!allowed.ok?'disabled':''} title="${escapeHTML(selected?'Active civic':allowed.message)}"><span class="government-option-heading"><strong>${escapeHTML(c.name)}</strong><small>${selected?'ACTIVE':'20 INFLUENCE'}</small></span><span class="government-option-description">${escapeHTML(c.description)}</span><span class="government-option-bonus">${escapeHTML(c.bonus)}</span></button>`;
+    }).join('');
+    return `<div class="government-subgroup"><h3>${escapeHTML(slot)} · ${(empire.civics||[]).some(id=>CIVICS.find(c=>c.id===id)?.slot===slot)?'1/1':'0/1'}</h3>${cards}</div>`;
+  }).join('');
+  const council=COUNCIL_OFFICES.map(office=>{
+    const incumbent=LEADERS.find(l=>l.id===empire.council?.[office.id]);
+    const candidates=LEADERS.filter(l=>l.office===office.id).map(leader=>{
+      const selected=incumbent?.id===leader.id,allowed=canAppointLeader(game,leader.id);
+      return `<button class="government-option ${selected?'selected':''}" data-action="appoint-leader" data-id="${leader.id}" ${!allowed.ok?'disabled':''} title="${escapeHTML(selected?'Appointed':allowed.message)}"><span class="government-option-heading"><strong>${escapeHTML(leader.name)}</strong><small>${selected?'IN OFFICE':'12 INFLUENCE'}</small></span><span class="government-option-description">${escapeHTML(leader.trait)}</span><span class="government-option-bonus">${escapeHTML(leader.bonus)}</span></button>`;
+    }).join('');
+    return `<div class="government-subgroup"><h3>${escapeHTML(office.name)} <small>${escapeHTML(incumbent?.name||'VACANT')}</small></h3>${candidates}</div>`;
+  }).join('');
+  const factions=FACTIONS.map(faction=>{
+    const loyalty=factionLoyalty(empire,faction.id),target=targets[faction.id],trend=target>loyalty?'↑':target<loyalty?'↓':'→';
+    return `<div class="government-faction"><span><strong>${escapeHTML(faction.name)}</strong><small>${escapeHTML(faction.description)}</small></span><b>${loyalty}% ${trend}</b><div class="government-loyalty-track"><i style="width:${loyalty}%"></i></div></div>`;
+  }).join('');
+  const state=stability<30?'CRISIS':stability<45?'UNREST':stability>=75?'THRIVING':'STABLE';
+  const production=stability<30?'−25%':stability<45?'−10%':stability>=75?'+7%':'No penalty';
+  return header('DOMESTIC GOVERNANCE','Government & Council','Reform the constitution, appoint officials and balance political factions. Your decisions change production and stability.','CIVIL AFFAIRS')
+    +`<div class="inspector-body government-panel">
+    ${section('LEGITIMACY & FACTION LOYALTY',`<div class="government-stats"><div><small>STABILITY</small><strong>${stability} / 100</strong></div><div><small>POLITICAL STATE</small><strong>${state}</strong></div><div><small>PRODUCTION</small><strong>${production}</strong></div><div><small>INFLUENCE</small><strong>${fmt(empire.influence)} ◇</strong></div></div><p class="government-note">Factions shift toward your laws and civics each cycle. Below 45 stability, unrest reduces economic output; high stability rewards production.</p>${factions}`)}
+    ${section('FORM OF GOVERNMENT',`<p class="government-note">Reforming costs 40 influence and requires five cycles between changes. Reform disrupts faction loyalty.</p><div class="government-card-stack">${governmentCards}</div>`)}
+    ${section('CIVIC PRINCIPLES · 2 SLOTS',`<p class="government-note">One Constitution civic and one Development civic. You can replace them for 20 influence.</p><div class="government-card-stack">${civicGroups}</div>`)}
+    ${section('HIGH COUNCIL · 3 OFFICES',`<p class="government-note">Choose one leader per office. Appointments cost 12 influence and are locked for two cycles.</p><div class="government-card-stack">${council}</div>`)}
+    </div>`;
+}
+
 function renderMilitary(){const fleets=totalFleets(),power=fleets.reduce((sum,f)=>sum+fleetPower(game,f),0),s=game.systems[selectedId],shipyard=s.owner===0?s:game.systems[game.empires[0].home];
  const fleetList=fleets.map(f=>`<div class="fleet-row ${selectedFleetId===f.id?'active':''}"><div class="fleet-symbol">⌁</div><div class="row-main"><strong>${escapeHTML(f.name)}</strong><small>${escapeHTML(game.systems[f.system].name)} · ${fleetPower(game,f)} POWER</small><small>${fleetLabel(f)} ${f.movedTurn>=game.turn?'· MOVED':''}</small></div><button data-action="select-fleet" data-id="${f.id}" class="fleet-pick ${selectedFleetId===f.id?'active':''}">SELECT</button></div>`).join('');
  const ships=SHIPS.map(x=>`<div class="build-row"><div class="build-symbol">${x.icon}</div><div class="row-main"><strong>${escapeHTML(x.name)}</strong><span class="upgrade-level">${x.power} COMBAT POWER</span><small>${x.alloy} ◈ alloys · ${x.credits} credits${x.tech?' · '+(game.empires[0].techs.includes(x.tech)?'UNLOCKED':'TECH LOCKED'):''}</small></div><button data-action="recruit" data-type="${x.id}" data-system="${shipyard.id}" ${!canRecruit(game,shipyard.id,x.id).ok?'disabled':''}>BUILD</button></div>`).join('');
@@ -242,6 +279,9 @@ function handleAction(action,data){
   case 'save-settings':{settings.quality=$('#gfx-quality').value;settings.theme=$('#ui-theme').value;settings.motion=$('#motion-mode').value;try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings))}catch{}closeModal();applySettings();render();notice('Display settings applied.');break;}
   case 'adopt-tradition':act(adoptTradition(game,data.id));break;
   case 'enact-policy':act(enactPolicy(game,data.id));break;
+   case 'reform-government':act(reformGovernment(game,data.id));break;
+   case 'adopt-civic':act(adoptCivic(game,data.id));break;
+   case 'appoint-leader':act(appointLeader(game,data.id));break;
   case 'save':if(persist())notice('Campaign saved to this browser.');break;
   case 'install':installApp();break;
   case 'download-menu':openModal('download');break;
