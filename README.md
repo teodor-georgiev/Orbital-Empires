@@ -13,6 +13,13 @@ python3 -m http.server 4173
 
 Open http://localhost:4173/. The game is not meant to be opened as a `file://` page: service workers require an HTTP/HTTPS origin. Browsers generally permit installation from HTTPS or localhost only.
 
+## v0.3.0 Solar Frontier (integration candidate)
+
+- Playable **Humans** begin on **Earth** in **Sol** with named nearby real stars: Alpha Centauri, Proxima Centauri, Barnard's Star, Wolf 359, Sirius and more. Schematic positions and fictional hyperlanes/resources are clearly distinguished from factual catalog distances.
+- Choose start year **2000–3000** (default **2200**) and one of seven playable species in procedural campaigns. Existing save files remain compatible.
+- The move to real-time-with-pause and autonomous departments is approved as a game direction, but a separate [clock PR #19](https://github.com/teodor-georgiev/Orbital-Empires/pull/19) is being developed in another lane. This Sol scenario branch **does not** replace its clock implementation.
+- Shared source of truth: [AGENTS.md](AGENTS.md), [versioned game specifications](docs/specs/INDEX.md), [editing protocol](docs/specs/EDITING_PROTOCOL.md), [ADR](docs/decisions/ADR-0001-REAL-TIME-AUTONOMY.md).
+
 ## Gameplay included in v0.2
 
 - Seeded galaxy generation, navigable hyperlanes, fog of war, interactive pan/zoom map
@@ -55,6 +62,7 @@ Develop only on feature/fix branches; require a successful test workflow and rev
 
 ## Game design and parallel development
 
+- [Shared game specs, versioning and all-agent collaboration](docs/specs/INDEX.md)
 - [Game systems and milestone design](docs/GAME_DESIGN.md)
 - [Current architecture and modularization gate](docs/ARCHITECTURE.md)
 - [Master roadmap: all game systems and milestones](docs/ROADMAP.md)
