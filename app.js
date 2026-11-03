@@ -110,7 +110,7 @@ function renderSolarHud(){
  const selected=roster.filter(u=>selectedShipIds.includes(u.id)),cost=system.owner===0?canUpgradeOutpost(game,system.id):null;
  const station=post?`<div class="oe-station-summary"><b>${escapeHTML(OUTPOST_TIERS[post.level].name)}</b><small>DEF ${outpostDefense(system)} · HP ${post.hp}/${OUTPOST_TIERS[post.level].maxHp} · ARM ${post.armor} · SH ${post.shield}</small>${system.owner===0?`<button data-action="outpost-upgrade" ${cost?.ok?'':'disabled'}>${post.level===4?'MAX LEVEL':'UPGRADE OUTPOST'}</button>`:''}</div>`:'<p class="oe-unit-tip">No outpost in unclaimed territory.</p>';
  const rosterButtons=friendly.slice(0,65).map(u=>`<button data-action="solar-select-ship" data-id="${u.id}" class="oe-unit-button ${selectedShipIds.includes(u.id)?'selected':''}" aria-pressed="${selectedShipIds.includes(u.id)}">${u.type.toUpperCase()} #${u.id}<small>${u.localOrder?.kind||'hold'}</small></button>`).join('');
- const commands=selected.length?`<div class="oe-tactical-actions"><button data-action="ship-orbit">ORBIT PLANET</button><button data-action="ship-guard">DEFEND PLANET</button><button data-action="ship-dock" ${system.owner===0&&post?.level>0?'':'disabled'}>DOCK</button><button data-action="ship-patrol">PATROL</button><button data-action="ship-hold">HOLD</button><button data-action="ship-move-target">MOVE TO POINT</button><button data-action="ship-split">SPLIT</button><button data-action="ship-merge">MERGE</button></div>`:'<p class="oe-unit-tip">Click or tap a ship. Drag to box-select, Shift-click to add, Alt-drag to orbit the camera.</p>';
+ const commands=selected.length?`<div class="oe-tactical-actions"><button data-action="ship-orbit">ORBIT PLANET</button><button data-action="ship-guard">DEFEND PLANET</button><button data-action="ship-dock" ${system.owner===0&&post?.level>0?'':'disabled'}>DOCK</button><button data-action="ship-patrol">PATROL</button><button data-action="ship-hold">HOLD</button><button data-action="ship-move-target">MOVE TO POINT</button><button data-action="ship-hyperlane">SEND VIA HYPERLANE</button><button data-action="ship-split">SPLIT</button><button data-action="ship-merge">MERGE</button></div>`:'<p class="oe-unit-tip">Click or tap a ship. Drag to box-select, Shift-click to add, Alt-drag to orbit the camera.</p>';
  $('#solar-command-panel').innerHTML=`<div class="oe-tactical-caption">STARBASE DEFENSE</div>${station}<div class="oe-tactical-caption">SHIP COMMAND · ${selected.length} SELECTED</div><div class="oe-unit-list">${rosterButtons||'No friendly ships'}${friendly.length>65?'<small>Showing first 65 ships</small>':''}</div>${commands}${moveShipTargetMode?'<p class="oe-unit-tip">Tap a destination in the scene.</p>':''}`;
 
   $('#solar-site-list').innerHTML=(solarBodies.sites||[]).map(site=>{
@@ -318,8 +318,13 @@ function renderGovernment(){
 
 function renderMilitary(){const fleets=totalFleets(),power=fleets.reduce((sum,f)=>sum+fleetPower(game,f),0),s=game.systems[selectedId],shipyard=s.owner===0?s:game.systems[game.empires[0].home];
   const fleetList=fleets.map(f=>{const eta=fleetRouteETA(f),destination=eta?game.systems[f.route.at(-1)]?.name:null;return `<div class="fleet-row ${selectedFleetId===f.id?'active':''}"><div class="fleet-symbol">⌁</div><div class="row-main"><strong>${escapeHTML(f.name)}</strong><small>${escapeHTML(game.systems[f.system].name)} · ${fleetPower(game,f)} POWER · ${fleetLabel(f)}</small><small>${eta?`EN ROUTE → ${escapeHTML(destination||'?')} · ETA ${eta} MONTHS`:'IDLE · AWAITING ORDERS'}</small></div><button data-action="select-fleet" data-id="${f.id}" class="fleet-pick ${selectedFleetId===f.id?'active':''}">SELECT</button></div>`}).join('');
- const ships=SHIPS.map(x=>`<div class="build-row"><div class="build-symbol">${x.icon}</div><div class="row-main"><strong>${escapeHTML(x.name)}</strong><span class="upgrade-level">${x.power} COMBAT POWER</span><small>${x.alloy} ◈ alloys · ${x.credits} credits${x.tech?' · '+(game.empires[0].techs.includes(x.tech)?'UNLOCKED':'TECH LOCKED'):''}</small></div><button data-action="recruit" data-type="${x.id}" data-system="${shipyard.id}" ${!canRecruit(game,shipyard.id,x.id).ok?'disabled':''}>BUILD</button></div>`).join('');
- return header('NAVAL HIGH COMMAND','Fleet Operations','Deploy ships, project power, and secure critical hyperlanes.','DEFENSE READY')+`<div class="inspector-body">${section('NAVAL READINESS',`<div class="stat-grid">${stat('FLEETS',fleets.length)}${stat('TOTAL POWER',power,'cyan')}</div><div class="alert">Select a fleet, then select any discovered accessible star in Galaxy Command to plot a route. Fleets travel one hyperlane per month, and you can cancel orders anytime.</div>`)}${section('ACTIVE FLEETS',fleetList||'<div class="empty-message">No fleets commissioned.</div>')}${selectedFleetId&&fleetRouteETA(game.fleets.find(f=>f.id===selectedFleetId))?section('ACTIVE ORDER',btn('cancel-fleet-route','HOLD POSITION / CANCEL ROUTE','action-secondary')):''}${section(`SHIPYARD · ${escapeHTML(shipyard.name.toUpperCase())}`,ships)}</div>`;
+  const fleet=game.fleets.find(f=>f.id===selectedFleetId&&f.owner===0);
+  const routes=fleet?game.systems.map(target=>({target,plan:canQueueFleetRoute(game,fleet.id,target.id)}))
+    .filter(x=>x.plan.ok).sort((a,b)=>a.plan.months-b.plan.months||a.target.name.localeCompare(b.target.name)):[];
+  const routePanel=fleet?`<div class="alert">SELECTED: <b>${escapeHTML(fleet.name)}</b> · ${escapeHTML(game.systems[fleet.system].name)} · ${fleetRouteETA(fleet)?'TRAVELING, '+fleetRouteETA(fleet)+' MONTHS REMAINING':'READY TO MOVE'}<div class="small-muted">Click a destination below to issue a persistent route. Or right-click any discovered accessible star on the galaxy map.</div></div>
+    <div class="oe-fleet-destinations">${routes.slice(0,12).map(x=>`<button data-action="fleet-destination" data-id="${x.target.id}"><strong>${escapeHTML(x.target.name)}</strong><small>ETA ${x.plan.months} month${x.plan.months===1?'':'s'}</small></button>`).join('')||'<div class="small-muted">No discovered accessible destinations. Explore nearby hyperlanes first.</div>'}</div>`:'<div class="empty-message">Select a fleet above to plot its hyperlane route.</div>';
+  const ships=SHIPS.map(x=>`<div class="build-row"><div class="build-symbol">${x.icon}</div><div class="row-main"><strong>${escapeHTML(x.name)}</strong><span class="upgrade-level">${x.power} COMBAT POWER</span><small>${x.alloy} ◈ alloys · ${x.credits} credits${x.tech?' · '+(game.empires[0].techs.includes(x.tech)?'UNLOCKED':'TECH LOCKED'):''}</small></div><button data-action="recruit" data-type="${x.id}" data-system="${shipyard.id}" ${!canRecruit(game,shipyard.id,x.id).ok?'disabled':''}>BUILD</button></div>`).join('');
+ return header('NAVAL HIGH COMMAND','Fleet Operations','Deploy ships, project power, and secure critical hyperlanes.','DEFENSE READY')+`<div class="inspector-body">${section('NAVAL READINESS',`<div class="stat-grid">${stat('FLEETS',fleets.length)}${stat('TOTAL POWER',power,'cyan')}</div><div class="alert">Select a fleet, then select any discovered accessible star in Galaxy Command to plot a route. Fleets travel one hyperlane per month, and you can cancel orders anytime.</div>`)}${section('ACTIVE FLEETS',fleetList||'<div class="empty-message">No fleets commissioned.</div>')}${section('MOVEMENT ORDERS',routePanel)}${selectedFleetId&&fleetRouteETA(game.fleets.find(f=>f.id===selectedFleetId))?section('ACTIVE ORDER',btn('cancel-fleet-route','HOLD POSITION / CANCEL ROUTE','action-secondary')):''}${section(`SHIPYARD · ${escapeHTML(shipyard.name.toUpperCase())}`,ships)}</div>`;
 }
 function renderDiplomacy(){const player=game.empires[0],rivals=game.empires.slice(1);
  return header('INTERSTELLAR COUNCIL','Diplomatic Corps','Form rivalries, improve relations, or take your place among the great powers.','FOREIGN AFFAIRS')+`<div class="inspector-body">${section('KNOWN CIVILIZATIONS',rivals.map(e=>{const w=!!player.wars[e.id],relation=player.relations[e.id]||0,owned=ownedSystems(game,e.id).length,known=game.systems.some(s=>s.owner===e.id&&hasSeen(game,s.id));return `<div class="rival-card"><div class="rival-emblem" style="--faction:${e.color}">${e.short.slice(0,1)}</div><div class="row-main"><strong>${escapeHTML(e.name)}</strong><small>${e.trait} · ${e.eliminated?'DEFEATED':known?'CONTACT ESTABLISHED':'UNCONFIRMED LOCATION'}</small><small>${owned} colonies · Relations: <span style="color:${relation>=0?'#8dd6ac':'#ec9ba9'}">${relation>0?'+':''}${relation}</span></small><div class="rival-actions">${e.eliminated?'<span class="small-muted">Empire eliminated</span>':w?`<span class="badge enemy">AT WAR</span><button data-action="peace" data-id="${e.id}">OFFER PEACE</button>`:`<button data-action="envoy" data-id="${e.id}" ${player.lastEnvoy[e.id]===game.turn?'disabled':''}>ENVOY −12 ◇</button><button data-action="war" data-id="${e.id}" class="danger">DECLARE WAR</button>`}</div></div></div>`}).join(''))}</div>`;}
@@ -368,6 +373,16 @@ viewport.addEventListener('pointerdown',e=>{if(e.target!==canvas||!game)return;c
 canvas.addEventListener('pointermove',e=>{if(!game)return;const p=posEvent(e);if(drag&&drag.pointer===e.pointerId){const dx=p.x-drag.prevX,dy=p.y-drag.prevY;if(Math.abs(p.x-drag.x)+Math.abs(p.y-drag.y)>6)drag.moved=true;if(drag.moved){view.auto=false;view.cx-=dx/view.zoom;view.cy-=dy/view.zoom;}drag.prevX=p.x;drag.prevY=p.y;$('#map-tooltip').hidden=true;return;}
  const s=findStar(p.x,p.y),tip=$('#map-tooltip');if(s){hovered=s.id;tip.hidden=false;tip.innerHTML=`<strong>${escapeHTML(s.name)}</strong><small>${escapeHTML(labelOwner(s))} · ${escapeHTML(s.star)}</small>`;tip.style.left=Math.min(Math.max(p.x+17,12),view.width-165)+'px';tip.style.top=Math.max(7,Math.min(p.y-37,view.height-65))+'px';canvas.style.cursor='pointer';}else{tip.hidden=true;canvas.style.cursor='grab';}});
 canvas.addEventListener('pointerup',e=>{if(!drag||drag.pointer!==e.pointerId)return;const p=posEvent(e);if(!drag.moved){const s=findStar(p.x,p.y);if(s){if(s.id===selectedId&&activePage==='system')openSolarSystem(s.id);else{selectedId=s.id;activePage='system';render();}}}drag=null;});
+canvas.addEventListener('contextmenu',e=>{
+ if(!game||solarOpen||isDevelopmentPage(activePage))return;
+ e.preventDefault();
+ const p=posEvent(e),target=findStar(p.x,p.y);
+ if(!target)return;
+ const fleet=game.fleets.find(f=>f.id===selectedFleetId&&f.owner===0);
+ selectedId=target.id;activePage='system';
+ if(!fleet){render();notice('Select one of your fleets in Fleet Operations first.','error');return;}
+ act(queueFleetRoute(game,fleet.id,target.id));
+});
 canvas.addEventListener('pointercancel',()=>drag=null);
 canvas.addEventListener('pointerleave',()=>{$('#map-tooltip').hidden=true});
 viewport.addEventListener('wheel',e=>{if(!game)return;e.preventDefault();const r=canvas.getBoundingClientRect();zoomAt(e.deltaY<0?1.13:.885,e.clientX-r.left,e.clientY-r.top);},{passive:false});
@@ -498,6 +513,22 @@ function handleAction(action,data){
  case 'ship-patrol':act(orderSelectedShips(game,selectedShipIds,{kind:'patrol'}));break;
  case 'ship-hold':act(orderSelectedShips(game,selectedShipIds,{kind:'hold'}));break;
  case 'ship-move-target':moveShipTargetMode=true;solar.setMoveMode(true);render();break;
+ case 'ship-hyperlane':{
+   const chosen=shipUnitRoster(game,selectedId).filter(u=>selectedShipIds.includes(u.id)&&u.owner===0);
+   const group=[...new Set(chosen.map(u=>u.fleetId))];
+   if(!chosen.length||group.length!==1){notice('Select ships from one fleet, then use Send via Hyperlane.','error');break;}
+   const fleet=game.fleets.find(f=>f.id===group[0]);
+   if(!fleet){notice('Fleet is no longer available.','error');break;}
+   if(chosen.length===fleet.units.length)selectedFleetId=fleet.id;
+   else{
+      const result=splitShipSelection(game,selectedShipIds);
+      if(!result.ok){notice(result.message,'error');break;}
+      selectedFleetId=result.fleetIds[0];
+   }
+   closeSolarSystem();activePage='military';selectedShipIds=[];persist();render();
+   notice('Choose a destination in Movement Orders, or right-click a discovered system.');
+   break;
+ }
  case 'ship-split':act(splitShipSelection(game,selectedShipIds));break;
  case 'ship-merge':act(mergeShipSelection(game,selectedShipIds));break;
  case 'solar-site':{if(!solarOpen||!solarBodies.sites.some(s=>s.id===data.id))break;selectedSpaceSite=data.id;planetFocus=false;activePage='system';render();$('#inspector').scrollTop=0;break;}
@@ -507,12 +538,13 @@ function handleAction(action,data){
   case 'center':recenter();break;
   case 'select-system':if(solarOpen)closeSolarSystem();selectedId=id;activePage='system';maybeSelectFleetForSystem(id);render();break;
   case 'inspect-colony':openSolarSystem(id);planetFocus=true;render();break;
-  case 'select-fleet':selectedFleetId=id;activePage='military';render();notice('Fleet selected. Click a neighboring system, then issue a Move order.');break;
+  case 'select-fleet':selectedFleetId=id;activePage='military';render();notice('Fleet selected. Choose a destination in Movement Orders or right-click a system.');break;
   case 'colonize':act(colonize(game,selectedId));break;
   case 'build':act(build(game,selectedId,data.type));break;
    case 'build-orbital':act(buildOrbital(game,selectedId,selectedPlanet,data.type));break;
   case 'recruit':act(recruit(game,systemId,data.type));break;
   case 'research':act(chooseResearch(game,data.id));break;
+  case 'fleet-destination':selectedId=id;act(queueFleetRoute(game,selectedFleetId,id));break;
   case 'queue-fleet-route':act(queueFleetRoute(game,selectedFleetId,selectedId));break;
    case 'cancel-fleet-route':act(cancelFleetRoute(game,selectedFleetId));break;
   case 'envoy':act(sendEnvoy(game,id));break;
