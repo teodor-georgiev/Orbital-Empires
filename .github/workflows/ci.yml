@@ -54,3 +54,27 @@ jobs:
           name: orbital-browser-smoke
           path: artifacts/*.png
           if-no-files-found: ignore
+
+  release-playwright:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned Playwright test driver
+        run: npm install --no-save --ignore-scripts --no-audit --no-fund @playwright/test@1.56.1
+      - name: Install Chromium browser
+        run: npx playwright install --with-deps chromium
+      - name: Test real gameplay in Chromium on desktop and mobile
+        run: npx playwright test --config=e2e/playwright.config.mjs
+      - name: Upload screenshots and failure traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: orbital-release-browser-qa
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: warn
