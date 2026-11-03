@@ -2,7 +2,7 @@ import { VERSION, WORLD, BUILDINGS, SHIPS, TECHS, TRADITIONS, POLICIES, traditio
 import { generateSystemBodies, selectSystemPlanet } from './system-model.js';
 import { createSolarView } from './solar-view.js';
 import { APP_VERSION } from './version.js';
-import { createClockState, advanceClock, setClockSpeed } from './modules/simulation/clock.js';
+import { configuredDonationUrl } from './support-config.js';
 
 const SAVE_KEY = 'orbital-empires-save-v1';
 const PLANET_CLASSES=new Set(['terran','oceanic','desert','jungle','arctic','barren','volcanic','gas-giant']);
@@ -20,7 +20,6 @@ const escapeHTML = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const fmt = n => Math.round(n).toLocaleString('en-US');
 const fragment = (markup)=>markup;
 let game, activePage='system', selectedId=0, selectedFleetId=null, modalType=null, deferredInstallPrompt=null;
-let clockState=createClockState(),lastSimulationFrame=null;
 const SETTINGS_KEY='orbital-empires-settings-v1';
 const QUALITY={performance:{scale:1,maxPixels:1920*1080,delay:65,stars:100},balanced:{scale:2,maxPixels:2560*1440,delay:36,stars:270},ultra4k:{scale:3,maxPixels:3840*2160,delay:32,stars:470}};
 const THEMES=['command','nebula','imperial'];
@@ -84,8 +83,7 @@ function render(){
   $('#top-turn').textContent=`YEAR ${getStardate(game)}`;
   $('.profile-name').textContent=player.name.toUpperCase();
   $('.profile-sub').textContent=player.motto.toUpperCase();
-  const emblem=$('.empire-emblem img');if(emblem){const art={Human:'terran',Auralian:'auralis',Vexari:'vex',Solari:'solari'};emblem.src='./assets/original/emblems/'+(art[player.species]||'../../icon')+'.svg';if(!art[player.species])emblem.src='./assets/icon.svg';emblem.alt=player.name+' emblem';}
-  $('#time-controls').innerHTML=`<button data-action="clock-pause" aria-label="Pause simulation" ${clockState.speed===0?'disabled':''}>Ⅱ</button><button data-action="clock-play" aria-label="Resume simulation" ${clockState.speed>0?'disabled':''}>▶</button>${[1,2,5,10].map(speed=>`<button class="${clockState.speed===speed?'active':''}" data-action="clock-speed" data-id="${speed}" aria-label="Simulation speed ${speed} times" aria-pressed="${clockState.speed===speed}">${speed}×</button>`).join('')}<button data-action="clock-step" aria-label="Advance one month">+1 mo</button>`;
+  const emblem=$('.empire-emblem img');if(emblem){const art={Human:'terran',Auralian:'auralis',Vexari:'vex',Solari:'solari'};emblem.src=art[player.species]?'./assets/original/emblems/'+art[player.species]+'.svg':'./assets/icon.svg';emblem.alt=player.name+' emblem';}
   $('#build-version').textContent=`BUILD v${APP_VERSION} · SINGLE PLAYER`;
   $('#map-summary').textContent=solarOpen?`${game.systems[selectedId].star} · ${solarBodies.planets.length} catalogued planets · ${solarBodies.planets.filter(p=>p.moons.length).length} moon systems`:`${systems.length} star systems · ${game.empires.filter(e=>!e.eliminated).length} civilizations · ${territory.length} controlled`;
   $('.map-top h1').innerHTML=solarOpen?`${escapeHTML(game.systems[selectedId].name)} <span>System</span>`:'Galactic Sector <span>01</span>';
@@ -112,7 +110,7 @@ function renderInspector(){switch(activePage){case 'colonies':return renderColon
 function renderSystem(){const s=game.systems[selectedId],seen=hasSeen(game,s.id),visible=getVisibility(game).has(s.id);
  if(!seen)return header('LONG-RANGE SENSORS','Uncharted Sector','This star system is beyond current sensor range. Move a fleet or establish nearby colonies to reveal it.','NO SIGNAL')+`<div class="inspector-body">${section('EXPLORATION STATUS','<div class="empty-message"><div class="empty-icon">◌</div>Unknown star system. Explore with a fleet.</div>')}</div>`;
  const y=systemYield(game,s),owner=s.owner===0?'YOUR EMPIRE':s.owner===null?'UNCLAIMED':game.empires[s.owner].short.toUpperCase();
- let html=header('STAR SYSTEM / '+String(s.id+1).padStart(3,'0'),escapeHTML(s.name),s.realStarId?`${escapeHTML(s.star)} · ${s.distanceLy===0?'Home system':`≈ ${s.distanceLy.toFixed(2)} light-years from Sol`} · Planetary resources fictional`: `${escapeHTML(s.star)} · ${escapeHTML(s.biome)} world · ${escapeHTML(s.feature)}`,owner);
+ let html=header('STAR SYSTEM / '+String(s.id+1).padStart(3,'0'),escapeHTML(s.name),s.realStarId?`${escapeHTML(s.star)} · ${s.distanceLy===0?'Home system':`≈ ${s.distanceLy.toFixed(2)} light-years from Sol`} · Planetary resources fictional`:`${escapeHTML(s.star)} · ${escapeHTML(s.biome)} world · ${escapeHTML(s.feature)}`,owner);
  html+='<div class="inspector-body">';
  html+=section('ORBITAL OBSERVATORY',`<div class="orbital-entry"><span class="orbital-entry-icon">${gameIcon('orbit')}</span><div><strong>Explore the star system</strong><small>Visit planets, moons and orbital lanes in interactive ${solar.is3D()?'3D':'2D'}.</small></div></div>${btn(solarOpen?'close-solar':'open-solar',solarOpen?'← RETURN TO GALAXY':'✦ ENTER SOLAR SYSTEM','action-primary orbital-action')}`);
  html+=section('PLANETARY OVERVIEW',`<div class="planet-hero ${s.biome.toLowerCase().replaceAll(' ','-')}"><div class="planet-orbit"></div><div class="planet-art planet-${artworkBiome(s.biome)}" role="img" aria-label="${escapeHTML(s.biome)} planet artwork"></div><span class="planet-symbol">${escapeHTML(s.biome.toUpperCase())} PLANET</span><span class="planet-feature">${escapeHTML(s.feature.toUpperCase())}</span></div>`);
@@ -153,16 +151,7 @@ function resizeCanvas(){const rect=canvas.getBoundingClientRect(),preset=QUALITY
 function screenPos(s){return {x:(s.x-view.cx)*view.zoom+view.width/2,y:(s.y-view.cy)*view.zoom+view.height/2};}
 function fromScreen(x,y){return{x:view.cx+(x-view.width/2)/view.zoom,y:view.cy+(y-view.height/2)/view.zoom};}
 function colorAlpha(color,a){if(color[0]==='#'){const n=parseInt(color.slice(1),16);return`rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;}return color;}
-function advanceGameClock(now){
- const elapsed=lastSimulationFrame===null?0:Math.max(0,now-lastSimulationFrame);lastSimulationFrame=now;
- if(!game||game.gameOver||clockState.speed===0||document.hidden)return;
- const result=advanceClock(clockState,elapsed);clockState=result.state;
- if(!result.steps)return;
- let updated=false;
- for(let i=0;i<result.steps;i++){const outcome=endTurn(game);if(!outcome.ok)break;updated=true;if(game.gameOver){clockState=setClockSpeed(clockState,0);break;}}
- if(updated){persist();render();if(game.gameOver)openModal('victory');}
-}
-function draw(now){requestAnimationFrame(draw);advanceGameClock(now);if(solarOpen)return;if(!game||!view.width||now-lastRenderTick<QUALITY[settings.quality].delay)return;lastRenderTick=now;pulse=now/1000;
+function draw(now){requestAnimationFrame(draw);if(solarOpen)return;if(!game||!view.width||now-lastRenderTick<QUALITY[settings.quality].delay)return;lastRenderTick=now;pulse=now/1000;
  const w=view.width,h=view.height;ctx.clearRect(0,0,w,h);
  let bg=ctx.createRadialGradient(w*.48,h*.45,15,w*.48,h*.45,Math.max(w,h)*.8);bg.addColorStop(0,'#13243b');bg.addColorStop(.4,'#0d192b');bg.addColorStop(1,'#050d18');ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
  for(const glow of [{x:.28,y:.3,r:.46,c:'rgba(18,76,95,.14)'},{x:.82,y:.7,r:.48,c:'rgba(65,42,105,.15)'},{x:.55,y:.72,r:.24,c:'rgba(20,53,89,.18)'}]){const g=ctx.createRadialGradient(glow.x*w,glow.y*h,0,glow.x*w,glow.y*h,glow.r*Math.max(w,h));g.addColorStop(0,glow.c);g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);}
@@ -205,7 +194,7 @@ viewport.addEventListener('wheel',e=>{if(!game)return;e.preventDefault();const r
 window.addEventListener('resize',resizeCanvas);
 
 function modalLayout(kicker,title,body,buttons=''){return `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><button class="modal-close" data-action="close-modal" aria-label="Close dialog">×</button><div class="eyebrow">${kicker}</div><h2 id="modal-title">${title}</h2>${body}${buttons?`<div class="modal-actions">${buttons}</div>`:''}</div>`}
-function openModal(type){if(clockState.speed>0){clockState=setClockSpeed(clockState,0);if(game)render();}modalType=type;const root=$('#modal-root');let html='';
+function openModal(type){modalType=type;const root=$('#modal-root');let html='';
  if(type==='welcome'){
   const worlds=['Terran','Oceanic','Desert','Jungle','Arctic','Barren','Volcanic','Gas Giant'];
   const tiles=worlds.map(world=>'<div class="menu-world"><span class="planet-thumbnail planet-'+artworkBiome(world)+'" aria-hidden="true"></span><span>'+world+'</span></div>').join('');
@@ -217,6 +206,8 @@ function openModal(type){if(clockState.speed>0){clockState=setClockSpeed(clockSt
    menuAction('book','Field manual','Learn the 4X systems','guide')+
    menuAction('save','Save progress','Save on this device','save')+
    menuAction('install','Install game','Play offline anywhere','install')+
+   menuAction('download','Download / backup','Install or save game files','download-menu')+
+   menuAction('heart','Donate','Support future development','donate-menu')+
    '</div>'+
    '<div class="menu-overview"><strong>'+escapeHTML(game.empires[0].name.toUpperCase())+' // CURRENT CAMPAIGN</strong><p>One commander. An entire galaxy to discover. All progress is saved locally in your browser.</p><div class="menu-stats">'+
    '<div class="menu-stat"><b>'+String(game.turn)+'</b><span>CYCLE</span></div>'+
@@ -225,6 +216,8 @@ function openModal(type){if(clockState.speed>0){clockState=setClockSpeed(clockSt
    '<div class="menu-worlds" aria-label="Planet classes">'+tiles+'</div></div>';
   html=modalLayout('ORBITAL EMPIRES // GALACTIC COMMAND','A galaxy awaits your command.',body);
  }
+ else if(type==='download'){html=modalLayout('PLAY ANYWHERE','Download & Install',`<div class="distribution-panel"><p><b>Recommended:</b> install Orbital Empires directly from your browser. It runs as a standalone app and works offline after installation.</p><div class="distribution-choices"><button class="action-primary" data-action="install">${gameIcon('download')} INSTALL WEB APP</button><a class="action-secondary" href="https://github.com/teodor-georgiev/Orbital-Empires/archive/refs/heads/main.zip" target="_blank" rel="noopener noreferrer">${gameIcon('archive')} DOWNLOAD GAME ZIP</a><button class="action-secondary" data-action="export-save">${gameIcon('save')} BACK UP YOUR SAVE</button></div><p class="small-muted">The ZIP is a self-hosted source package, not a Windows .exe. Unzip and run the bundled local launcher with Python 3, or serve the folder over HTTPS. Saves remain only in this browser unless you export them.</p></div>`,btn('close-modal','BACK TO GAME','action-secondary'))}
+ else if(type==='donate'){const donation=configuredDonationUrl();const link=donation?`<a class="action-primary donation-action" href="${escapeHTML(donation)}" target="_blank" rel="noopener noreferrer">${gameIcon('heart')} OPEN EXTERNAL DONATION PAGE</a>`:'<div class="donation-pending">Donations are not enabled yet. There is no payment account or checkout connected to this game.</div>';html=modalLayout('SUPPORT THE PROJECT','Help build Orbital Empires',`<div class="donation-panel"><div class="donation-emblem">${gameIcon('heart')}</div><p>The game is free to play. If you enjoy it, you can support development or share it with others. Donating is always optional.</p>${link}<p class="small-muted">Payments, if enabled later, will be handled by an external provider. Orbital Empires does not collect or store payment details.</p><a class="project-link" href="https://github.com/teodor-georgiev/Orbital-Empires" target="_blank" rel="noopener noreferrer">${gameIcon('galaxy')} View project on GitHub</a></div>`,btn('close-modal','BACK TO GAME','action-secondary'))}
  else if(type==='new'){html=modalLayout('NEW CAMPAIGN','Create your galaxy.',`<div class="campaign-preview"><p>YOUR NEXT FRONTIER<br><strong>Eight worlds. Thousands of possibilities.</strong><br>Choose the seed, size, and rival empires.</p><div class="preview-orbs"><span class="planet-thumbnail planet-terran" aria-hidden="true"></span><span class="planet-thumbnail planet-desert" aria-hidden="true"></span><span class="planet-thumbnail planet-gas-giant" aria-hidden="true"></span></div></div><p>Generate a fresh, deterministic star map. Starting a new campaign replaces the current local save.</p><div class="form-grid"><div class="form-field full"><label for="new-scenario">STARTING SCENARIO</label><select id="new-scenario"><option value="sol" ${game.scenario==='sol'?'selected':''}>Humanity · Earth / Sol / nearby real stars</option><option value="procedural" ${game.scenario!=='sol'?'selected':''}>Procedural galaxy · original star systems</option></select><small>The Solar Frontier scenario always starts as Humans; hyperlanes and resources are fictional.</small></div><div class="form-field"><label for="new-faction">PLAYABLE SPECIES</label><select id="new-faction">${[['human','Human'],['auralian','Auralian'],['vexari','Vexari'],['solari','Solari'],['keth','Keth'],['umbral','Umbral'],['orionic','Orionic']].map(([id,name])=>`<option value="${id}" ${(game.playerFaction||'human')===id?'selected':''}>${name}</option>`).join('')}</select></div><div class="form-field"><label for="new-start-year">STARTING YEAR</label><input id="new-start-year" type="number" min="2000" max="3000" step="1" value="${game.startYear??2200}" required></div><div class="form-field full"><label for="new-seed">GALAXY SEED</label><input id="new-seed" value="${escapeHTML(game.seed)}" maxlength="40" autocomplete="off"></div><div class="form-field"><label for="new-size">STAR SYSTEMS</label><select id="new-size"><option value="60" ${game.systems.length===60?'selected':''}>60 · Compact</option><option value="90" ${game.systems.length===90?'selected':''}>90 · Standard</option><option value="140" ${game.systems.length===140?'selected':''}>140 · Vast</option><option value="180" ${game.systems.length===180?'selected':''}>180 · Epic</option></select></div><div class="form-field"><label for="new-opponents">RIVAL EMPIRES</label><select id="new-opponents">${[2,3,4,5,6].map(n=>`<option value="${n}" ${game.empires.length===n+1?'selected':''}>${n} civilizations</option>`).join('')}</select></div><div class="form-field full"><label for="new-difficulty">AI DIFFICULTY</label><select id="new-difficulty"><option value="easy">Cadet · Relaxed expansion</option><option value="normal" ${game.difficulty==='normal'?'selected':''}>Commander · Balanced</option><option value="hard" ${game.difficulty==='hard'?'selected':''}>Admiral · Aggressive expansion</option></select></div></div>`,btn('start','GENERATE GALAXY')+btn('close-modal','CANCEL','action-secondary'))}
  else if(type==='settings'){html=modalLayout('COMMAND OPTIONS','Display & Interface',`<div class="settings-hero"><strong>CHOOSE YOUR COMMAND DECK</strong><p>4K Ultra increases internal Canvas resolution up to 3840 × 2160 pixels. It does not change your monitor resolution; performance depends on your device.</p></div><div class="form-grid"><div class="form-field full"><label for="gfx-quality">GRAPHICS QUALITY</label><select id="gfx-quality"><option value="performance" ${settings.quality==='performance'?'selected':''}>Performance · 1080p cap</option><option value="balanced" ${settings.quality==='balanced'?'selected':''}>Balanced · 1440p cap</option><option value="ultra4k" ${settings.quality==='ultra4k'?'selected':''}>4K Ultra · 3840 × 2160 cap</option></select></div><div class="form-field"><label for="ui-theme">INTERFACE STYLE</label><select id="ui-theme"><option value="command" ${settings.theme==='command'?'selected':''}>Command · Teal</option><option value="nebula" ${settings.theme==='nebula'?'selected':''}>Nebula · Violet</option><option value="imperial" ${settings.theme==='imperial'?'selected':''}>Imperial · Gold</option></select></div><div class="form-field"><label for="motion-mode">ANIMATION</label><select id="motion-mode"><option value="full" ${settings.motion==='full'?'selected':''}>Full motion</option><option value="reduced" ${settings.motion==='reduced'?'selected':''}>Reduced motion</option></select></div></div>`,btn('save-settings','APPLY SETTINGS')+btn('close-modal','CANCEL','action-secondary'))}
  else if(type==='guide'){html=modalLayout('COMMAND HANDBOOK','How to rule the stars',`<div class="guide-steps"><div><strong>◎ EXPLORE</strong><p>Star systems are connected by glowing hyperlanes. Select a fleet in <b>Fleets & Shipyard</b>, click an adjacent star, and press Move in Galaxy Command. Each fleet can move once per turn.</p></div><div><strong>◈ EXPAND</strong><p>Claim an unowned system beside your colonies. Colony ships are abstracted into the colonization cost of credits, alloys, and influence.</p></div><div><strong>⬡ DEVELOP</strong><p>Build foundries, labs, markets, and defensive grids at your colonies. End Turn collects their production and advances technology.</p></div><div><strong>✧ RESEARCH</strong><p>Choose any unlocked technology in Research. Science generated each turn advances its progress; technology prerequisites open deeper branches.</p></div><div><strong>⌁ CONQUER</strong><p>Build ships at an owned colony. Declare war before entering rival territory. Battles resolve automatically based on fleet strength, defenses, and chance.</p></div><div><strong>♜ DIPLOMACY</strong><p>Send envoys to improve relations or negotiate peace after wars. AI empires colonize, research, build fleets, and sometimes declare war.</p></div></div><p><b>Victory:</b> control 65% of systems, or eliminate all competing civilizations. Your game saves automatically in this browser.</p>`,btn('close-modal','RETURN TO GALAXY'))}
@@ -246,19 +239,18 @@ function handleAction(action,data){
   case 'end-turn':{const result=endTurn(game);if(!result.ok){notice(result.message,'error');break;}persist();render();openModal(game.gameOver?'victory':'turn');break;}
   case 'menu':openModal('welcome');break;
   case 'new':openModal('new');break;
-  case 'start':{const seed=$('#new-seed')?.value?.trim()||'ORION-47',size=Number($('#new-size').value),opponents=Number($('#new-opponents').value),difficulty=$('#new-difficulty').value,scenario=$('#new-scenario').value,playerFaction=$('#new-faction').value,startYear=Number($('#new-start-year').value);if(!Number.isInteger(startYear)||startYear<2000||startYear>3000){notice('Choose a starting year between 2000 and 3000.','error');break;}clockState=createClockState();closeModal();activateGame(generateGame({seed,size,opponents,difficulty,scenario,playerFaction,startYear}),false);notice('Fresh galaxy generated.');break;}
+  case 'start':{const seed=$('#new-seed')?.value?.trim()||'ORION-47',size=Number($('#new-size').value),opponents=Number($('#new-opponents').value),difficulty=$('#new-difficulty').value,scenario=$('#new-scenario').value,playerFaction=$('#new-faction').value,startYear=Number($('#new-start-year').value);if(!Number.isInteger(startYear)||startYear<2000||startYear>3000){notice('Choose a starting year between 2000 and 3000.','error');break;}closeModal();activateGame(generateGame({seed,size,opponents,difficulty,scenario,playerFaction,startYear}),false);notice('Fresh galaxy generated.');break;}
   case 'close-modal':closeModal();break;
   case 'guide':openModal('guide');break;
   case 'settings':openModal('settings');break;
-  case 'clock-play':clockState=setClockSpeed(clockState,1);render();break;
-  case 'clock-pause':clockState=setClockSpeed(clockState,0);render();break;
-  case 'clock-speed':clockState=setClockSpeed(clockState,Number(data.id));render();break;
-  case 'clock-step':{const result=endTurn(game);if(!result.ok){notice(result.message,'error');break;}persist();render();if(game.gameOver)openModal('victory');break;}
   case 'save-settings':{settings.quality=$('#gfx-quality').value;settings.theme=$('#ui-theme').value;settings.motion=$('#motion-mode').value;try{localStorage.setItem(SETTINGS_KEY,JSON.stringify(settings))}catch{}closeModal();applySettings();render();notice('Display settings applied.');break;}
   case 'adopt-tradition':act(adoptTradition(game,data.id));break;
   case 'enact-policy':act(enactPolicy(game,data.id));break;
   case 'save':if(persist())notice('Campaign saved to this browser.');break;
   case 'install':installApp();break;
+  case 'download-menu':openModal('download');break;
+  case 'donate-menu':openModal('donate');break;
+  case 'export-save':exportSave();break;
   case 'open-solar':openSolarSystem();break;
   case 'close-solar':closeSolarSystem();break;
   case 'solar-reset':solar.resetCamera();break;
@@ -280,12 +272,20 @@ function handleAction(action,data){
   default:break;
  }
 }
+function exportSave(){
+ try{
+  const payload=JSON.stringify({version:1,exportedAt:new Date().toISOString(),game});
+  const url=URL.createObjectURL(new Blob([payload],{type:'application/json'}));
+  const anchor=document.createElement('a');anchor.href=url;anchor.download='orbital-empires-save-cycle-'+game.turn+'.json';
+  document.body.append(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  notice('Save backup downloaded. Store it safely.');
+ }catch{notice('Could not download save backup.','error');}
+}
 async function installApp(){if(deferredInstallPrompt){const prompt=deferredInstallPrompt;deferredInstallPrompt=null;prompt.prompt();const result=await prompt.userChoice;notice(result.outcome==='accepted'?'App installation requested.':'Install was dismissed.');return;}
  const mobile=/iphone|ipad|ipod/i.test(navigator.userAgent),secure=window.isSecureContext&&window.location.protocol!=='file:';
  if(mobile)notice('On iPhone: Share → Add to Home Screen.');else if(secure)notice('Use your browser menu → Install app / Add to desktop.');else notice('To install: serve this folder on localhost or HTTPS, then use the browser Install option.');}
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;$('#install-btn').title='Install this offline-capable game';});
 window.addEventListener('appinstalled',()=>notice('Orbital Empires installed. Play offline!'));
-document.addEventListener('visibilitychange',()=>{lastSimulationFrame=null;if(document.hidden&&clockState.speed){clockState=setClockSpeed(clockState,0);if(game)render();}});
 if('serviceWorker' in navigator&&window.location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 
 // Boot. Keep game state isolated from the UI — all mechanics live in core.js.
