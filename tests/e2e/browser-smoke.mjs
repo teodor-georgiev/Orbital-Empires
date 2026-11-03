@@ -76,12 +76,25 @@ try{
  assert.ok(primaryId!==undefined,'homeworld must be selected');
  await evaluate("document.querySelector(\"[data-action=solar-planet][data-id=\\\"1\\\"]\").click();true");
  await ready("document.querySelector(\"[data-action=solar-planet][data-id=\\\"1\\\"]\")?.getAttribute('aria-pressed')==='true'&&document.getElementById('inspector').textContent.includes('Survey-only planet')",'survey-only planet selected');
- assert.equal(await evaluate('document.querySelectorAll(".oe-build-card").length'),0);
+ assert.equal(await evaluate('document.querySelectorAll(".oe-specialty-card").length'),0);
+ assert.ok(await evaluate('document.querySelectorAll(".oe-orbital-card").length>=1'),'owned surveyed Venus has biome-specific orbital installations');
  assert.ok(await evaluate('document.body.classList.contains("oe-planet-focus")&&!document.getElementById("planet-focus-stage").hidden'));
  assert.ok(await evaluate('document.getElementById("planet-focus-stage").textContent.includes("SURVEY-ONLY PLANET")'));
  await evaluate(`document.querySelector('[data-action=solar-planet][data-id="${primaryId}"]').click();true`);
  await ready(`document.querySelector('[data-action=solar-planet][data-id="${primaryId}"]')?.getAttribute('aria-pressed')==='true'&&!!document.querySelector('.oe-population-card')`,'primary colony world selected');
- assert.equal(await evaluate('document.querySelectorAll(".oe-build-card").length'),4);
+ assert.ok(await evaluate('document.querySelectorAll(".oe-specialty-card").length>=2'),'Terran Earth has specialist buildings');
+ assert.equal(await evaluate('document.querySelectorAll(".oe-orbital-card").length'),0);
+ assert.ok(await evaluate('document.querySelector("[data-action=build][data-type=agri-domes]:not([disabled])")'));
+ await capture('03-focused-planet-biome-buildings.png');
+ await evaluate('document.querySelector("[data-action=build][data-type=agri-domes]").click();true');
+ await ready('document.querySelector(".oe-specialty-card")?.textContent.includes("Level 1/3")','Terran housing building purchased');
+ await evaluate('document.querySelector("[data-action=solar-planet][data-id=4]").click();true');
+ await ready('document.querySelector(".oe-orbital-card")?.textContent.includes("Gas Harvester")','gas giant building available');
+ await capture('04-gas-giant-building-desktop.png');
+ await evaluate('document.querySelector("[data-action=build-orbital][data-type=gas-harvester]").click();true');
+ await ready('document.querySelector(".oe-orbital-card")?.textContent.includes("Level 1/3")','gas harvester purchased');
+ await evaluate(`document.querySelector('[data-action=solar-planet][data-id="${primaryId}"]').click();true`);
+ await ready('!!document.querySelector(".oe-population-card")','return to Earth');
  assert.ok(await evaluate('document.getElementById("planet-focus-stage").textContent.includes("MANAGE COLONY")'));
  await capture('03-focused-planet-desktop.png');
  await evaluate('document.querySelector("[data-action=solar-show-orbit]").click();true');
@@ -108,7 +121,7 @@ try{
  console.log('MOBILE_LAYOUT',mobileLayout);
  assert.ok(await evaluate('document.documentElement.scrollWidth<=document.documentElement.clientWidth+3'),'no mobile horizontal overflow');
  assert.equal(messages.length,0,'No uncaught browser exceptions: '+messages.join('; '));
- console.log('Browser smoke OK: galaxy/orbit/focus screenshots, planet selection, growth, upgrades, save/reload, mobile');
+ console.log('Browser smoke OK: seeded planet visuals, biome colony upgrades, gas harvester, save/reload, mobile');
 }catch(err){
  failures++;
  console.error('BROWSER_SMOKE_FAILED:',err.stack||err);
