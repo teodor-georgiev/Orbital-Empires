@@ -70,3 +70,9 @@ npm run assets:fetch
 This fetches **Kenney Space Kit (3D ZIP)**, **Kenney Simple Space (2D ZIP)** and a **self-hostable pinned PixiJS v8.22.0 ES module** into `assets/vendor/` with a SHA-256 `manifest.json`. Downloads are deliberately gitignored and not included in the existing deployment, so game startup and offline PWA behavior remain unchanged. The archives are not automatically extracted or rendered; a separate reviewed UI/graphics change must integrate the selected assets. See [asset provenance and licensing](docs/ASSETS_AND_LICENSES.md).
 
 PixiJS renders **2D**, not Kenney's native 3D GLB files. Models need pre-rendered sprites or a separately selected 3D renderer. If the archive source changes, reverify its CC0 license before changing the download URL.
+
+## Additional commercial-use artwork
+
+The repository includes **18 original vector game sprites** in `assets/original/` (ships, planets, orbital stations and faction insignia) and a self-contained [gallery](assets/original/gallery.html). They are ready for the graphics lane to integrate but do not yet replace the existing Canvas visuals.
+
+`npm run assets:fetch` also fetches Kenney's CC0 **Planets** and **Sci-Fi RTS** packs from creator-uploaded OpenGameArt files, alongside the original Kenney packs and PixiJS; all downloaded archives stay gitignored under `assets/vendor/`. See [asset license and provenance inventory](docs/ASSETS_AND_LICENSES.md).

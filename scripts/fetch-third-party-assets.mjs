@@ -24,6 +24,18 @@ export const ASSET_SOURCES = Object.freeze([
     url: 'https://cdn.jsdelivr.net/npm/pixi.js@8.22.0/dist/pixi.min.mjs',
     file: 'pixijs/pixi.min.mjs', format: 'js', maxBytes: 6_000_000,
   }),
+  Object.freeze({
+    id: 'kenney-planets', name: 'Kenney Planets', version: '1.0', license: 'CC0-1.0',
+    // Kenney's own upload to OpenGameArt, with separate CC0 listing and download.
+    url: 'https://opengameart.org/sites/default/files/kenney_planets.zip',
+    file: 'kenney/kenney_planets.zip', format: 'zip', maxBytes: 12_000_000,
+  }),
+  Object.freeze({
+    id: 'kenney-sci-fi-rts', name: 'Kenney Sci-Fi RTS', version: '1.0', license: 'CC0-1.0',
+    // Kenney's own upload to OpenGameArt, under CC0.
+    url: 'https://opengameart.org/sites/default/files/kenney_rtssci-fi.zip',
+    file: 'kenney/kenney_rtssci-fi.zip', format: 'zip', maxBytes: 5_000_000,
+  }),
 ]);
 const DEFAULT_DESTINATION = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'assets', 'vendor');
 const hasExpectedFormat = (data, format) => format === 'zip'

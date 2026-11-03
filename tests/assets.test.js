@@ -13,8 +13,8 @@ const mock = async url => {
 };
 
 test('all sources are pinned to HTTPS and declare licenses', () => {
-  assert.equal(ASSET_SOURCES.length, 3);
-  assert.deepEqual(ASSET_SOURCES.map(s => s.license), ['CC0-1.0', 'CC0-1.0', 'MIT']);
+  assert.equal(ASSET_SOURCES.length, 5);
+  assert.deepEqual(ASSET_SOURCES.map(s => s.license), ['CC0-1.0', 'CC0-1.0', 'MIT', 'CC0-1.0', 'CC0-1.0']);
   assert.ok(ASSET_SOURCES.every(s => new URL(s.url).protocol === 'https:'));
   assert.equal(ASSET_SOURCES[2].version, '8.22.0');
 });
@@ -23,13 +23,13 @@ test('valid content is saved only below the requested directory with digest inve
   const root = await mkdtemp(join(tmpdir(), 'oe-assets-'));
   try {
     const entries = await downloadThirdPartyAssets({ destination: root, fetcher: mock });
-    assert.equal(entries.length, 3);
+    assert.equal(entries.length, 5);
     for (const e of entries) {
       assert.equal((await stat(join(root, e.path))).size, e.bytes);
       assert.match(e.sha256, /^[a-f0-9]{64}$/);
     }
     const manifest = JSON.parse(await readFile(join(root, 'manifest.json'), 'utf8'));
-    assert.equal(manifest.assets.length, 3);
+    assert.equal(manifest.assets.length, 5);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
