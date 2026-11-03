@@ -35,3 +35,11 @@ jobs:
           test -n "$CHROME_BIN"
           python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/orbital-smoke-http.log 2>&1 &
           CHROME_BIN="$CHROME_BIN" node tests/e2e/browser-smoke.mjs
+      - name: Upload real browser screenshots for UI review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: orbital-hybrid-ui-screenshots
+          path: artifacts/ui/*.png
+          if-no-files-found: ignore
+          retention-days: 14

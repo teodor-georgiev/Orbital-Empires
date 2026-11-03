@@ -21,3 +21,13 @@ test('redesigned menu has clear hierarchy and distinct map and colony controls',
  assert.match(sw,/modules\/styles\/planet-command\.css/);
  assert.match(sw,/modules\/simulation\/population\.js/);
 });
+
+test('approved three-view route and mockup are saved in repository',()=>{
+ const app=file('app.js'),html=file('index.html'),css=file('modules/styles/planet-command.css'),spec=file('docs/design/APPROVED-HYBRID-UI.md'),svg=file('docs/design/approved-hybrid-layout.svg');
+ for(const action of ['solar-focus-planet','solar-show-orbit','planet-upgrades'])assert.ok(app.includes("case '"+action+"'"));
+ for(const id of ['planet-focus-stage','solar-focus-planet','solar-show-orbit'])assert.ok(html.includes('id="'+id+'"'));
+ assert.match(css,/oe-orbital-mode/);assert.match(css,/oe-focused-planet-art/);
+ assert.match(spec,/Approved by project owner/);
+ assert.match(svg,/<svg xmlns=/);
+ assert.doesNotMatch(svg,/<\/rect>/);
+});

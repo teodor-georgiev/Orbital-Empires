@@ -20,7 +20,7 @@
 - All menus and planets must be keyboard reachable, with clear focus states, reduced-motion compatibility, and Canvas 2D fallback.
 - Use original/licensed Orbital Empires artwork, **not** Stellaris/Ascendancy assets.
 - Preserve save schema v1 and logistic population rules. Do not implement separate orbital economies in this UI PR.
-- Before merge: CI simulation and browser tests; screenshots of real desktop and mobile implementation; visual comparison and review; compatible with concurrent Solar Frontier and tick clock lanes.
+- Before merge: CI simulation and browser tests; screenshots of real desktop and mobile implementation (GitHub Actions artifact `orbital-hybrid-ui-screenshots`); visual comparison and review; compatible with concurrent Solar Frontier and tick clock lanes.
 
 ## Visual reference signoff
 

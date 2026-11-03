@@ -3,7 +3,7 @@
  */
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, rmSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -15,6 +15,8 @@ const chrome=spawn(chromeBin,['--headless=new','--no-sandbox','--disable-gpu',
  '--remote-debugging-address=127.0.0.1','--remote-debugging-port=9224',
  '--user-data-dir='+root,'about:blank'],{stdio:'ignore'});
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const screenshots=join(process.cwd(),'artifacts','ui');
+mkdirSync(screenshots,{recursive:true});
 async function polling(fn,description,timeout=15000){
  const until=Date.now()+timeout;
  while(Date.now()<until){try{const value=await fn();if(value)return value;}catch{}await sleep(180);}
@@ -35,6 +37,7 @@ async function evaluate(expression){
  return response.result?.value;
 }
 async function ready(expression,label){return polling(async()=>await evaluate(expression),label);}
+async function capture(name){await sleep(200);const reply=await command('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});writeFileSync(join(screenshots,name),Buffer.from(reply.data,'base64'));}
 let failures=0;
 try{
  await polling(async()=>{const r=await fetch('http://127.0.0.1:9224/json/version');return r.ok;},'Chrome launch');
@@ -54,27 +57,38 @@ try{
   if(result.error)p.reject(Error(JSON.stringify(result.error)));else p.resolve(result.result);
  };
  await command('Runtime.enable');
+ await command('Page.enable');
  await ready('document.readyState==="complete"&&!!document.querySelector(".oe-home-menu")','command menu');
  assert.equal(await evaluate('document.querySelectorAll(".game-nav .nav-link").length'),8);
  assert.ok(await evaluate('!!document.querySelector(".command-group-label")'));
  await evaluate('document.querySelector(".oe-home-continue").click();true');
  await ready('document.getElementById("modal-root").hidden&&!!document.querySelector("[data-action=open-solar]")','galaxy after menu resume');
+ await capture('01-galaxy-desktop.png');
  await evaluate('document.querySelector("[data-action=open-solar]").click();true');
  await ready('!document.getElementById("solar-stage").hidden&&document.querySelectorAll("[data-action=solar-planet]").length>=4','3D or 2D solar scene');
  assert.ok(await evaluate('!!document.querySelector(".oe-population-card")'));
+ assert.ok(await evaluate('document.body.classList.contains("oe-orbital-mode")&&!document.body.classList.contains("oe-planet-focus")'));
+ await capture('02-orbital-system-desktop.png');
  const prior=await evaluate('parseFloat(document.querySelector(".oe-population-head b").textContent)');
  assert.ok(Number.isFinite(prior)&&prior>0);
  await evaluate("document.querySelector(\"[data-action=solar-planet][data-id=\\\"1\\\"]\").click();true");
  await ready("document.querySelector(\"[data-action=solar-planet][data-id=\\\"1\\\"]\")?.getAttribute('aria-pressed')==='true'&&document.getElementById('inspector').textContent.includes('Survey-only planet')",'survey-only planet selected');
  assert.equal(await evaluate('document.querySelectorAll(".oe-build-card").length'),0);
+ assert.ok(await evaluate('document.body.classList.contains("oe-planet-focus")&&!document.getElementById("planet-focus-stage").hidden'));
+ assert.ok(await evaluate('document.getElementById("planet-focus-stage").textContent.includes("SURVEY-ONLY PLANET")'));
  await evaluate("document.querySelector(\"[data-action=solar-planet][data-id=\\\"0\\\"]\").click();true");
  await ready("document.querySelector(\"[data-action=solar-planet][data-id=\\\"0\\\"]\")?.getAttribute('aria-pressed')==='true'&&!!document.querySelector('.oe-population-card')",'primary colony world selected');
  assert.equal(await evaluate('document.querySelectorAll(".oe-build-card").length'),4);
+ assert.ok(await evaluate('document.getElementById("planet-focus-stage").textContent.includes("MANAGE COLONY")'));
+ await capture('03-focused-planet-desktop.png');
+ await evaluate('document.querySelector("[data-action=solar-show-orbit]").click();true');
+ await ready('!document.body.classList.contains("oe-planet-focus")','return to orbits');
+ await evaluate('document.getElementById("solar-focus-planet").click();true');
+ await ready('document.body.classList.contains("oe-planet-focus")','return to planet focus');
  await evaluate('document.querySelector("[data-action=end-turn]").click();true');
  await ready('document.getElementById("top-turn").textContent.includes("02")','manual cycle advance');
  const next=await evaluate('parseFloat(document.querySelector(".oe-population-head b").textContent)');
  assert.ok(next>prior&&next<30,'population must grow smoothly');
- await command('Page.enable');
  await command('Page.reload',{ignoreCache:true});
  await ready('document.readyState==="complete"&&!!document.querySelector(".oe-home-menu")','saved game reload');
  await evaluate('document.querySelector(".oe-home-continue").click();true');
@@ -82,8 +96,14 @@ try{
  assert.ok(await evaluate('document.getElementById("top-turn").textContent.includes("02")'),'turn persists after reload');
  await command('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
  assert.ok(await evaluate('document.querySelectorAll(".game-nav .nav-link").length===8'));
+ await evaluate('document.querySelector("[data-action=open-solar]").click();true');
+ await ready('!document.getElementById("solar-stage").hidden','mobile orbital scene');
+ await evaluate('document.getElementById("solar-focus-planet").click();true');
+ await ready('document.body.classList.contains("oe-planet-focus")','mobile focused planet');
+ await capture('04-focused-planet-mobile.png');
+ assert.ok(await evaluate('document.documentElement.scrollWidth<=document.documentElement.clientWidth+3'),'no mobile horizontal overflow');
  assert.equal(messages.length,0,'No uncaught browser exceptions: '+messages.join('; '));
- console.log('Browser smoke OK: command menu, 3D system entry, planet selection, growth, colony upgrades, save/reload, mobile');
+ console.log('Browser smoke OK: galaxy/orbit/focus screenshots, planet selection, growth, upgrades, save/reload, mobile');
 }catch(err){
  failures++;
  console.error('BROWSER_SMOKE_FAILED:',err.stack||err);
