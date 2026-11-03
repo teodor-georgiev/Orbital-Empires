@@ -1,7 +1,7 @@
 name: Solar Frontier browser smoke
 on:
   pull_request:
-    branches: [feat/turn-based-4x-pwa]
+    branches: [feat/turn-based-4x-pwa, main]
     paths:
       - 'app.js'
       - 'core.js'
