@@ -12,6 +12,7 @@
   <link rel="icon" type="image/svg+xml" href="assets/icon.svg" />
   <link rel="apple-touch-icon" href="assets/icon-192.png" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="modules/styles/expansion.css" />
   <title>Orbital Empires — A Turn-Based 4X Galaxy</title>
 </head>
 <body>
@@ -22,7 +23,7 @@
         <span class="brand-copy"><strong>ORBITAL <em>EMPIRES</em></strong><small>GALACTIC COMMAND // 4X</small></span>
       </div>
       <div class="resource-bar" id="resource-bar" aria-label="Empire resources"></div>
-      <div class="header-actions"><span id="top-turn" class="top-turn">CYCLE 01</span><button class="icon-button header-help" data-action="guide" title="How to play" aria-label="How to play">?</button><button class="turn-btn" data-action="end-turn">END TURN <span>→</span></button></div>
+      <div class="header-actions"><span id="top-turn" class="top-turn">CYCLE 01</span><button class="icon-button" data-action="settings" title="Display settings" aria-label="Display settings">⚙</button><button class="icon-button header-help" data-action="guide" title="How to play" aria-label="How to play">?</button><button class="turn-btn" data-action="end-turn">END TURN <span>→</span></button></div>
     </header>
     <div class="main-layout">
       <aside class="sidebar">
@@ -33,11 +34,13 @@
           <div class="profile-sub">THE FRONTIER IS OURS</div>
           <div id="profile-metrics" class="profile-metrics"></div>
         </div>
-        <div class="nav-head">STRATEGIC SYSTEMS <span>06</span></div>
+        <div class="nav-head">STRATEGIC SYSTEMS <span>08</span></div>
         <nav class="game-nav" aria-label="Game sections">
           <button data-nav="system" class="nav-link active"><span class="nav-icon">◎</span> Galaxy Command <span class="nav-indicator"></span></button>
           <button data-nav="colonies" class="nav-link"><span class="nav-icon">◈</span> Colonies <span class="nav-indicator"></span></button>
           <button data-nav="research" class="nav-link"><span class="nav-icon">✧</span> Research <span class="nav-indicator"></span></button>
+          <button data-nav="traditions" class="nav-link"><span class="nav-icon">✥</span> Traditions <span class="nav-indicator"></span></button>
+          <button data-nav="policies" class="nav-link"><span class="nav-icon">⚖</span> Social Policies <span class="nav-indicator"></span></button>
           <button data-nav="military" class="nav-link"><span class="nav-icon">⌁</span> Fleets & Shipyard <span class="nav-indicator"></span></button>
           <button data-nav="diplomacy" class="nav-link"><span class="nav-icon">♜</span> Diplomacy <span class="nav-indicator"></span></button>
           <button data-nav="intel" class="nav-link"><span class="nav-icon">▤</span> Empire Intel <span class="nav-indicator"></span></button>
@@ -58,7 +61,7 @@
       </main>
       <aside class="inspector" id="inspector" aria-live="polite"></aside>
     </div>
-    <footer class="eventbar"><div class="event-label"><span>◉</span> GALACTIC FEED</div><div id="event-text" class="event-text">Welcome to your new empire.</div><button data-nav="intel">VIEW LOG <span>↗</span></button><span class="event-version">BUILD 0.2 · SINGLE PLAYER</span></footer>
+    <footer class="eventbar"><div class="event-label"><span>◉</span> GALACTIC FEED</div><div id="event-text" class="event-text">Welcome to your new empire.</div><button data-nav="intel">VIEW LOG <span>↗</span></button><span id="build-version" class="event-version">BUILD v0.2.0 · SINGLE PLAYER</span></footer>
   </div>
   <div id="modal-root" class="modal-root" hidden></div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>

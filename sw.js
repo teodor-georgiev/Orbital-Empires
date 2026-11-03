@@ -1,5 +1,5 @@
-const CACHE = 'orbital-empires-v2-solar-20261103';
-const OFFLINE_FILES = ['./','./index.html','./style.css','./app.js','./core.js','./system-model.js','./solar-view.js','./manifest.webmanifest','./assets/icon.svg','./assets/icon-192.png','./assets/icon-512.png'];
+const CACHE = 'orbital-empires-app-0.2.0';
+const OFFLINE_FILES = ['./','./index.html','./style.css','./app.js','./core.js','./version.js','./modules/strategy/civics.js','./modules/styles/expansion.css','./system-model.js','./solar-view.js','./manifest.webmanifest','./assets/icon.svg','./assets/icon-192.png','./assets/icon-512.png'];
 self.addEventListener('install', event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(OFFLINE_FILES)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate', event=>{event.waitUntil(caches.keys().then(names=>Promise.all(names.filter(n=>n.startsWith('orbital-empires-')&&n!==CACHE).map(n=>caches.delete(n)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch', event=>{
