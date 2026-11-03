@@ -2,6 +2,15 @@
 
 All published game builds use [Semantic Versioning](https://semver.org/). Version tags are created **only after** a reviewed integration and stable release, never on work-in-progress commits.
 
+## [0.3.0] — 2026-11-03 · Preview candidate
+
+- Optional Human Solar Frontier scenario, starting on Earth in Sol with a curated, cited nearby-star catalog including Alpha Centauri and Proxima Centauri.
+- Editable starting year (2000–3000) and player-species selection in a procedural galaxy.
+- Sol 3D viewer shows eight real-named Solar System planets with Earth as the colony; real orbital distances displayed separately from visual scene spacing.
+- Experimental pause, 1×/2×/5×/10× and one-month stepping; existing one-cycle rules remain in use while a full time-model migration is specified.
+- Shared agent contract, versioned game specifications and formal design-decision ledger.
+- Legacy saved campaigns remain compatible with schema v1.
+
 ## [0.2.0] — 2026-11-03 · Preview candidate
 
 - Interactive galaxy/solar-system switching with seeded planets, orbit animation, biome art, rings, and moons.
