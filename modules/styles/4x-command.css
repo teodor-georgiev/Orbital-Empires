@@ -40,3 +40,5 @@ body.oe-orbital-mode .strategic-outliner{display:none}
 @media(max-width:1250px){.strategic-outliner{margin-left:5px;margin-right:5px;padding:7px 5px}.outliner-heading small{display:none}}
 @media(max-width:1020px){.strategic-outliner{display:none!important}}
 @media(prefers-reduced-motion:reduce){.outliner-overview,.outliner-entry{transition:none}}
+.oe-building-art{display:block;width:28px;height:28px;max-width:100%;fill:none;color:#95dce5}
+.oe-build-icon:has(.oe-building-art){display:grid;place-items:center;color:#95dce5}
