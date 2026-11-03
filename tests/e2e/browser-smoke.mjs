@@ -84,7 +84,7 @@ try{
  await ready(`document.querySelector('[data-action=solar-planet][data-id="${primaryId}"]')?.getAttribute('aria-pressed')==='true'&&!!document.querySelector('.oe-population-card')`,'primary colony world selected');
  assert.ok(await evaluate('document.querySelectorAll(".oe-specialty-card").length>=2'),'Terran Earth has specialist buildings');
  assert.equal(await evaluate('document.querySelectorAll(".oe-orbital-card").length'),0);
- assert.ok(await evaluate('document.querySelector("[data-action=build][data-type=agri-domes]:not([disabled])")'));
+ assert.ok(await evaluate('!!document.querySelector("[data-action=build][data-type=agri-domes]:not([disabled])")'));
  await capture('03-focused-planet-biome-buildings.png');
  await evaluate('document.querySelector("[data-action=build][data-type=agri-domes]").click();true');
  await ready('document.querySelector(".oe-specialty-card")?.textContent.includes("Level 1/3")','Terran housing building purchased');
