@@ -10,7 +10,7 @@
 3. **Minute-level physical logistics/ship simulation:** too complex for the current game stage and 40–180 system scale.
 
 ## Chosen approach
-Adopt approach (2), exposing 0/1/2/5/10x clock speeds and one-month stepping. v0.3 first introduces the controller over existing turn rules; no claims that old resource production is rebalanced. Preserve `endTurn(g)` as compatibility API while progressively extracting `advanceMonth(g)`, which will own deterministic economy, research, diplomacy, fleet routes and AI decision scheduling.
+Adopt approach (2), aiming for pause, speed and manual stepping. A distinct clock PR (#19) is in development, using pause/slow/normal/fast and four phases per legacy cycle; this is not the final target model. The Sol v0.3 branch does **not** ship clock controls. No claims that old resource production is rebalanced. Preserve `endTurn(g)` as compatibility API while progressively extracting `advanceMonth(g)`, which will own deterministic economy, research, diplomacy, fleet routes and AI decision scheduling.
 
 ## Next stages
 - v0.3 Solar Frontier: Human Sol scenario, real nearby stars and date selection. PR #19 separately develops first pause/speed controls; integrate only after its tests and browser QA.
