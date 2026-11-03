@@ -101,6 +101,13 @@ async function run() {
   await visible(page, '#progress-workspace .progress-tabbar');
   assert.equal(await page.locator('#resource-bar').isVisible(), true);
   assert.equal(await page.locator('#progress-workspace .progress-tab').count(), 3);
+  const navLayout = await page.locator('.sidebar .progress-nav').evaluate(el => ({
+    top: el.getBoundingClientRect().top,
+    font: parseFloat(getComputedStyle(el).fontSize),
+    visible: getComputedStyle(el).visibility !== 'hidden'
+  }));
+  assert.ok(navLayout.visible && navLayout.font >= 10 && navLayout.top < 250,
+    'Mobile Progress nav must be labeled and near the top: ' + JSON.stringify(navLayout));
   const viewport = await page.evaluate(() => ({ contentWidth: document.documentElement.scrollWidth, viewportWidth: window.innerWidth }));
   assert.ok(viewport.contentWidth <= viewport.viewportWidth + 4, 'mobile page must not overflow horizontally: ' + JSON.stringify(viewport));
   await capture(page, 'progress-mobile.png');
