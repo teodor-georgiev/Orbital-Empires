@@ -15,7 +15,7 @@ Propose a rule change in `docs/proposals/<lane>-<topic>.md` and mention it in th
 | --- | --- | --- |
 | v0.1.0 | historical implementation | Turn-based 4X initial game |
 | v0.2.0 | deployed preview / historical | WebGL 3D solar inspection, traditions, social policies, 4K visuals |
-| v0.3.0 | integration candidate | Human Sol/Earth scenario, real nearby star catalog, start year, selectable faction, fixed-step real-time pause/speed controls |
+| v0.3.0 | integration candidate | Human Sol/Earth scenario, real nearby star catalog, start year and selectable faction; pause/speed is in a separate PR #19 |
 | v0.4.0 | not yet implemented | Autonomous player departments, goal/budget constraints, decision log and manual override |
 | v0.5.0+ | proposal | Economic balancing for monthly ticks, fleet transit/ETA, planet colonies, save migrations |
 
