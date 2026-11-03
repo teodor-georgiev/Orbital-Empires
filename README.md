@@ -90,3 +90,13 @@ Choose a discovered star and click **Enter Solar System** (or click the same sta
 Eight detailed original AI-assisted planet illustrations are stored locally in `assets/planet-portraits/atlas.webp` (4 columns by 2 rows, 384-pixel tiles). They are **illustrations**, not photographs of real exoplanets, NASA photography, or Stellaris models. Jungle and Barren are color-graded from original Terran and Desert artwork. They are displayed in the planet inspector, solar-system HUD, main menu and new-campaign preview; the existing WebGL orbital geometry remains intact.
 
 The custom sprite set `assets/ui/interface-icons.svg` has 28 original vector interface icons for navigation, resources and game commands. `modules/styles/cinematic-ui.css` provides the command-theme refresh without touching game rules. The main menu appears on load and is accessible again from the header. All images, icons and styles are self-hosted and offline cached.
+
+## Install, download and optional donations (v0.2.1)
+
+The recommended option is **Install game** from the in-game main menu. Modern browsers install the HTTPS-hosted PWA and cache core files for offline play. If the browser does not show an install prompt, use its Install / Add to Home Screen action.
+
+The **Download game ZIP** option is GitHub's published source branch archive, not a signed Windows or macOS executable. Unzip it. With Python 3 installed, run `launch-windows.cmd` (Windows) or `sh launch-unix.sh` (macOS/Linux); `python3 launch-local.py` also works. This serves only at `127.0.0.1` with an automatically assigned local port and opens the browser. No public network server is started. Export a save backup via Download / Backup → Back up your save if you want to carry progress between devices. Restoring imported saves is not implemented yet.
+
+**PWA updates:** The service worker fetches newer app files from the hosting origin on reload when online and falls back to the cached versions offline. New Git changes reach players only after deployment; merging the reviewed `main` branch triggers Vercel production if the Git integration is configured and enabled. The browser does not forcibly restart an active game.
+
+**Donations:** The in-game Donate menu is visible, but no money is accepted until the project owner configures a verified HTTPS third-party fundraising URL in `support-config.js`. Only approved provider domains are supported; no payment form, secrets or transaction storage exists in the game. Sharing or starring the repository is available without payment.
