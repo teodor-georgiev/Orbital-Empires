@@ -183,7 +183,7 @@ try{
  // Original searchable 500-icon atlas: verify all symbols, filters and rendering in Chromium.
  await command('Page.navigate',{url:'http://127.0.0.1:4173/assets/ui/empire-icon-gallery.html'});
  await ready('document.readyState==="complete"&&document.querySelectorAll(".token").length===500','500 icon atlas gallery');
- assert.ok(await evaluate('document.querySelector(".token .glyph svg").getBBox().width>4'),'500 atlas symbol must draw');
+ await ready('document.querySelector(".token .glyph svg")?.getBBox().width>4','500 atlas symbol geometry');
  await evaluate('document.querySelector("[data-group=ships]").click();true');
  await ready('document.querySelectorAll(".token:not([hidden])").length===20','ships icon category filter');
  await evaluate('document.querySelector("[data-group=all]").click();true');
