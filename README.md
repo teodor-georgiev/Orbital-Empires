@@ -13,7 +13,7 @@ python3 -m http.server 4173
 
 Open http://localhost:4173/. The game is not meant to be opened as a `file://` page: service workers require an HTTP/HTTPS origin. Browsers generally permit installation from HTTPS or localhost only.
 
-## Gameplay included in v0.2
+## Gameplay included in v0.3
 
 - Seeded galaxy generation, navigable hyperlanes, fog of war, interactive pan/zoom map
 - Click through into solar systems with WebGL 3D planets and moons, camera rotation, zoom and Canvas 2D fallback. Visual-only planets retain the existing core-colony mechanics.
@@ -82,7 +82,7 @@ The repository includes **18 original vector game sprites** in `assets/original/
 
 `npm run assets:fetch` also fetches Kenney's CC0 **Planets** and **Sci-Fi RTS** packs from creator-uploaded OpenGameArt files, alongside the original Kenney packs and PixiJS; all downloaded archives stay gitignored under `assets/vendor/`. See [asset license and provenance inventory](docs/ASSETS_AND_LICENSES.md).
 
-## Exploring a solar system (v0.2)
+## Exploring a solar system (v0.3)
 
 Choose a discovered star and click **Enter Solar System** (or click the same star twice). Drag to orbit the 3D camera, scroll to zoom and click/select a planet from the orbital list. Use **Back to Galaxy** or Escape to return. Colony actions remain in the right inspector; additional orbital bodies are illustrative until the individual planet economy milestone. See [the implementation plan](docs/plans/2026-11-03-solar-system-3d.md).
 ## Illustrated planet portraits and command menu
@@ -100,3 +100,9 @@ The **Download game ZIP** option is GitHub's published source branch archive, no
 **PWA updates:** The service worker fetches newer app files from the hosting origin on reload when online and falls back to the cached versions offline. New Git changes reach players only after deployment; merging the reviewed `main` branch triggers Vercel production if the Git integration is configured and enabled. The browser does not forcibly restart an active game.
 
 **Donations:** The in-game Donate menu is visible, but no money is accepted until the project owner configures a verified HTTPS third-party fundraising URL in `support-config.js`. Only approved provider domains are supported; no payment form, secrets or transaction storage exists in the game. Sharing or starring the repository is available without payment.
+
+## Planet command UI and population (v0.3)
+
+The command menu groups core decisions and the sidebar organizes exploration, development and fleet command. Select a discovered star, enter the solar system, then click a planet in 3D or use the keyboard-accessible orbital list. The right inspector shows the selected planet; owned primary worlds show colony population, a growth/capacity meter, production and immediate infrastructure upgrades. Non-primary planets remain survey-only until future save-schema changes support individual planet colonies.
+
+Population now follows a bounded logistic curve each cycle: its maximum is derived from habitability and richness, and the growth rate gradually slows as that capacity fills. This retains legacy save schema v1 and replaces random +1-B population jumps. See [implementation plan](docs/plans/2026-11-03-planet-command-population.md).

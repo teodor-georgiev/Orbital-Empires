@@ -2,6 +2,14 @@
 
 All published game builds use [Semantic Versioning](https://semver.org/). Version tags are created **only after** a reviewed integration and stable release, never on work-in-progress commits.
 
+## [0.3.0] — 2026-11-03 · Planet command redesign
+
+- Rebuilt command menu, grouped empire navigation, and unified planet management inspector.
+- Click or select any charted planet to inspect survey details; the primary world exposes colony production and immediate building upgrades.
+- Smooth deterministic logistic population growth per colony, with habitat-specific carrying capacity and live growth readout.
+- Extended offline PWA cache, keyboard-accessible planet list, and automated Chrome interaction smoke tests.
+- Existing save schema remains **v1**; other orbital planets are explicitly survey-only.
+
 ## [0.2.0] — 2026-11-03 · Preview candidate
 
 - Interactive galaxy/solar-system switching with seeded planets, orbit animation, biome art, rings, and moons.
