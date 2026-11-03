@@ -67,6 +67,20 @@ try{
  await evaluate('document.querySelector(".oe-home-continue").click();true');
  await ready('document.getElementById("modal-root").hidden&&!!document.querySelector("[data-action=open-solar]")','galaxy after menu resume');
  await capture('01-galaxy-desktop.png');
+ // Verify that contextual icons also draw inside all three real Progress views.
+ await evaluate('document.querySelector(".progress-nav").click();true');
+ await ready('document.querySelectorAll("#progress-workspace .progress-node .progress-vector").length>4','technology icons');
+ assert.ok(await evaluate('document.querySelector("#progress-workspace .progress-node .progress-vector").getBBox().width>5'),'technology symbol has visible geometry');
+ await capture('01b-progress-technology.png');
+ await evaluate('document.querySelector("#progress-workspace .progress-tab[data-nav=traditions]").click();true');
+ await ready('document.querySelectorAll("#progress-workspace .progress-node .progress-vector").length>=9','traditions icon nodes');
+ await capture('01c-progress-traditions.png');
+ await evaluate('document.querySelector("#progress-workspace .progress-tab[data-nav=policies]").click();true');
+ await ready('document.querySelectorAll("#progress-workspace .progress-node .progress-vector").length>=6','policy icon nodes');
+ await capture('01d-progress-policies.png');
+ await evaluate('document.querySelector("#progress-workspace .progress-back").click();true');
+ await ready('document.querySelector("#map-viewport")?.offsetWidth>0&&document.querySelector("[data-action=open-solar]")','galaxy after Progress');
+
  await evaluate('document.querySelector("[data-action=open-solar]").click();true');
  await ready('!document.getElementById("solar-stage").hidden&&document.querySelectorAll("[data-action=solar-planet]").length>=4','3D or 2D solar scene');
  assert.ok(await evaluate('!!document.querySelector(".oe-population-card")'));
@@ -126,6 +140,17 @@ try{
  const mobileLayout=await evaluate(`JSON.stringify({viewport:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth,offenders:[...document.querySelectorAll('*')].filter(el=>{const r=el.getBoundingClientRect();return r.width>0&&r.right>window.innerWidth+4}).slice(0,16).map(el=>({tag:el.tagName,class:el.className?.baseVal||el.className||'',right:Math.round(el.getBoundingClientRect().right),width:Math.round(el.getBoundingClientRect().width)}))})`);
  console.log('MOBILE_LAYOUT',mobileLayout);
  assert.ok(await evaluate('document.documentElement.scrollWidth<=document.documentElement.clientWidth+3'),'no mobile horizontal overflow');
+ // Check the new icon gallery in a real browser, not just SVG source text.
+ await command('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
+ await command('Page.navigate',{url:'http://127.0.0.1:4173/assets/ui/gallery.html'});
+ await ready('document.readyState==="complete"&&document.querySelectorAll(".icon-card").length===31','new vector gallery');
+ assert.ok(await evaluate('document.querySelector(".main-icon")?.getBBox().width>5'),'strategy sprite geometry must be visible');
+ await capture('05-strategy-icon-gallery.png');
+ const gallerySize=(await command('Page.getLayoutMetrics')).cssContentSize;
+ const image=await command('Page.captureScreenshot',{format:'png',captureBeyondViewport:true,
+   clip:{x:0,y:0,width:Math.ceil(gallerySize.width),height:Math.ceil(gallerySize.height),scale:1}});
+ writeFileSync(join(screenshots,'05-strategy-icons-full.png'),Buffer.from(image.data,'base64'));
+
  assert.equal(messages.length,0,'No uncaught browser exceptions: '+messages.join('; '));
  console.log('Browser smoke OK: seeded planet visuals, biome colony upgrades, gas harvester, save/reload, mobile');
 }catch(err){
