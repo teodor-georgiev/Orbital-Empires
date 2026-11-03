@@ -151,12 +151,13 @@ try{
      sceneTop:viewport.getBoundingClientRect().top,cardHeight:card.getBoundingClientRect().height,
      cardWidth:card.getBoundingClientRect().width,sceneHeight:viewport.getBoundingClientRect().height,
      chooser:getComputedStyle(panel).display,navScrollWidth:bar.scrollWidth,
+     navFontPx:parseFloat(getComputedStyle(bar.querySelector('[data-nav=research]')).fontSize),
      navContainsLabels:bar.textContent.includes('Government')&&bar.textContent.includes('Progress')};
  })())`));
  assert.ok(mobileVisual.navTop<255&&mobileVisual.navBottom<=mobileVisual.sceneTop+2,
    'mobile command nav must appear before galaxy/planet view: '+JSON.stringify(mobileVisual));
  assert.equal(mobileVisual.chooser,'none','planet-focused action card must not be covered by orbital chooser');
- assert.ok(mobileVisual.cardWidth>275&&mobileVisual.cardHeight>70&&mobileVisual.navContainsLabels,
+ assert.ok(mobileVisual.cardWidth>275&&mobileVisual.cardHeight>70&&mobileVisual.navContainsLabels&&mobileVisual.navFontPx>=11,
    'planet focus controls and labeled nav must remain legible: '+JSON.stringify(mobileVisual));
  await capture('04-focused-planet-mobile.png');
  const mobileLayout=await evaluate(`JSON.stringify({viewport:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth,offenders:[...document.querySelectorAll('*')].filter(el=>{const r=el.getBoundingClientRect();return r.width>0&&r.right>window.innerWidth+4}).slice(0,16).map(el=>({tag:el.tagName,class:el.className?.baseVal||el.className||'',right:Math.round(el.getBoundingClientRect().right),width:Math.round(el.getBoundingClientRect().width)}))})`);
