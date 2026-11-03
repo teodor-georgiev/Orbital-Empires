@@ -27,3 +27,30 @@ jobs:
       - name: Validate standalone PWA assets
         run: |
           node -e 'const fs=require("fs");const m=JSON.parse(fs.readFileSync("manifest.webmanifest","utf8"));for(const i of m.icons){if(!fs.existsSync(i.src))process.exit(1)}for(const f of ["index.html","app.js","core.js","solar-view.js","system-model.js","style.css","sw.js"]){if(!fs.existsSync(f))process.exit(1)}if(!fs.readFileSync("index.html","utf8").includes("manifest.webmanifest"))process.exit(1);console.log("PWA assets OK")'
+
+  browser-smoke:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify Chrome
+        run: |
+          command -v google-chrome
+          google-chrome --version
+      - name: Install pinned browser test driver
+        run: npm install --no-save --ignore-scripts --package-lock=false playwright-core@1.56.1
+      - name: Test responsive gameplay in isolated browser
+        run: |
+          node --check scripts/browser-smoke.mjs
+          node scripts/browser-smoke.mjs
+      - name: Store browser review screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: orbital-browser-smoke
+          path: artifacts/*.png
+          if-no-files-found: ignore
