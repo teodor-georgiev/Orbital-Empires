@@ -1,5 +1,51 @@
 # Orbital Empires
 
-Original turn-based space 4X browser game. Source implementation is developed on feature branches and reviewed via pull requests.
+An original **turn-based 4X strategy game** for the browser, designed for self-hosting and offline-capable installation (PWA).
 
-A GitHub-first, self-hosted, installable PWA project. No production deployment is performed from this bootstrap.
+## Play locally
+
+Prerequisites: Node.js 22+ to run tests, and any static HTTP server to play. No npm dependencies.
+
+```bash
+npm test
+python3 -m http.server 4173
+```
+
+Open http://localhost:4173/. The game is not meant to be opened as a `file://` page: service workers require an HTTP/HTTPS origin. Browsers generally permit installation from HTTPS or localhost only.
+
+## Gameplay included in v0.1
+
+- Seeded galaxy generation, navigable hyperlanes, fog of war, interactive pan/zoom map
+- 2–6 AI rivals; colony expansion and resource generation
+- Buildings, research, fleet recruitment, turn-based movement and combat
+- Diplomacy, wars and peace, empire overview, campaign victory conditions
+- Local save/load, new game setup, tutorials, keyboard shortcuts and mobile layout
+- Installable PWA with application-shell caching for offline play after first visit
+
+Single-player games save locally in the browser (localStorage), not on the server. Clearing site data may erase progress. Multiplayer, accounts, cloud saves, and deterministic network synchronization are **not implemented**.
+
+## Self-host on your own VPS
+
+This package provides a hardened static Nginx container that listens **only on 127.0.0.1:8087 on the server**, leaving an existing HTTPS reverse proxy and ports 80/443 untouched.
+
+1. On a development VPS with Docker + Compose, clone your own GitHub repository: `git clone <your-repository-url> orbital-empires && cd orbital-empires`.
+2. Run `npm test` in a trusted development environment before release.
+3. Start the HTTP origin for the reverse proxy: `docker compose up -d --build`.
+4. Point a dedicated subdomain at the server; configure your **existing HTTPS reverse proxy** to serve `http://127.0.0.1:8087` (an example Caddy site is at `deploy/Caddyfile.example`). HTTPS is required for PWA installation on devices.
+5. Check `http://127.0.0.1:8087/healthz` on the host, and then verify the real HTTPS address, service-worker registration, offline reload, and installation on a device.
+
+**Safety:** The provided Compose file cannot expose the game directly to the public network because its published port is loopback-bound. It does not configure DNS, the host proxy, SSH, credentials, or system services. Only use the host's approved deployment workflow and verify its existing setup before making changes. Never run the deployment workflow directly against an unreviewed production host.
+
+## Project structure
+
+- `core.js`: deterministic, dependency-free 4X simulation
+- `app.js`: browser UI, canvas rendering and local save support
+- `style.css`: responsive visual design
+- `manifest.webmanifest`, `sw.js`, `assets/`: installable/offline PWA
+- `tests/game.test.js`: simulation and game-rules tests
+- `Dockerfile`, `compose.yaml`, `deploy/`: self-hosting package
+- `.github/workflows/ci.yml`: tests every branch/PR
+
+## Development and release
+
+Develop only on feature/fix branches; require a successful test workflow and review before merging into `main`. Self-hosted deployment remains a separately controlled action. No external services are required at runtime.

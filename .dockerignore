@@ -1,0 +1,9 @@
+.git
+.github
+node_modules
+tests
+*.png
+!assets/*.png
+screenshot-*.png
+README.md
+*.zip
