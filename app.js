@@ -1,4 +1,5 @@
-import { VERSION, WORLD, BUILDINGS, SHIPS, TECHS, generateGame, getEmpire, ownedSystems, getVisibility, hasSeen, getNeighbors, income, systemYield, score, fleetPower, availableTechs, colonyCost, canColonize, colonize, canBuild, build, canRecruit, recruit, canMove, moveFleet, chooseResearch, declareWar, sendEnvoy, offerPeace, endTurn, validateGame } from './core.js';
+import { VERSION, WORLD, BUILDINGS, SHIPS, TECHS, TRADITIONS, POLICIES, traditionCost, unityIncome, adoptTradition, enactPolicy, generateGame, getEmpire, ownedSystems, getVisibility, hasSeen, getNeighbors, income, systemYield, score, fleetPower, availableTechs, colonyCost, canColonize, colonize, canBuild, build, canRecruit, recruit, canMove, moveFleet, chooseResearch, declareWar, sendEnvoy, offerPeace, endTurn, validateGame } from './core.js';
+import { planetsForSystem, drawSolarSystem } from './modules/galaxy/planets.js';
 
 const SAVE_KEY = 'orbital-empires-save-v1';
 const $ = selector => document.querySelector(selector);
@@ -6,14 +7,21 @@ const el = (tag, props={}) => Object.assign(document.createElement(tag),props);
 const escapeHTML = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt = n => Math.round(n).toLocaleString('en-US');
 const fragment = (markup)=>markup;
-let game, activePage='system', selectedId=0, selectedFleetId=null, modalType=null, deferredInstallPrompt=null;
+let game, activePage='system', selectedId=0, selectedFleetId=null, modalType=null, deferredInstallPrompt=null, mapView='galaxy', selectedPlanetIndex=0, solarHits=[];
+const SETTINGS_KEY='orbital-empires-settings-v1';
+const QUALITY={performance:{scale:1,maxPixels:1920*1080,delay:65,stars:100},balanced:{scale:2,maxPixels:2560*1440,delay:36,stars:270},ultra4k:{scale:3,maxPixels:3840*2160,delay:32,stars:470}};
+const THEMES=['command','nebula','imperial'];
+function readSettings(){try{const value=JSON.parse(localStorage.getItem(SETTINGS_KEY))||{};return {quality:QUALITY[value.quality]?value.quality:'balanced',theme:THEMES.includes(value.theme)?value.theme:'command',motion:value.motion==='reduced'?'reduced':'full'};}catch{return {quality:'balanced',theme:'command',motion:'full'};}}
+const settings=readSettings();
+function applySettings(){document.body.dataset.theme=settings.theme;document.body.dataset.motion=settings.motion;rebuildStarfield();resizeCanvas();}
+
 const viewport=$('#map-viewport'), canvas=$('#galaxy-canvas'), ctx=canvas.getContext('2d',{alpha:false});
 const view={cx:WORLD.width/2,cy:WORLD.height/2,zoom:.7,auto:true,width:0,height:0};
 let stars=[],pulse=0,drag=null,hovered=null,toastTimer=null,lastRenderTick=0;
 
 function loadGame(){try{const obj=JSON.parse(localStorage.getItem(SAVE_KEY));if(validateGame(obj))return obj;}catch(e){}return null;}
 function persist(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(game));return true;}catch(e){notice('Saving is unavailable in this browser. Try a normal tab.','error');return false;}}
-function activateGame(g,withWelcome=false){game=g;selectedId=g.empires[0].home;selectedFleetId=g.fleets.find(f=>f.owner===0)?.id??null;activePage='system';view.auto=true;rebuildStarfield();persist();render();if(withWelcome)openModal('welcome');}
+function activateGame(g,withWelcome=false){game=g;selectedId=g.empires[0].home;selectedFleetId=g.fleets.find(f=>f.owner===0)?.id??null;activePage='system';mapView='galaxy';selectedPlanetIndex=0;view.auto=true;rebuildStarfield();persist();render();if(withWelcome)openModal('welcome');}
 function notice(message,type='ok'){const node=$('#toast');node.textContent=message;node.className='toast show'+(type==='error'?' error':'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>node.className='toast',3200);}
 function act(result){if(!result)return;if(!result.ok){notice(result.message,'error');render();return;}persist();render();notice(result.message);}
 function palette(owner){return owner===null?'#91a9ba':game.empires[owner]?.color||'#aabbcc';}
@@ -28,11 +36,14 @@ function maybeSelectFleetForSystem(id){const fs=game.fleets.filter(f=>f.owner===
 function render(){
   if(!game)return;
   const player=game.empires[0],yieldNow=income(game),territory=ownedSystems(game),systems=game.systems;
-  const resources=[['◈','CREDITS','credits'],['⬡','ALLOYS','alloys'],['✦','SCIENCE','science'],['◇','INFLUENCE','influence']];
-  $('#resource-bar').innerHTML=resources.map(([icon,label,key])=>`<div class="resource"><span class="resource-icon">${icon}</span><div class="resource-info"><small>${label}</small><strong>${key==='science'?fmt(yieldNow.science):fmt(player[key])}<i>${key==='science'?'/ TURN':`+${fmt(yieldNow[key])}`}</i></strong></div></div>`).join('');
+  const resources=[['◈','CREDITS','credits'],['⬡','ALLOYS','alloys'],['✦','SCIENCE','science'],['◇','INFLUENCE','influence'],['✥','UNITY','unity']];
+  $('#resource-bar').innerHTML=resources.map(([icon,label,key])=>`<div class="resource"><span class="resource-icon">${icon}</span><div class="resource-info"><small>${label}</small><strong>${key==='science'?fmt(yieldNow.science):fmt(player[key]||0)}<i>${key==='science'?'/ TURN':key==='unity'?`+${unityIncome(game)}`:`+${fmt(yieldNow[key])}`}</i></strong></div></div>`).join('');
   $('#profile-metrics').innerHTML=`<div class="profile-metric"><strong>${territory.length}</strong><small>COLONIES</small></div><div class="profile-metric"><strong>${totalFleets().length}</strong><small>FLEETS</small></div><div class="profile-metric"><strong>${player.techs.length}</strong><small>TECHS</small></div>`;
   $('#top-turn').textContent=`CYCLE ${String(game.turn).padStart(2,'0')}`;
-  $('#map-summary').textContent=`${systems.length} star systems · ${game.empires.filter(e=>!e.eliminated).length} civilizations · ${territory.length} controlled`;
+  $('#map-summary').textContent=mapView==='solar'? `${planetsForSystem(systems[selectedId]).length} orbiting worlds · ${systems[selectedId].star} · ${systems[selectedId].feature}` : `${systems.length} star systems · ${game.empires.filter(e=>!e.eliminated).length} civilizations · ${territory.length} controlled`;
+  $('#map-title').textContent=mapView==='solar'?systems[selectedId].name:'Galactic Sector 01';
+  document.querySelectorAll('[data-view]').forEach(b=>{b.classList.toggle('active',b.dataset.view===mapView);b.setAttribute('aria-pressed',String(b.dataset.view===mapView));});
+  viewport.classList.toggle('solar-mode',mapView==='solar');document.querySelector('.map-controls').hidden=mapView==='solar';
   $('#sector-id').textContent=game.seed.slice(0,15).toUpperCase();
   $('#footer-coordinates').textContent=`STARDATE ${2201+Math.floor((game.turn-1)/12)}.${String((game.turn-1)%12+1).padStart(2,'0')} // STRATEGIC VIEW`;
   $('#event-text').textContent=game.logs[0]?.message||'Welcome to the galaxy.';
@@ -49,7 +60,7 @@ function header(kicker,title,description,meta='SYSTEM ONLINE'){
 function section(title,body){return `<section class="subsection"><div class="section-label">${title}</div>${body}</section>`;}
 function stat(label,val,cls=''){return `<div class="stat-cell"><small>${label}</small><strong class="${cls}">${val}</strong></div>`;}
 function btn(action,label,cls='action-primary',attrs=''){return `<button class="${cls}" data-action="${action}" ${attrs}>${label}</button>`;}
-function renderInspector(){switch(activePage){case 'colonies':return renderColonies();case 'research':return renderResearch();case 'military':return renderMilitary();case 'diplomacy':return renderDiplomacy();case 'intel':return renderIntel();default:return renderSystem();}}
+function renderInspector(){switch(activePage){case 'colonies':return renderColonies();case 'research':return renderResearch();case 'military':return renderMilitary();case 'diplomacy':return renderDiplomacy();case 'intel':return renderIntel();case 'traditions':return renderTraditions();case 'policies':return renderPolicies();default:return renderSystem();}}
 function renderSystem(){const s=game.systems[selectedId],seen=hasSeen(game,s.id),visible=getVisibility(game).has(s.id);
  if(!seen)return header('LONG-RANGE SENSORS','Uncharted Sector','This star system is beyond current sensor range. Move a fleet or establish nearby colonies to reveal it.','NO SIGNAL')+`<div class="inspector-body">${section('EXPLORATION STATUS','<div class="empty-message"><div class="empty-icon">◌</div>Unknown star system. Explore with a fleet.</div>')}</div>`;
  const y=systemYield(game,s),owner=s.owner===0?'DIRECTORATE CONTROL':s.owner===null?'UNCLAIMED':game.empires[s.owner].short.toUpperCase();
@@ -80,14 +91,15 @@ function renderDiplomacy(){const player=game.empires[0],rivals=game.empires.slic
 function renderIntel(){const ranked=game.empires.slice().sort((a,b)=>score(game,b.id)-score(game,a.id)),mine=ownedSystems(game).length,control=100*mine/game.systems.length,entries=game.logs.slice(0,26);
  return header('COMMAND & INTELLIGENCE','Empire Overview','Situation reports, rankings, and a record of galactic events.','SECTOR INTEL')+`<div class="inspector-body">${section('STRATEGIC CONTROL',`<div class="stat-grid">${stat('SECTOR CONTROL',control.toFixed(1)+'%','cyan')}${stat('VICTORY TARGET','65%','gold')}${stat('CURRENT CYCLE',game.turn)}${stat('EMPIRE SCORE',Math.round(score(game)))}</div><div class="research-progress"><i style="width:${Math.min(100,control/65*100)}%"></i></div>`)}${section('GALACTIC POWER RANKING',ranked.map((e,i)=>`<div class="inline-pair" style="padding:7px 0;border-bottom:1px solid #243b4a"><span>${i+1}. <i class="legend-dot" style="background:${e.color}"></i> ${escapeHTML(e.short)}</span><b>${Math.round(score(game,e.id))} pts</b></div>`).join(''))}${section('MISSION LOG',entries.map(entry=>`<div class="log-entry ${entry.type}"><span>CY ${String(entry.turn).padStart(2,'0')}</span><p>${escapeHTML(entry.message)}</p></div>`).join(''))}</div>`;}
 
-function rebuildStarfield(){const seed=game?.rng||43;let z=(seed+123456)>>>0;const rand=()=>{z^=z<<13;z^=z>>>17;z^=z<<5;return(z>>>0)/4294967296};stars=Array.from({length:270},()=>({x:rand(),y:rand(),r:rand()*1.1+.15,a:.18+rand()*.57}));}
-function resizeCanvas(){const rect=canvas.getBoundingClientRect(),dpr=Math.min(window.devicePixelRatio||1,2);if(!rect.width||!rect.height)return;const w=Math.round(rect.width*dpr),h=Math.round(rect.height*dpr);if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}view.width=rect.width;view.height=rect.height;ctx.setTransform(dpr,0,0,dpr,0,0);if(view.auto){view.cx=WORLD.width/2;view.cy=WORLD.height/2;view.zoom=Math.min(rect.width/(WORLD.width+75),rect.height/(WORLD.height+60))*1.03;}}
+function rebuildStarfield(){const seed=game?.rng||43;let z=(seed+123456)>>>0;const rand=()=>{z^=z<<13;z^=z>>>17;z^=z<<5;return(z>>>0)/4294967296};stars=Array.from({length:QUALITY[settings.quality].stars},()=>({x:rand(),y:rand(),r:rand()*1.1+.15,a:.18+rand()*.57}));}
+function resizeCanvas(){const rect=canvas.getBoundingClientRect(),preset=QUALITY[settings.quality];if(!rect.width||!rect.height)return;const dpr=Math.min(preset.scale,Math.sqrt(preset.maxPixels/(rect.width*rect.height)));const w=Math.max(1,Math.round(rect.width*dpr)),h=Math.max(1,Math.round(rect.height*dpr));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}view.width=rect.width;view.height=rect.height;ctx.setTransform(dpr,0,0,dpr,0,0);if(view.auto){view.cx=WORLD.width/2;view.cy=WORLD.height/2;view.zoom=Math.min(rect.width/(WORLD.width+75),rect.height/(WORLD.height+60))*1.03;}}
 function screenPos(s){return {x:(s.x-view.cx)*view.zoom+view.width/2,y:(s.y-view.cy)*view.zoom+view.height/2};}
 function fromScreen(x,y){return{x:view.cx+(x-view.width/2)/view.zoom,y:view.cy+(y-view.height/2)/view.zoom};}
 function colorAlpha(color,a){if(color[0]==='#'){const n=parseInt(color.slice(1),16);return`rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;}return color;}
-function draw(now){requestAnimationFrame(draw);if(!game||!view.width||now-lastRenderTick<36)return;lastRenderTick=now;pulse=now/1000;
+function draw(now){requestAnimationFrame(draw);if(!game||!view.width||now-lastRenderTick<QUALITY[settings.quality].delay)return;lastRenderTick=now;pulse=now/1000;
  const w=view.width,h=view.height;ctx.clearRect(0,0,w,h);
  let bg=ctx.createRadialGradient(w*.48,h*.45,15,w*.48,h*.45,Math.max(w,h)*.8);bg.addColorStop(0,'#13243b');bg.addColorStop(.4,'#0d192b');bg.addColorStop(1,'#050d18');ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
+ if(mapView==='solar'){solarHits=drawSolarSystem(ctx,game.systems[selectedId],w,h,pulse,selectedPlanetIndex,settings.motion!=='reduced'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches);return;}
  for(const glow of [{x:.28,y:.3,r:.46,c:'rgba(18,76,95,.14)'},{x:.82,y:.7,r:.48,c:'rgba(65,42,105,.15)'},{x:.55,y:.72,r:.24,c:'rgba(20,53,89,.18)'}]){const g=ctx.createRadialGradient(glow.x*w,glow.y*h,0,glow.x*w,glow.y*h,glow.r*Math.max(w,h));g.addColorStop(0,glow.c);g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);}
  ctx.fillStyle='#c6d6f2';for(const s of stars){ctx.globalAlpha=s.a;ctx.fillRect(s.x*w,s.y*h,s.r,s.r)}ctx.globalAlpha=1;
  const visible=getVisibility(game),seen=new Set([...game.explored,...visible]);
@@ -118,13 +130,14 @@ function recenter(){view.auto=true;resizeCanvas();}
 function zoomAt(factor,x=view.width/2,y=view.height/2){const before=fromScreen(x,y);view.auto=false;view.zoom=Math.max(.23,Math.min(3.5,view.zoom*factor));view.cx=before.x-(x-view.width/2)/view.zoom;view.cy=before.y-(y-view.height/2)/view.zoom;}
 function findStar(x,y){let best=null,d=19;for(const s of game.systems){if(!hasSeen(game,s.id))continue;const p=screenPos(s),dd=Math.hypot(p.x-x,p.y-y);if(dd<d){best=s;d=dd}}return best;}
 function posEvent(event){const r=canvas.getBoundingClientRect();return{x:event.clientX-r.left,y:event.clientY-r.top};}
-viewport.addEventListener('pointerdown',e=>{if(e.target!==canvas||!game)return;const p=posEvent(e);drag={pointer:e.pointerId,x:p.x,y:p.y,prevX:p.x,prevY:p.y,moved:false};canvas.setPointerCapture(e.pointerId);});
-canvas.addEventListener('pointermove',e=>{if(!game)return;const p=posEvent(e);if(drag&&drag.pointer===e.pointerId){const dx=p.x-drag.prevX,dy=p.y-drag.prevY;if(Math.abs(p.x-drag.x)+Math.abs(p.y-drag.y)>6)drag.moved=true;if(drag.moved){view.auto=false;view.cx-=dx/view.zoom;view.cy-=dy/view.zoom;}drag.prevX=p.x;drag.prevY=p.y;$('#map-tooltip').hidden=true;return;}
+viewport.addEventListener('pointerdown',e=>{if(mapView==='solar'||e.target!==canvas||!game)return;const p=posEvent(e);drag={pointer:e.pointerId,x:p.x,y:p.y,prevX:p.x,prevY:p.y,moved:false};canvas.setPointerCapture(e.pointerId);});
+canvas.addEventListener('pointermove',e=>{if(!game)return;if(mapView==='solar'){const p=posEvent(e);canvas.style.cursor=solarHits.some(world=>Math.hypot(world.x-p.x,world.y-p.y)<world.r+9)?'pointer':'default';$('#map-tooltip').hidden=true;return;}const p=posEvent(e);if(drag&&drag.pointer===e.pointerId){const dx=p.x-drag.prevX,dy=p.y-drag.prevY;if(Math.abs(p.x-drag.x)+Math.abs(p.y-drag.y)>6)drag.moved=true;if(drag.moved){view.auto=false;view.cx-=dx/view.zoom;view.cy-=dy/view.zoom;}drag.prevX=p.x;drag.prevY=p.y;$('#map-tooltip').hidden=true;return;}
  const s=findStar(p.x,p.y),tip=$('#map-tooltip');if(s){hovered=s.id;tip.hidden=false;tip.innerHTML=`<strong>${escapeHTML(s.name)}</strong><small>${escapeHTML(labelOwner(s))} · ${escapeHTML(s.star)}</small>`;tip.style.left=Math.min(Math.max(p.x+17,12),view.width-165)+'px';tip.style.top=Math.max(7,Math.min(p.y-37,view.height-65))+'px';canvas.style.cursor='pointer';}else{tip.hidden=true;canvas.style.cursor='grab';}});
-canvas.addEventListener('pointerup',e=>{if(!drag||drag.pointer!==e.pointerId)return;const p=posEvent(e);if(!drag.moved){const s=findStar(p.x,p.y);if(s){selectedId=s.id;activePage='system';render()}}drag=null;});
+canvas.addEventListener('pointerup',e=>{if(!drag||drag.pointer!==e.pointerId)return;const p=posEvent(e);if(!drag.moved){const s=findStar(p.x,p.y);if(s){selectedId=s.id;selectedPlanetIndex=planetsForSystem(s).find(p=>p.primary)?.id||0;activePage='system';render()}}drag=null;});
 canvas.addEventListener('pointercancel',()=>drag=null);
+canvas.addEventListener('click',e=>{if(mapView!=='solar')return;const p=posEvent(e);const hit=solarHits.find(world=>Math.hypot(world.x-p.x,world.y-p.y)<world.r+9);if(hit){selectedPlanetIndex=hit.id;activePage='system';render();}});
 canvas.addEventListener('pointerleave',()=>{$('#map-tooltip').hidden=true});
-viewport.addEventListener('wheel',e=>{if(!game)return;e.preventDefault();const r=canvas.getBoundingClientRect();zoomAt(e.deltaY<0?1.13:.885,e.clientX-r.left,e.clientY-r.top);},{passive:false});
+viewport.addEventListener('wheel',e=>{if(!game||mapView==='solar')return;e.preventDefault();const r=canvas.getBoundingClientRect();zoomAt(e.deltaY<0?1.13:.885,e.clientX-r.left,e.clientY-r.top);},{passive:false});
 window.addEventListener('resize',resizeCanvas);
 
 function modalLayout(kicker,title,body,buttons=''){return `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><button class="modal-close" data-action="close-modal" aria-label="Close dialog">×</button><div class="eyebrow">${kicker}</div><h2 id="modal-title">${title}</h2>${body}${buttons?`<div class="modal-actions">${buttons}</div>`:''}</div>`}
@@ -157,7 +170,7 @@ function handleAction(action,data){
   case 'zoom-in':zoomAt(1.27);break;
   case 'zoom-out':zoomAt(.78);break;
   case 'center':recenter();break;
-  case 'select-system':selectedId=id;activePage='system';maybeSelectFleetForSystem(id);render();break;
+  case 'select-system':selectedId=id;selectedPlanetIndex=planetsForSystem(game.systems[id]).find(p=>p.primary)?.id||0;activePage='system';maybeSelectFleetForSystem(id);render();break;
   case 'select-fleet':selectedFleetId=id;activePage='military';render();notice('Fleet selected. Click a neighboring system, then issue a Move order.');break;
   case 'colonize':act(colonize(game,selectedId));break;
   case 'build':act(build(game,selectedId,data.type));break;
@@ -180,4 +193,4 @@ if('serviceWorker' in navigator&&window.location.protocol.startsWith('http'))win
 
 // Boot. Keep game state isolated from the UI — all mechanics live in core.js.
 const existing=loadGame();if(existing){activateGame(existing);notice('Campaign restored from local save.');}else{activateGame(generateGame({seed:'ORION-47',size:90,opponents:4,difficulty:'normal'}),true);}
-resizeCanvas();requestAnimationFrame(draw);
+applySettings();requestAnimationFrame(draw);
