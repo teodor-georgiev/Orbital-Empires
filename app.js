@@ -1,4 +1,4 @@
-import { VERSION, WORLD, BUILDINGS, BIOME_BUILDINGS, ORBITAL_BUILDINGS, SHIPS, TECHS, TRADITIONS, POLICIES, generateSpaceFeatures, canSurveySpaceSite, surveySpaceSite, hasScannedSite, GOVERNMENTS, CIVICS, COUNCIL_OFFICES, LEADERS, FACTIONS, politicalStability, factionLoyalty, factionTargets, canReformGovernment, canAdoptCivic, canAppointLeader, reformGovernment, adoptCivic, appointLeader, traditionCost, unityIncome, adoptTradition, enactPolicy, generateGame, getEmpire, ownedSystems, getVisibility, hasSeen, getNeighbors, income, systemYield, score, fleetPower, availableTechs, colonyCost, canColonize, colonize, canBuild, build, canBuildOrbital, buildOrbital, canRecruit, recruit, canMove, moveFleet, canQueueFleetRoute, queueFleetRoute, cancelFleetRoute, fleetRouteETA, advanceMonth, chooseResearch, declareWar, sendEnvoy, offerPeace, endTurn, validateGame, getStardate } from './core.js';
+import { VERSION, WORLD, BUILDINGS, BIOME_BUILDINGS, ORBITAL_BUILDINGS, SHIPS, TECHS, TRADITIONS, POLICIES, generateSpaceFeatures, canSurveySpaceSite, surveySpaceSite, hasScannedSite, GOVERNMENTS, CIVICS, COUNCIL_OFFICES, LEADERS, FACTIONS, politicalStability, factionLoyalty, factionTargets, canReformGovernment, canAdoptCivic, canAppointLeader, reformGovernment, adoptCivic, appointLeader, traditionCost, unityIncome, adoptTradition, enactPolicy, generateGame, getEmpire, ownedSystems, getVisibility, hasSeen, getNeighbors, income, systemYield, score, fleetPower, availableTechs, colonyCost, canColonize, colonize, canBuild, build, canBuildOrbital, buildOrbital, canRecruit, recruit, canMove, moveFleet, canQueueFleetRoute, queueFleetRoute, cancelFleetRoute, fleetRouteETA, advanceMonth, chooseResearch, declareWar, sendEnvoy, offerPeace, endTurn, validateGame, getStardate, OUTPOST_TIERS, getOutpost, outpostDefense, canUpgradeOutpost, upgradeOutpost, reconcileShipUnits, shipUnitRoster, splitShipSelection, mergeShipSelection, orderSelectedShips } from './core.js';
 import { generateSystemBodies, selectSystemPlanet } from './system-model.js';
 import { SITE_KINDS } from './modules/space/environment.js';
 import { createSolarView } from './solar-view.js';
@@ -38,7 +38,8 @@ const viewport=$('#map-viewport'), canvas=$('#galaxy-canvas'), ctx=canvas.getCon
 const view={cx:WORLD.width/2,cy:WORLD.height/2,zoom:.7,auto:true,width:0,height:0};
 let stars=[],pulse=0,drag=null,hovered=null,toastTimer=null,lastRenderTick=0;
 let solarOpen=false,solarBodies=null,selectedPlanet=0,selectedSpaceSite=null,planetFocus=false;
-const solar=createSolarView($('#solar-canvas'),{onSelect: id => {selectedSpaceSite=null;selectedPlanet=id;planetFocus=true;activePage='system';render();$('#inspector').scrollTop=0;},onSelectSite:id=>{selectedSpaceSite=id;planetFocus=false;activePage='system';render();$('#inspector').scrollTop=0;},quality:()=>QUALITY[settings.quality],shouldAnimate:()=>settings.motion!=='reduced'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches});
+let selectedShipIds=[],moveShipTargetMode=false;
+const solar=createSolarView($('#solar-canvas'),{onSelect: id => {selectedSpaceSite=null;selectedPlanet=id;planetFocus=true;activePage='system';render();$('#inspector').scrollTop=0;},onSelectSite:id=>{selectedSpaceSite=id;planetFocus=false;activePage='system';render();$('#inspector').scrollTop=0;},onSelectShips:ids=>{selectedShipIds=ids;moveShipTargetMode=false;render();},onSelectOutpost:()=>{$('#solar-command-panel')?.scrollIntoView({block:'nearest'});},onMoveShips:position=>{moveShipTargetMode=false;solar.setMoveMode(false);act(orderSelectedShips(game,selectedShipIds,{kind:'move',position}));},quality:()=>QUALITY[settings.quality],shouldAnimate:()=>settings.motion!=='reduced'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches});
 
 const simClock=createMonthlyClock({
  getGame:()=>game,
@@ -64,7 +65,7 @@ function syncSimClock(){
 }
 function loadGame(){try{const obj=JSON.parse(localStorage.getItem(SAVE_KEY));if(validateGame(obj))return obj;}catch(e){}return null;}
 function persist(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(game));return true;}catch(e){notice('Saving is unavailable in this browser. Try a normal tab.','error');return false;}}
-function activateGame(g,withWelcome=false){simClock.suspend();closeSolarSystem();game=g;selectedId=g.empires[0].home;selectedFleetId=g.fleets.find(f=>f.owner===0)?.id??null;activePage='system';view.auto=true;rebuildStarfield();persist();render();if(withWelcome)openModal('welcome');else syncSimClock();}
+function activateGame(g,withWelcome=false){simClock.suspend();closeSolarSystem();game=g;reconcileShipUnits(game);selectedShipIds=[];selectedId=g.empires[0].home;selectedFleetId=g.fleets.find(f=>f.owner===0)?.id??null;activePage='system';view.auto=true;rebuildStarfield();persist();render();if(withWelcome)openModal('welcome');else syncSimClock();}
 function notice(message,type='ok'){const node=$('#toast');node.textContent=message;node.className='toast show'+(type==='error'?' error':'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>node.className='toast',3200);}
 function act(result){if(!result)return;if(!result.ok){notice(result.message,'error');render();return;}persist();render();notice(result.message);}
 function palette(owner){return owner===null?'#91a9ba':game.empires[owner]?.color||'#aabbcc';}
@@ -83,7 +84,7 @@ function openSolarSystem(id=selectedId){
   solarBodies=generateSystemBodies(game.seed,system);
   selectedPlanet=solarBodies.planets.find(p=>p.isColonyWorld)?.id??0;
   selectedSpaceSite=null;
-  solarOpen=true;planetFocus=false;
+  solarOpen=true;planetFocus=false;selectedShipIds=[];moveShipTargetMode=false;
   const stage=$('#solar-stage');stage.hidden=false;viewport.classList.add('system-mode');
   $('#map-tooltip').hidden=true;
   solar.open(system,solarBodies);
@@ -92,17 +93,26 @@ function openSolarSystem(id=selectedId){
 }
 function closeSolarSystem(){
   if(!solarOpen)return;
-  solarOpen=false;solarBodies=null;selectedPlanet=0;selectedSpaceSite=null;planetFocus=false;solar.close();
+  solarOpen=false;solarBodies=null;selectedPlanet=0;selectedSpaceSite=null;planetFocus=false;selectedShipIds=[];moveShipTargetMode=false;solar.close();
   $('#solar-stage').hidden=true;viewport.classList.remove('system-mode');
   if(game)render();
 }
 function renderSolarHud(){
   if(!solarOpen||!solarBodies)return;
   const system=game.systems[selectedId],planet=selectSystemPlanet(solarBodies,selectedPlanet)||solarBodies.planets[0];
+ const roster=shipUnitRoster(game,system.id),post=getOutpost(system),friendly=roster.filter(u=>u.owner===0);
+ selectedShipIds=selectedShipIds.filter(id=>friendly.some(u=>u.id===id));
+ solar.setTacticalState(roster,post);solar.setSelectedShips(selectedShipIds);
   $('#solar-system-name').textContent=system.name.toUpperCase()+' SYSTEM';
   $('#solar-renderer').textContent=solar.is3D()?'WEBGL 3D':'2D COMPATIBILITY MODE';
   $('#solar-planet-list').innerHTML=solarBodies.planets.map(p=>`<button class="solar-planet-option ${p.id===planet.id?'selected':''}" data-action="solar-planet" data-id="${p.id}" aria-pressed="${p.id===planet.id}"><span class="planet-thumbnail planet-${artworkBiome(p.biome)} oe-seeded-planet" style="${planetArtStyle(p)}" aria-hidden="true"></span><span class="planet-label-main">${escapeHTML(p.name)}<small>${escapeHTML(p.biome)}${p.isColonyWorld?' · PRIMARY WORLD':' · SURVEY ONLY'}</small></span><span aria-hidden="true">›</span></button>`).join('');
   $('#solar-site-count').textContent=String(solarBodies.sites?.length||0);
+ const selected=roster.filter(u=>selectedShipIds.includes(u.id)),cost=system.owner===0?canUpgradeOutpost(game,system.id):null;
+ const station=post?`<div class="oe-station-summary"><b>${escapeHTML(OUTPOST_TIERS[post.level].name)}</b><small>DEF ${outpostDefense(system)} · HP ${post.hp}/${OUTPOST_TIERS[post.level].maxHp} · ARM ${post.armor} · SH ${post.shield}</small>${system.owner===0?`<button data-action="outpost-upgrade" ${cost?.ok?'':'disabled'}>${post.level===4?'MAX LEVEL':'UPGRADE OUTPOST'}</button>`:''}</div>`:'<p class="oe-unit-tip">No outpost in unclaimed territory.</p>';
+ const rosterButtons=friendly.slice(0,65).map(u=>`<button data-action="solar-select-ship" data-id="${u.id}" class="oe-unit-button ${selectedShipIds.includes(u.id)?'selected':''}" aria-pressed="${selectedShipIds.includes(u.id)}">${u.type.toUpperCase()} #${u.id}<small>${u.localOrder?.kind||'hold'}</small></button>`).join('');
+ const commands=selected.length?`<div class="oe-tactical-actions"><button data-action="ship-orbit">ORBIT PLANET</button><button data-action="ship-guard">DEFEND PLANET</button><button data-action="ship-dock" ${system.owner===0&&post?.level>0?'':'disabled'}>DOCK</button><button data-action="ship-patrol">PATROL</button><button data-action="ship-hold">HOLD</button><button data-action="ship-move-target">MOVE TO POINT</button><button data-action="ship-split">SPLIT</button><button data-action="ship-merge">MERGE</button></div>`:'<p class="oe-unit-tip">Click or tap a ship. Drag to box-select, Shift-click to add, Alt-drag to orbit the camera.</p>';
+ $('#solar-command-panel').innerHTML=`<div class="oe-tactical-caption">STARBASE DEFENSE</div>${station}<div class="oe-tactical-caption">SHIP COMMAND · ${selected.length} SELECTED</div><div class="oe-unit-list">${rosterButtons||'No friendly ships'}${friendly.length>65?'<small>Showing first 65 ships</small>':''}</div>${commands}${moveShipTargetMode?'<p class="oe-unit-tip">Tap a destination in the scene.</p>':''}`;
+
   $('#solar-site-list').innerHTML=(solarBodies.sites||[]).map(site=>{
     const kind=SITE_KINDS[site.kind],done=hasScannedSite(game,selectedId,site.id),chosen=selectedSpaceSite===site.id;
     return `<button class="solar-site-option ${chosen?'selected':''}" data-action="solar-site" data-id="${escapeHTML(site.id)}" aria-pressed="${chosen}" title="${escapeHTML(site.description)}" style="--site-color:${kind.color}"><span class="solar-site-symbol" aria-hidden="true">${kind.icon}</span><span class="solar-site-copy"><strong>${escapeHTML(site.name)}</strong><small>${done?'✓ EXPLORED':escapeHTML(kind.label)}</small></span></button>`;
@@ -431,7 +441,7 @@ document.addEventListener('click',event=>{
    return;
  }
  const action=event.target.closest('[data-action]');if(!action||action.disabled)return;
- handleAction(action.dataset.action,action.dataset);
+ handleAction(action.dataset.action,{...action.dataset,shift:event.shiftKey});
 });
 function handleAction(action,data){
  const id=Number(data.id),systemId=Number(data.system);
@@ -471,7 +481,21 @@ function handleAction(action,data){
   case 'solar-show-orbit':planetFocus=false;activePage='system';render();break;
   case 'planet-upgrades':{planetFocus=true;activePage='system';render();const target=[...$('#inspector').querySelectorAll('.subsection')].find(el=>el.textContent.includes('COLONY INFRASTRUCTURE'));if(target)target.scrollIntoView({behavior:settings.motion==='reduced'?'instant':'smooth',block:'nearest'});break;}
   case 'solar-planet':{if(!solarOpen||!selectSystemPlanet(solarBodies,id))break;selectedSpaceSite=null;selectedPlanet=id;planetFocus=true;solar.selectPlanet(id);activePage='system';render();$('#inspector').scrollTop=0;break;}
-  case 'solar-site':{if(!solarOpen||!solarBodies.sites.some(s=>s.id===data.id))break;selectedSpaceSite=data.id;planetFocus=false;activePage='system';render();$('#inspector').scrollTop=0;break;}
+  case 'outpost-upgrade':act(upgradeOutpost(game,selectedId));break;
+ case 'solar-select-ship':{
+  if(!solarOpen||!shipUnitRoster(game,selectedId).some(u=>u.id===id&&u.owner===0))break;
+  selectedShipIds=data.shift?(selectedShipIds.includes(id)?selectedShipIds.filter(x=>x!==id):[...selectedShipIds,id]):[id];
+  moveShipTargetMode=false;solar.setMoveMode(false);render();break;
+ }
+ case 'ship-orbit':act(orderSelectedShips(game,selectedShipIds,{kind:'orbit',planetId:selectedPlanet}));break;
+ case 'ship-guard':act(orderSelectedShips(game,selectedShipIds,{kind:'guard',planetId:selectedPlanet}));break;
+ case 'ship-dock':act(orderSelectedShips(game,selectedShipIds,{kind:'dock'}));break;
+ case 'ship-patrol':act(orderSelectedShips(game,selectedShipIds,{kind:'patrol'}));break;
+ case 'ship-hold':act(orderSelectedShips(game,selectedShipIds,{kind:'hold'}));break;
+ case 'ship-move-target':moveShipTargetMode=true;solar.setMoveMode(true);render();break;
+ case 'ship-split':act(splitShipSelection(game,selectedShipIds));break;
+ case 'ship-merge':act(mergeShipSelection(game,selectedShipIds));break;
+ case 'solar-site':{if(!solarOpen||!solarBodies.sites.some(s=>s.id===data.id))break;selectedSpaceSite=data.id;planetFocus=false;activePage='system';render();$('#inspector').scrollTop=0;break;}
   case 'survey-site':{if(!solarOpen||!solarBodies.sites.some(s=>s.id===data.id))break;act(surveySpaceSite(game,selectedId,data.id));break;}
   case 'zoom-in':zoomAt(1.27);break;
   case 'zoom-out':zoomAt(.78);break;
