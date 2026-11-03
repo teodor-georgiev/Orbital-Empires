@@ -10,6 +10,19 @@ const PAGES = {
 const PAGE_ORDER = ['research', 'traditions', 'policies'];
 const ITEMS = { research: TECHS, traditions: TRADITIONS, policies: POLICIES };
 const ACTIONS = { research: 'research', traditions: 'adopt-tradition', policies: 'enact-policy' };
+const PAGE_ICONS = { research: 'research', traditions: 'traditions', policies: 'policies' };
+const GROUP_ICONS = {
+  research: { Industry: 'branch-industry', Exploration: 'branch-exploration', Economy: 'branch-economy', Military: 'branch-military', Science: 'branch-science', Civics: 'branch-civics' },
+  traditions: { Expansion: 'track-expansion', Prosperity: 'track-prosperity', Discovery: 'track-discovery' },
+  policies: { Economy: 'policy-economy', Society: 'policy-society', Defense: 'policy-defense' }
+};
+const STATE_ICONS = { completed: 'state-completed', researching: 'state-active', available: 'state-available', locked: 'state-locked' };
+function strategyIcon(id, className = 'progress-vector') {
+  return '<svg class="' + className + '" aria-hidden="true" focusable="false"><use href="./assets/ui/strategy-icons.svg#' + id + '"></use></svg>';
+}
+export function developmentIconKey(page, group) {
+  return Object.hasOwn(GROUP_ICONS, page) && Object.hasOwn(GROUP_ICONS[page], group) ? GROUP_ICONS[page][group] : PAGE_ICONS[page] || 'progress';
+}
 const escapeText = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const number = value => Math.round(value || 0).toLocaleString('en-US');
 
@@ -45,8 +58,9 @@ function node(game, page, item, chosen, previous) {
   const connected = previous && (item.prereqs || []).includes(previous.id);
   return '<button type="button" class="progress-node ' + statusClass + (connected ? ' connected' : '') + (chosen ? ' selected' : '') +
     '" data-action="select-development" data-id="' + escapeText(item.id) + '" aria-pressed="' + String(chosen) + '">' +
-    '<span class="progress-node-top"><span class="progress-node-state">' + escapeText(state.status) + '</span><span class="progress-node-symbol" aria-hidden="true">' +
-    (state.completed ? '✓' : state.missing.length ? '◇' : state.active ? '◉' : '✦') + '</span></span>' +
+    '<span class="progress-node-top"><span class="progress-node-identity">' + strategyIcon(developmentIconKey(page, item[PAGES[page].groups])) +
+    '<span class="progress-node-state">' + escapeText(state.status) + '</span></span><span class="progress-node-symbol">' +
+    strategyIcon(STATE_ICONS[statusClass], 'progress-status-vector') + '</span></span>' +
     '<strong>' + escapeText(item.name) + '</strong><span class="progress-node-effect">' + escapeText(item.bonus) + '</span>' +
     '<small>' + (prerequisites.length ? 'After ' + escapeText(prerequisites.join(' + ')) : page === 'policies' ? escapeText(item.description) : 'Starting choice') + '</small>' +
     '</button>';
@@ -83,7 +97,7 @@ function details(game, page, item) {
     : state.active ? 'Current research focus' : info.verb;
   return '<aside class="progress-detail" aria-label="Selected ' + info.noun + ' details">' +
     '<span class="progress-detail-eyebrow">' + escapeText(item[PAGES[page].groups]) + ' / ' + escapeText(info.title) + '</span>' +
-    '<div class="progress-detail-icon" aria-hidden="true">' + (page === 'research' ? '✧' : page === 'traditions' ? '✥' : '◈') + '</div>' +
+    '<div class="progress-detail-icon">' + strategyIcon(developmentIconKey(page, item[PAGES[page].groups]), 'progress-detail-vector') + '</div>' +
     '<h3>' + escapeText(item.name) + '</h3><p>' + escapeText(description) + '</p>' +
     '<div class="progress-effect"><small>EMPIRE EFFECT</small><strong>' + escapeText(item.bonus) + '</strong></div>' +
     '<div class="progress-details-row"><span>Prerequisites</span><b>' + escapeText(requiredLabel) + '</b></div>' + meta +
@@ -104,16 +118,19 @@ export function renderDevelopment(game, page = 'research', selectedId = null, fi
   const progress = current ? Math.min(100, Math.max(0, (empire.progress / current.cost) * 100)) : 0;
   const counts = { research: empire.techs.length, traditions: (empire.traditions || []).length, policies: (empire.policies || []).length };
   const tab = key => '<button type="button" role="tab" class="progress-tab ' + (page === key ? 'active' : '') +
-    '" data-nav="' + key + '" aria-selected="' + String(page === key) + '">' + escapeText(PAGES[key].title) +
+    '" data-nav="' + key + '" aria-selected="' + String(page === key) + '">' + strategyIcon(PAGE_ICONS[key], 'progress-tab-vector') + escapeText(PAGES[key].title) +
     ' <span>' + counts[key] + ' / ' + ITEMS[key].length + '</span></button>';
   const groupButton = group => '<button type="button" class="progress-filter ' + (activeGroup === group ? 'active' : '') +
     '" data-action="filter-development" data-filter="' + escapeText(group) +
-    '" aria-pressed="' + String(activeGroup === group) + '">' + (group === 'all' ? 'All fields' : escapeText(group)) + '</button>';
+    '" aria-pressed="' + String(activeGroup === group) + '">' +
+    (group === 'all' ? strategyIcon('progress', 'progress-filter-vector') : strategyIcon(developmentIconKey(page, group), 'progress-filter-vector')) +
+    (group === 'all' ? 'All fields' : escapeText(group)) + '</button>';
   const lanes = allGroups.filter(group => activeGroup === 'all' || group === activeGroup).map(group => {
     const groupItems = visible.filter(item => item[info.groups] === group);
     const complete = groupItems.filter(item => developmentStatus(game, page, item).completed).length;
     return '<section class="progress-lane" aria-label="' + escapeText(group) + '">' +
-      '<div class="progress-lane-heading"><h3>' + escapeText(group) + '</h3><span>' + complete + ' / ' + groupItems.length + '</span></div>' +
+      '<div class="progress-lane-heading"><span class="progress-lane-name">' + strategyIcon(developmentIconKey(page, group), 'progress-lane-vector') +
+      '<h3>' + escapeText(group) + '</h3></span><span>' + complete + ' / ' + groupItems.length + '</span></div>' +
       '<div class="progress-lane-nodes">' + groupItems.map((item, index) => node(game, page, item, item.id === selected.id, groupItems[index - 1])).join('') + '</div></section>';
   }).join('');
   const subline = page === 'research' ? (current ? 'Currently researching ' + current.name : 'Choose your next research project')
