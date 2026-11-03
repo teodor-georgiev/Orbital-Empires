@@ -2,6 +2,7 @@
 import { TRADITIONS, POLICIES, traditionCost, unityIncome, civicBonuses, canAdoptTradition, canEnactPolicy } from './modules/strategy/civics.js';
 export { TRADITIONS, POLICIES, traditionCost, unityIncome };
 import { SAVE_SCHEMA_VERSION } from './version.js';
+import { NEARBY_STARS, nearbySystemSeed } from './modules/galaxy/real-stars.js';
 export const VERSION = SAVE_SCHEMA_VERSION;
 export const WORLD = { width: 1140, height: 760 };
 export const EMPIRE_TEMPLATES = [
@@ -62,7 +63,7 @@ function roll(g,n){return Math.floor(rand(g)*n)}
 function pick(g,items){return items[roll(g,items.length)]}
 function connect(g,a,b){if(a===b)return;const x=g.systems[a],y=g.systems[b];if(!x.neighbors.includes(b))x.neighbors.push(b);if(!y.neighbors.includes(a))y.neighbors.push(a);}
 function generateMap(g,count){
-  const used=new Set();let tries=0;
+  const used=new Set(g.systems.map(s=>s.name));let tries=0;
   while(g.systems.length<count&&tries<count*400){
     tries++;const x=between(g,49,WORLD.width-49),y=between(g,48,WORLD.height-48);
     if(Math.pow((x-570)/625,2)+Math.pow((y-380)/440,2)>1)continue;
@@ -83,28 +84,38 @@ function generateMap(g,count){
     for(const n of ranked.slice(0,2)){if(s.neighbors.length>=5)break;if(dist(s,n)>142||n.neighbors.length>=5)continue;if(rand(g)<0.34)connect(g,s.id,n.id);}
   }
 }
-function chooseHomes(g,n){
+function chooseHomes(g,n,preferredHome=null){
   let homes=[];const candidates=g.systems.filter(s=>s.neighbors.length>=2&&s.habitability>=2);
-  let first=candidates.slice().sort((a,b)=>((a.x-360)**2+(a.y-380)**2)-((b.x-360)**2+(b.y-380)**2))[0];
+  let first=preferredHome!==null?g.systems[preferredHome]:candidates.slice().sort((a,b)=>((a.x-360)**2+(a.y-380)**2)-((b.x-360)**2+(b.y-380)**2))[0];
   homes.push(first);
   while(homes.length<n){let best=null,score=-Infinity;for(const c of candidates){if(homes.includes(c))continue;const min=Math.min(...homes.map(s=>dist(c,s)));if(min>score){score=min;best=c}}if(!best)break;homes.push(best);}
   return homes;
 }
-export function generateGame({seed='ORION-47',size=90,opponents=4,difficulty='normal'}={}){
+export function generateGame({seed='ORION-47',size=90,opponents=4,difficulty='normal',scenario='procedural',startYear=2200,playerFaction='human'}={}){
   size=clamp(Number(size)||90,40,180);opponents=clamp(Number(opponents)||4,1,6);
-  const g={version:VERSION,seed:String(seed).slice(0,40)||'ORION-47',rng:hashSeed(seed),turn:1,systems:[],empires:[],fleets:[],logs:[],nextFleetId:1,explored:[],difficulty,gameOver:null,startedAt:Date.now()};
+  startYear=Number(startYear);
+  if(!Number.isInteger(startYear)||startYear<2000||startYear>3000)throw new RangeError('Start year must be an integer from 2000 to 3000.');
+  if(!['procedural','sol'].includes(scenario))throw new RangeError('Unknown galaxy scenario.');
+  const factions={human:'Human',auralian:'Auralian',vexari:'Vexari',solari:'Solari',keth:'Keth',umbral:'Umbral',orionic:'Orionic'};
+  if(!Object.hasOwn(factions,playerFaction))throw new RangeError('Unknown player faction.');
+  if(scenario==='sol')playerFaction='human';
+  const selected=EMPIRE_TEMPLATES.find(t=>t.species===factions[playerFaction]);
+  const rivals=EMPIRE_TEMPLATES.filter(t=>t.species!==selected.species);
+  const g={version:VERSION,seed:String(seed).slice(0,40)||'ORION-47',rng:hashSeed(seed),turn:1,startYear,scenario,playerFaction,systems:[],empires:[],fleets:[],logs:[],nextFleetId:1,explored:[],difficulty,gameOver:null,startedAt:Date.now()};
+  if(scenario==='sol')g.systems.push(...NEARBY_STARS.slice(0,size).map((star,i)=>nearbySystemSeed(star,i)));
   generateMap(g,size);
-  const homes=chooseHomes(g,opponents+1);
+  const homes=chooseHomes(g,opponents+1,scenario==='sol'?0:null);
   for(let i=0;i<homes.length;i++){
-    const t=EMPIRE_TEMPLATES[i];const home=homes[i];home.owner=i;home.population=6;home.capital=true;home.buildings={foundry:1,laboratory:1,exchange:1,citadel:1};
+    const t=i===0?(scenario==='sol'?{...selected,name:'United Earth Directorate',motto:'From Earth to the stars.'}:selected):rivals[i-1];const home=homes[i];home.owner=i;home.population=6;home.capital=true;home.buildings={foundry:1,laboratory:1,exchange:1,citadel:1};
     g.empires.push({...t,id:i,home:home.id,credits:i===0?175:150,alloys:i===0?124:110,influence:56,techs:[],research:'orbital-industry',progress:0,unity:25,traditions:[],policies:[],wars:{},relations:{},lastEnvoy:{},eliminated:false});
     g.fleets.push({id:g.nextFleetId++,owner:i,system:home.id,ships:{corvette:3,frigate:0,cruiser:0},movedTurn:0,name:i===0?'First Expedition':'Home Guard'});
   }
   for(const e of g.empires)for(const r of g.empires)if(r.id!==e.id){e.wars[r.id]=false;e.relations[r.id]=e.id===0?0:roll(g,25)-12;}
   for(const star of g.systems)if(dist(star,homes[0])<145)g.explored.push(star.id);
-  log(g,'A new age dawns. The Terran Directorate looks to the stars.','start');
+  log(g,scenario==='sol'?'Year '+startYear+': Humanity looks beyond Earth toward Alpha Centauri.':'A new age dawns. '+g.empires[0].name+' looks to the stars.','start');
   return g;
 }
+export function getStardate(g){const start=Number.isInteger(g.startYear)?g.startYear:2201;const months=Math.max(0,g.turn-1);return `${start+Math.floor(months/12)}.${String(months%12+1).padStart(2,'0')}`;}
 function log(g,message,type='news'){g.logs.unshift({turn:g.turn,message,type});g.logs=g.logs.slice(0,130)}
 export function getNeighbors(g,id){return g.systems[id]?.neighbors.map(i=>g.systems[i])||[]}
 export function getEmpire(g,id=0){return g.empires[id]}
@@ -202,7 +213,7 @@ export function endTurn(g){if(g.gameOver)return failure('This campaign has ended
  return success(`Turn ${g.turn} has begun.`,{income:income(g,0),newEvents:g.logs.filter(x=>x.turn===g.turn)});
 }
 export function validateGame(data){
- if(!data||data.version!==VERSION||!Array.isArray(data.systems)||!Array.isArray(data.empires)||!Array.isArray(data.fleets)||data.systems.length<40||data.systems.length>180||data.empires.length<2||data.empires.length>7)return false;
+ if(!data||data.version!==VERSION||(data.startYear!==undefined&&(!Number.isInteger(data.startYear)||data.startYear<2000||data.startYear>3000))||(data.scenario!==undefined&&!['sol','procedural'].includes(data.scenario))||!Array.isArray(data.systems)||!Array.isArray(data.empires)||!Array.isArray(data.fleets)||data.systems.length<40||data.systems.length>180||data.empires.length<2||data.empires.length>7)return false;
  if(!Number.isInteger(data.turn)||data.turn<1||data.turn>100000||!Number.isInteger(data.rng)||data.systems.some((s,i)=>s.id!==i||!Array.isArray(s.neighbors)||!s.neighbors.every(n=>Number.isInteger(n)&&n>=0&&n<data.systems.length)||!(s.owner===null||Number.isInteger(s.owner)&&s.owner>=0&&s.owner<data.empires.length)))return false;
  return true;
 }
