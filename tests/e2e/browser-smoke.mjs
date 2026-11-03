@@ -58,6 +58,7 @@ try{
  };
  await command('Runtime.enable');
  await command('Page.enable');
+ await command('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
  await ready('document.readyState==="complete"&&!!document.querySelector(".oe-home-menu")','command menu');
  assert.equal(await evaluate('document.querySelectorAll(".game-nav .nav-link").length'),8);
  assert.ok(await evaluate('!!document.querySelector(".command-group-label")'));
@@ -101,6 +102,8 @@ try{
  await evaluate('document.getElementById("solar-focus-planet").click();true');
  await ready('document.body.classList.contains("oe-planet-focus")','mobile focused planet');
  await capture('04-focused-planet-mobile.png');
+ const mobileLayout=await evaluate(`JSON.stringify({viewport:document.documentElement.clientWidth,scroll:document.documentElement.scrollWidth,offenders:[...document.querySelectorAll('*')].filter(el=>{const r=el.getBoundingClientRect();return r.width>0&&r.right>window.innerWidth+4}).slice(0,16).map(el=>({tag:el.tagName,class:el.className?.baseVal||el.className||'',right:Math.round(el.getBoundingClientRect().right),width:Math.round(el.getBoundingClientRect().width)}))})`);
+ console.log('MOBILE_LAYOUT',mobileLayout);
  assert.ok(await evaluate('document.documentElement.scrollWidth<=document.documentElement.clientWidth+3'),'no mobile horizontal overflow');
  assert.equal(messages.length,0,'No uncaught browser exceptions: '+messages.join('; '));
  console.log('Browser smoke OK: galaxy/orbit/focus screenshots, planet selection, growth, upgrades, save/reload, mobile');

@@ -156,3 +156,16 @@ body.oe-planet-focus .solar-instructions{display:none}
  .oe-focused-planet-art{top:29%;width:min(83%,325px)}
  .oe-focus-income{display:none}
 }
+
+/* Prevent top resource indicators from stretching narrow screens horizontally. */
+@media(max-width:600px){
+ .topbar,.resource-bar{max-width:100%;min-width:0;box-sizing:border-box}
+ .resource-bar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));width:100%;overflow:hidden;gap:1px}
+ .resource{min-width:0!important;max-width:100%;padding:4px 2px;gap:0;overflow:hidden}
+ .resource-icon{display:none}
+ .resource-info{min-width:0;max-width:100%}
+ .resource-info small{font-size:8px;letter-spacing:0;white-space:nowrap}
+ .resource-info strong{font-size:13px;letter-spacing:0;white-space:nowrap}
+ .resource-info i{font-size:9px}
+ .header-actions{max-width:100%;min-width:0}
+}
