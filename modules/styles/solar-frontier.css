@@ -1,13 +1,1 @@
-/* Solar Frontier simulation clock — discreet, accessible overlay without changing the existing map. */
-.time-controls{display:flex;align-items:center;gap:4px;flex-wrap:nowrap;min-width:0}
-.time-controls button{border:1px solid #355365;border-radius:4px;background:#112836;color:#b9d4df;font:700 11px/1 var(--head);padding:8px 9px;min-width:28px;white-space:nowrap;letter-spacing:.35px}
-.time-controls button.active,.time-controls button:hover:not(:disabled){border-color:#71d5d5;color:#e8ffff;background:#214c54}
-.time-controls button:disabled{opacity:.4}
-.map-footer{height:auto;min-height:46px}
-.map-footer .footer-intel{font-size:9px}
-.map-footer #footer-coordinates{font-size:9px}
 .form-field small{font:11px/1.5 'DM Sans',sans-serif;color:#90a7b4}
-@media(max-width:1450px){.map-footer .footer-intel,.map-footer>button{display:none}}
-@media(max-width:1100px){.map-footer #footer-coordinates{display:none}}
-@media(max-width:750px){.map-footer{justify-content:center;min-height:48px}.time-controls button{padding:8px 8px}.top-turn{display:block;font-size:10px}}
-@media(max-width:420px){.time-controls{gap:2px}.time-controls button{padding:7px 6px;font-size:10px}}
