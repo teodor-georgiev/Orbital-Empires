@@ -1,0 +1,205 @@
+{
+  "schemaVersion": 1,
+  "project": "Orbital Empires",
+  "created": "2026-11-03",
+  "assets": [
+    {
+      "id": "ships-scout",
+      "category": "ships",
+      "name": "Scout exploration craft",
+      "path": "./ships/scout.svg",
+      "format": "svg",
+      "source": "project-original",
+      "license": "Original game artwork; Orbital Empires project",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "id": "ships-corvette",
+      "category": "ships",
+      "name": "Corvette defense ship",
+      "path": "./ships/corvette.svg",
+      "format": "svg",
+      "source": "project-original",
+      "license": "Original game artwork; Orbital Empires project",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "id": "ships-frigate",
+      "category": "ships",
+      "name": "Frigate command ship",
+      "path": "./ships/frigate.svg",
+      "format": "svg",
+      "source": "project-original",
+      "license": "Original game artwork; Orbital Empires project",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "id": "ships-cruiser",
+      "category": "ships",
+      "name": "Cruiser battle vessel",
+      "path": "./ships/cruiser.svg",
+      "format": "svg",
+      "source": "project-original",
+      "license": "Original game artwork; Orbital Empires project",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "id": "ships-dreadnought",
+      "category": "ships",
+      "name": "Dreadnought capital ship",
+      "path": "./ships/dreadnought.svg",
+      "format": "svg",
+      "source": "project-original",
+      "license": "Original game artwork; Orbital Empires project",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "id": "planets-terran",
+      "category": "planets",
+      "name": "Terran habitable planet",
+      "path": "./planets/terran.svg",
+      "format": "svg",
+      "source": "project-original",
+      "license": "Original game artwork; Orbital Empires project",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "id": "planets-ocean",
+      "category": "planets",
+      "name": "Oceanic deep blue planet",
+      "path": "./planets/ocean.svg",
+      "format": "svg",
+      "source": "project-original",
+      "license": "Original game artwork; Orbital Empires project",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "id": "planets-desert",
+      "category": "planets",
+      "name": "Desert dune planet",
+      "path": "./planets/desert.svg",
+      "format": "svg",
+      "source": "project-original",
+      "license": "Original game artwork; Orbital Empires project",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "id": "planets-ice",
+      "category": "planets",
+      "name": "Ice crystalline planet",
+      "path": "./planets/ice.svg",
+      "format": "svg",
+      "source": "project-original",
+      "license": "Original game artwork; Orbital Empires project",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "id": "planets-volcanic",
+      "category": "planets",
+      "name": "Volcanic molten planet",
+      "path": "./planets/volcanic.svg",
+      "format": "svg",
+      "source": "project-original",
+      "license": "Original game artwork; Orbital Empires project",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "id": "planets-gas-giant",
+      "category": "planets",
+      "name": "Ringed gas giant",
+      "path": "./planets/gas-giant.svg",
+      "format": "svg",
+      "source": "project-original",
+      "license": "Original game artwork; Orbital Empires project",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "id": "stations-outpost",
+      "category": "stations",
+      "name": "Frontier outpost satellite",
+      "path": "./stations/outpost.svg",
+      "format": "svg",
+      "source": "project-original",
+      "license": "Original game artwork; Orbital Empires project",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "id": "stations-shipyard",
+      "category": "stations",
+      "name": "Orbital shipyard station",
+      "path": "./stations/shipyard.svg",
+      "format": "svg",
+      "source": "project-original",
+      "license": "Original game artwork; Orbital Empires project",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "id": "stations-citadel",
+      "category": "stations",
+      "name": "Orbital defense citadel",
+      "path": "./stations/citadel.svg",
+      "format": "svg",
+      "source": "project-original",
+      "license": "Original game artwork; Orbital Empires project",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "id": "emblems-terran",
+      "category": "emblems",
+      "name": "Terran Directorate emblem",
+      "path": "./emblems/terran.svg",
+      "format": "svg",
+      "source": "project-original",
+      "license": "Original game artwork; Orbital Empires project",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "id": "emblems-auralis",
+      "category": "emblems",
+      "name": "Auralis Concord emblem",
+      "path": "./emblems/auralis.svg",
+      "format": "svg",
+      "source": "project-original",
+      "license": "Original game artwork; Orbital Empires project",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "id": "emblems-vex",
+      "category": "emblems",
+      "name": "Vex Dominion emblem",
+      "path": "./emblems/vex.svg",
+      "format": "svg",
+      "source": "project-original",
+      "license": "Original game artwork; Orbital Empires project",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "id": "emblems-solari",
+      "category": "emblems",
+      "name": "Solari Ascendancy emblem",
+      "path": "./emblems/solari.svg",
+      "format": "svg",
+      "source": "project-original",
+      "license": "Original game artwork; Orbital Empires project",
+      "width": 256,
+      "height": 256
+    }
+  ]
+}

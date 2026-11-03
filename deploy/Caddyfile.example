@@ -1,0 +1,6 @@
+# Add this site block to an existing Caddy proxy on the VPS.
+# Replace game.example.com after pointing its DNS A/AAAA records to your server.
+game.example.com {
+    encode zstd gzip
+    reverse_proxy 127.0.0.1:8087
+}
