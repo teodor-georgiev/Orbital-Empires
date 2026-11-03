@@ -1,0 +1,122 @@
+
+/* Orbital Empires visual system: portraits and command navigation
+   Source planetary illustrations: original AI-assisted concept images, 2026-11-03.
+   The 4×2 atlas is local; this stylesheet has no external network dependencies. */
+:root{--oe-gold:#e5b76d;--oe-gold-hi:#ffdb9c;--oe-ice:#97c6db;--oe-glass:#0a1624d9}
+body,.app-shell{background:radial-gradient(ellipse at 35% 7%,#182b41 0%,#070e1c 57%,#050b14 100%)}
+.topbar{background:linear-gradient(110deg,#0a1420,#102033 60%,#0a1421);border-bottom-color:#38506a;box-shadow:0 1px 22px #0009}
+.brand-mark{border-color:#af8953;background:radial-gradient(circle,#233b4d,#0a1425);color:var(--oe-gold-hi);box-shadow:0 0 17px #d0a5601c}
+.brand strong{letter-spacing:2.15px}.brand strong em{color:var(--oe-gold-hi)}
+.brand small{color:#b79b74}
+.ui-icon{width:20px;height:20px;display:block;flex-shrink:0;color:inherit;fill:none}
+.icon-button{display:grid;place-items:center;transition:background .18s,border-color .18s}
+.icon-button:hover{border-color:var(--oe-gold);color:var(--oe-gold-hi);background:#22313d}
+.header-actions{gap:8px}.header-menu{min-width:40px;height:40px}
+.header-menu .ui-icon{width:20px;height:20px}
+.turn-btn{border-color:#c79a58;background:linear-gradient(135deg,#f4d296,#cc9455);color:#192231;box-shadow:inset 0 1px #fff8,0 4px 22px #d79a533c;border-radius:8px;letter-spacing:1.55px}
+.turn-btn:hover{background:linear-gradient(135deg,#ffe2a9,#e6b77c)}
+.resource{border-right-color:#30465a;min-width:105px}
+.resource-icon{width:33px;height:33px;display:grid;place-items:center;color:var(--oe-gold);border-radius:9px;background:linear-gradient(135deg,#233345,#101e2e);border:1px solid #40516a}
+.resource-icon .ui-icon{width:20px;height:20px}
+.resource:nth-child(2) .resource-icon{color:#9bd8f7}.resource:nth-child(3) .resource-icon{color:#c7afff}.resource:nth-child(4) .resource-icon{color:#9bddbe}
+.resource-info small{color:#b6bfc9}
+.sidebar{background:linear-gradient(180deg,#0f1c2d,#0b1625 66%,#08111e);border-right-color:#365068}
+.commander-profile{background:radial-gradient(ellipse at 50% 25%,#1e3543,#0d1b2b 67%);border-bottom-color:#35485e}
+.empire-emblem{height:100px}.empire-emblem img{width:86px;height:86px;object-fit:contain;filter:drop-shadow(0 0 25px #eab66c33)}
+.profile-name{color:#e8ebed}.profile-sub{color:#d3af75}
+.nav-head{color:#a5a2a3}.game-nav{padding:0 10px;gap:6px}
+.nav-link{height:48px;border-radius:8px;border:1px solid transparent;border-left:2px solid transparent;gap:12px;padding:0 11px;font-size:13px;letter-spacing:.12px;transition:background .17s,border-color .17s,transform .17s}
+.nav-link:hover{background:#1b2b3d;border-color:#4a5971;transform:translateX(2px)}
+.nav-link.active{background:linear-gradient(90deg,#342d29dd,#172738 85%);border-color:#a9834d;border-left-color:var(--oe-gold-hi);box-shadow:inset 0 0 16px #daaf6630,0 0 12px #0003}
+.nav-icon{display:grid;place-items:center;width:34px;height:33px;border-radius:8px;background:#1c2c3b;border:1px solid #324757;color:#b7c7d7}
+.nav-icon .ui-icon{width:19px;height:19px}
+.nav-link.active .nav-icon{color:var(--oe-gold-hi);background:#4d3d30;border-color:#b58e58}
+.nav-indicator{width:6px;height:6px}.nav-link.active .nav-indicator{background:var(--oe-gold-hi);box-shadow:0 0 10px #f4d59b}
+.mission-card{background:radial-gradient(ellipse at 8% 12%,#203d46,#101d2d);border-color:#54707f;border-radius:10px}
+.mission-header{color:var(--oe-gold-hi)}.mission-progress{border-radius:4px;overflow:hidden}.mission-progress i{background:linear-gradient(90deg,#8fd4d7,#f4bd78)}
+.sidebar-tools button{background:linear-gradient(#1c2b3b,#111d2b);border-color:#40546a;border-radius:7px;color:#d3d9df;display:flex;align-items:center;justify-content:center;gap:6px}
+.sidebar-tools button .ui-icon{width:16px;height:16px}
+.sidebar-install{color:#d4b27e}
+.map-top h1,.inspector h2{letter-spacing:1px}.eyebrow.cyan,.cyan{color:#e2b97d}
+.map-viewport{border-color:#4d5b6b;border-radius:9px;box-shadow:inset 0 0 65px #0007,0 12px 34px #0007}
+.map-viewport::after{content:"";position:absolute;inset:0;border:1px solid #ffffff07;border-radius:9px;pointer-events:none}
+.map-controls button{border-color:#6e7a87;background:#111e2bd9;color:#d6d9d8;border-radius:6px}
+.map-controls button:hover{color:#ffe6b7;border-color:#e3b578}
+.map-controls .ui-icon{margin:auto;width:16px;height:16px}
+.map-footer>button{color:#cfad79}
+.inspector{background:#0c1828;border-left-color:#3e5267}
+.inspector-head{background:linear-gradient(130deg,#172d40,#0d1a2b);border-color:#445568}
+.inspector-headline span:last-child{color:#e0b276}.section-label{color:#b7b5b5}.section-label:after{background:#3d4d5f}
+.subsection{border-bottom:1px solid #ffffff08;padding-bottom:12px}
+.build-row,.fleet-row,.colony-row,.tech-choice,.diplomacy-row{border-radius:8px!important}
+.orbital-entry{border-radius:10px;border-color:#556375;background:linear-gradient(115deg,#243544,#111e2e)}
+.orbital-entry-icon{color:#f0ca92!important;border-color:#ba8b57;background:radial-gradient(circle,#65503b,#172a37)}
+.orbital-entry-icon .ui-icon{width:25px;height:25px}
+.orbital-action{letter-spacing:.9px}
+.planet-hero{height:208px;border-radius:11px;border-color:#597081;background:radial-gradient(ellipse at 48% 40%,#263c56 0%,#0a1524 78%);box-shadow:inset 0 0 35px #000b}
+.planet-hero .planet-orbit{width:240px;height:106px;border-color:#f0d1a04c}
+.planet-hero .planet-art{width:162px;height:162px;border-radius:0;background-image:url("../../assets/planet-portraits/atlas.webp")!important;background-repeat:no-repeat;background-size:400% 200%;box-shadow:0 0 40px #9fd9ee35!important;filter:drop-shadow(0 0 17px #77b5cf3d)}
+.planet-hero .planet-art:before,.planet-hero .planet-art:after{display:none}
+.planet-hero .planet-symbol{background:#081625dd;border-color:#6f8496;color:#f3cf9a;border-radius:5px}
+.planet-hero .planet-feature{color:#eef1f6;text-shadow:0 1px 7px #000}
+.planet-thumbnail,.menu-planet,.giant-planet{display:inline-block;background-image:url("../../assets/planet-portraits/atlas.webp")!important;background-size:400% 200%;background-repeat:no-repeat;background-color:transparent!important;flex:0 0 auto}
+.planet-terran{background-position:0% 0%!important}
+.planet-oceanic{background-position:33.3333% 0%!important}
+.planet-desert{background-position:66.6667% 0%!important}
+.planet-jungle{background-position:100% 0%!important}
+.planet-arctic{background-position:0% 100%!important}
+.planet-barren{background-position:33.3333% 100%!important}
+.planet-volcanic{background-position:66.6667% 100%!important}
+.planet-gas-giant{background-position:100% 100%!important}
+.planet-thumbnail{width:39px;height:39px;border-radius:50%;filter:drop-shadow(0 0 5px #a1c9e755)}
+.solar-planet-option{display:flex;align-items:center;gap:8px}
+.solar-planet-option .planet-thumbnail{width:33px;height:33px}
+.solar-planet-option.selected .planet-thumbnail{filter:drop-shadow(0 0 9px #f5c783)}
+.solar-planet-panel{background:linear-gradient(140deg,#101f31ee,#090f1bdd);border-color:#6a5c51}
+.solar-planet-option.selected{border-color:#d5ae7e;background:#3d3329bb;color:#f6dbb2}
+.solar-planet-option.selected .planet-label-main small{color:#d4b992}
+.modal-root{backdrop-filter:blur(12px);background:#020814cc}
+.modal{background:linear-gradient(155deg,#172a3c,#0a1625 65%,#101c30);border-color:#677488;box-shadow:0 25px 100px #000e;border-radius:15px}
+.modal:before{height:2px;background:linear-gradient(90deg,transparent,#f0bb77,transparent)}
+.modal h2{font-size:39px;color:#f8f0e6}
+.modal .eyebrow{color:#e4bd84}
+.modal-close{border-radius:8px}
+.modal-actions .action-primary,.menu-action.main{background:linear-gradient(120deg,#f1d29c,#c89554);color:#1a2430;border-color:#f0c48c}
+.modal-actions .action-primary:hover,.menu-action.main:hover{background:#ffdfac}
+.modal:has(.command-menu){max-width:860px;padding:27px 32px 31px;background:linear-gradient(150deg,#15253a,#080f1c 72%)}
+.command-menu{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:21px;align-items:start}
+.command-menu .menu-showcase{grid-column:1/-1;position:relative;height:223px;border:1px solid #4c5c71;border-radius:12px;overflow:hidden;background:radial-gradient(ellipse at 75% 80%,#314965 0%,#102033 38%,#050b15 80%);box-shadow:inset 0 0 50px #000b}
+.menu-showcase:before{content:"";position:absolute;inset:0;opacity:.6;background-image:radial-gradient(#c9dff2 1px,transparent 1.4px),radial-gradient(#e5b875 .75px,transparent 1.2px);background-size:59px 48px,97px 81px;background-position:7px 5px,44px 28px}
+.menu-showcase .menu-planet{position:absolute;width:260px;height:260px;right:11%;top:-20px;filter:drop-shadow(0 0 42px #6aa8c977);animation:slow-planet 16s ease-in-out infinite alternate}
+.menu-showcase .menu-planet.planet-gas-giant{width:100px;height:100px;right:2%;top:15px;opacity:.84;animation-duration:24s}
+.menu-showcase-copy{position:absolute;z-index:1;bottom:27px;left:27px;max-width:47%;text-shadow:0 3px 15px #030914}
+.menu-showcase-copy strong{display:block;color:#fff5e4;font:700 30px/1.1 var(--head);letter-spacing:1px}
+.menu-showcase-copy span{display:block;color:#b9cddd;font:12px/1.5 'DM Sans',sans-serif;margin-top:7px}
+.menu-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-self:start}
+.menu-action{display:flex;align-items:center;gap:10px;padding:13px;text-align:left;border:1px solid #395167;background:linear-gradient(120deg,#1c2a3b,#0e1a2a);color:#e1eaf0;border-radius:9px;min-height:59px;font:700 14px var(--head);letter-spacing:.5px}
+.menu-action .ui-icon{width:23px;height:23px;color:#e6bf81}
+.menu-action small{display:block;color:#94a7b9;font:600 9px/1.4 'DM Sans',sans-serif;letter-spacing:.1px;margin-top:3px}
+.menu-action.main .ui-icon{color:#2b3440}.menu-action:hover{border-color:#d1ad75;background:#27374a}
+.menu-action.main:hover{background:#ffe1ad}
+.menu-overview{display:grid;gap:12px;background:#0e1a29;border:1px solid #405369;border-radius:10px;padding:13px}
+.menu-overview strong{color:#f5d29c;font:700 12px var(--head);letter-spacing:1.2px}
+.menu-overview p{margin:0!important;font-size:11px!important}
+.menu-overview .menu-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.menu-stat{text-align:center;border-radius:6px;background:#1a2a3d;padding:8px 2px}
+.menu-stat b{display:block;color:#f5e8d7;font:700 21px var(--head)}
+.menu-stat span{display:block;color:#92a8b9;font:700 9px var(--head)}
+.menu-worlds{grid-column:1/-1;display:grid;grid-template-columns:repeat(8,1fr);gap:8px;border-top:1px solid #36485b;padding-top:14px}
+.menu-world{display:flex;flex-direction:column;align-items:center;gap:5px;color:#cbdce3;font:700 9px var(--head);letter-spacing:.3px;text-align:center}
+.menu-world .planet-thumbnail{width:62px;height:62px}
+.campaign-preview{margin:15px 0 18px;padding:12px;border:1px solid #4a5d75;background:#0e1d2e;border-radius:10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.campaign-preview p{margin:0!important;font-size:11px!important;max-width:60%}
+.campaign-preview .preview-orbs{display:flex;align-items:center;gap:4px}.campaign-preview .planet-thumbnail{width:45px;height:45px}
+.modal:has(.campaign-preview){max-width:630px}
+@keyframes slow-planet{from{transform:translateY(-2px)}to{transform:translateY(7px)}}
+@media(max-width:1020px){.nav-link{gap:9px}.nav-icon{width:31px}.resource{min-width:84px}.resource-icon{width:28px;height:28px}.resource-icon .ui-icon{width:17px;height:17px}}
+@media(max-width:750px){.modal:has(.command-menu){width:calc(100vw - 24px);padding:21px}.command-menu{grid-template-columns:1fr}.command-menu .menu-showcase{height:180px}.menu-overview{grid-template-columns:1fr 1fr}.menu-worlds{grid-template-columns:repeat(4,1fr);gap:12px}.menu-showcase .menu-planet{right:0;width:210px;height:210px}.menu-showcase-copy{left:17px;bottom:16px;max-width:52%}.menu-showcase-copy strong{font-size:23px}}
+@media(max-width:550px){.command-menu .menu-showcase{height:165px}.menu-showcase-copy strong{font-size:20px}.menu-showcase .menu-planet{width:172px;height:172px;right:-7px;top:7px}.menu-showcase .menu-planet.planet-gas-giant{width:67px;height:67px;right:0;top:0}.menu-actions{grid-template-columns:1fr 1fr}.menu-action{padding:9px;min-height:65px;font-size:12px}.menu-action .ui-icon{width:18px;height:18px}.menu-overview{grid-template-columns:1fr}.menu-world .planet-thumbnail{width:46px;height:46px}.brand small{letter-spacing:1px}.header-menu{width:34px;min-width:34px;height:33px}}
+@media(max-width:1020px) and (min-width:751px){.sidebar .nav-icon{width:36px;height:36px}.sidebar .nav-link{font-size:0}.sidebar .nav-link .ui-icon{width:20px;height:20px}}
+@media(prefers-reduced-motion:reduce){.menu-showcase .menu-planet{animation:none}.nav-link{transition:none}.turn-btn{transition:none}}
+
+.resource:nth-child(5) .resource-icon{color:#f6c78d}

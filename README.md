@@ -85,3 +85,8 @@ The repository includes **18 original vector game sprites** in `assets/original/
 ## Exploring a solar system (v0.2)
 
 Choose a discovered star and click **Enter Solar System** (or click the same star twice). Drag to orbit the 3D camera, scroll to zoom and click/select a planet from the orbital list. Use **Back to Galaxy** or Escape to return. Colony actions remain in the right inspector; additional orbital bodies are illustrative until the individual planet economy milestone. See [the implementation plan](docs/plans/2026-11-03-solar-system-3d.md).
+## Illustrated planet portraits and command menu
+
+Eight detailed original AI-assisted planet illustrations are stored locally in `assets/planet-portraits/atlas.webp` (4 columns by 2 rows, 384-pixel tiles). They are **illustrations**, not photographs of real exoplanets, NASA photography, or Stellaris models. Jungle and Barren are color-graded from original Terran and Desert artwork. They are displayed in the planet inspector, solar-system HUD, main menu and new-campaign preview; the existing WebGL orbital geometry remains intact.
+
+The custom sprite set `assets/ui/interface-icons.svg` has 28 original vector interface icons for navigation, resources and game commands. `modules/styles/cinematic-ui.css` provides the command-theme refresh without touching game rules. The main menu appears on load and is accessible again from the header. All images, icons and styles are self-hosted and offline cached.
