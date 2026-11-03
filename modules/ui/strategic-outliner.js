@@ -1,4 +1,5 @@
-import { TECHS, TRADITIONS, ownedSystems, income, fleetPower, canAdoptTradition, traditionCost, unityIncome } from '../../core.js';
+import { TECHS, ownedSystems, income, fleetPower } from '../../core.js';
+import { TRADITIONS, canAdoptTradition, traditionCost, unityIncome } from '../strategy/civics.js';
 
 // Compact 4X command outliner: only real state and existing game actions.
 // No hidden AI automation, no imaginary build queues, no direct game mutations.
