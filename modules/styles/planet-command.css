@@ -1,0 +1,95 @@
+/* Orbital Empires command UI: one route from galaxy to system to selected planet.
+ * Artwork is the local original portrait atlas. No third-party interface assets.
+ */
+:root{--command-edge:#405a6d;--command-gold:#e4bd85;--command-soft:#a9c7d4}
+.game-nav{display:flex;flex-direction:column;gap:1px;padding:7px 10px 12px}
+.command-group-label{padding:15px 11px 6px;font:700 10px/1 var(--head);color:#c19b69;letter-spacing:1.65px;opacity:.9}
+.command-group-label:first-child{padding-top:6px}
+.sidebar .nav-head{margin-bottom:0}
+.sidebar .nav-link{border-radius:6px;min-height:43px;height:43px;padding:5px 9px;font-size:13px;letter-spacing:.1px;transition:background .15s,border-color .15s}
+.sidebar .nav-link.active{background:linear-gradient(90deg,#1c3d4b,#112333 88%);box-shadow:inset 3px 0 #e4bb7d;border-left-color:transparent}
+.sidebar .nav-icon{width:31px;height:31px;min-width:31px;display:grid;place-items:center}
+.sidebar .nav-link .ui-icon{width:18px;height:18px}
+.sidebar .commander-profile{padding-top:9px;padding-bottom:10px}
+.sidebar .empire-emblem img{max-height:57px;width:auto;object-fit:contain}
+.sidebar .nav-link:hover{background:#1c3443}
+.map-top{padding-top:8px;padding-bottom:11px}
+.map-top h1{font-size:clamp(24px,2.2vw,34px);letter-spacing:.2px}
+.map-mode{font-size:9px;letter-spacing:.9px}
+.solar-planet-panel{width:190px;right:12px;top:77px;background:#071522e8;border-color:#456478}
+.solar-planet-option{min-height:51px;border-radius:8px}
+.solar-planet-option.selected{box-shadow:inset 3px 0 #e5b777}
+.solar-planet-option .planet-label-main{white-space:normal;min-width:0}
+.solar-planet-option .planet-label-main small{line-height:1.35}
+.solar-detail-panel{max-width:285px;width:36%;min-width:160px;padding:11px 13px}
+.solar-detail-panel strong{font-size:19px}
+.solar-detail-panel small{display:none}
+.inspector{background:#0a1724}
+.inspector-head{border-bottom:1px solid #34485b;padding:20px 19px 17px;background:linear-gradient(145deg,#163445,#0c1b2d 78%)}
+.inspector-headline{font-size:10px;letter-spacing:1.1px}
+.inspector-head h2{font-size:28px;line-height:1.05;overflow-wrap:anywhere}
+.inspector-desc{font-size:12px;line-height:1.45}
+.inspector-body.oe-planet-inspector{gap:16px;padding:14px 14px 28px}
+.oe-planet-inspector .subsection{margin:0;padding:0 0 13px;border-bottom:1px solid #2a4353}
+.oe-planet-inspector .section-label{margin-bottom:9px;color:#e4ba80;font-size:10px;letter-spacing:1.1px}
+.oe-planet-portrait{position:relative;width:100%;min-height:170px;margin-bottom:10px;border-radius:12px;overflow:hidden;background-image:url("../../assets/planet-portraits/atlas.webp");background-size:400% 200%;background-repeat:no-repeat;box-shadow:inset 0 -20px 34px #07111a88,0 9px 28px #0007;border:1px solid #557284}
+.oe-planet-portrait::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,#071421b5)}
+.oe-portrait-label{position:absolute;left:10px;bottom:10px;z-index:1;font:700 10px var(--head);letter-spacing:1.2px;color:#ffdfad;padding:5px 8px;border:1px solid #bd975d88;border-radius:4px;background:#0b1d2acc}
+.oe-planet-facts,.oe-yield-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.oe-planet-facts .stat-cell,.oe-yield-grid .stat-cell{padding:10px 11px;min-width:0;border:1px solid #344e5e;background:#0e2635;border-radius:7px}
+.oe-planet-facts .stat-cell strong,.oe-yield-grid .stat-cell strong{font-size:17px;overflow-wrap:anywhere}
+.oe-population-card{background:linear-gradient(155deg,#153345,#0b2231);border:1px solid #3e6d77;border-radius:10px;padding:14px}
+.oe-population-head,.oe-population-foot{display:flex;align-items:center;justify-content:space-between;gap:9px}
+.oe-population-head>span{font:700 10px var(--head);letter-spacing:1.3px;color:#aed0d8}
+.oe-population-head>b{font:700 23px var(--head);color:#fff0d7}
+.oe-population-head small{font-size:12px;color:#9cbfcb}
+.oe-capacity-meter{height:9px;border-radius:20px;margin:10px 0;overflow:hidden;background:#071724;border:1px solid #3d6375}
+.oe-capacity-meter>span{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,#4bbebd,#ebd088);transition:width .22s}
+.oe-population-foot{font-size:10px;color:#accbd1}
+.oe-population-foot span:first-child{color:#91e4be;font-weight:700}
+.oe-population-card p{margin:9px 0 0;color:#8eb0be;font-size:11px;line-height:1.45}
+.oe-build-card{display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:9px;padding:10px 8px;border:1px solid #315062;border-radius:8px;background:#0e2433;margin:6px 0}
+.oe-build-icon{font-size:21px;color:#e1bb83;text-align:center}
+.oe-build-card strong{display:block;font:700 13px var(--head);color:#e4f2f6}
+.oe-build-card small{display:block;font:10px/1.5 'DM Sans',sans-serif;color:#99b7c7}
+.oe-build-card button{font:700 10px var(--head);letter-spacing:.4px;color:#11212b;background:#ebc48b;padding:9px 8px;border-radius:5px;border:0;min-width:60px}
+.oe-build-card button:disabled{background:#344c59;color:#8198a3;opacity:.75}
+.oe-section-hint,.oe-note{font-size:11px;line-height:1.45;color:#a2bdc8}
+.oe-info-box{padding:13px;border-radius:8px;border:1px solid #3a566a;background:#142b3a;line-height:1.55;font-size:12px;color:#d4e4ec}
+.oe-info-box strong{display:block;margin-bottom:6px;color:#fff0ce;font-size:13px}
+.oe-info-box p{margin:0}
+.row-arrow{min-width:84px;white-space:nowrap}
+
+/* Welcome menu rebuilt as one big decision + grouped secondary actions. */
+.modal:has(.oe-home-menu){width:min(900px,calc(100vw - 24px));max-width:900px;padding:25px 27px;max-height:min(90dvh,850px);overflow:auto}
+.modal:has(.oe-home-menu) h2{font-size:27px;margin-bottom:13px}
+.oe-home-menu{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,1fr);gap:18px}
+.oe-home-feature{position:relative;min-height:460px;border:1px solid #667c82;border-radius:13px;background:radial-gradient(circle at 68% 27%,#355e70,#15283b 36%,#071424 79%);padding:23px;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden;isolation:isolate}
+.oe-home-feature::before{content:"";position:absolute;inset:0;opacity:.38;z-index:-1;background-image:radial-gradient(#c0e6e4 1px,transparent 2px);background-size:47px 51px}
+.oe-home-planet{position:absolute;right:12px;top:14px;width:min(76%,310px);aspect-ratio:1;background-image:url("../../assets/planet-portraits/atlas.webp");background-repeat:no-repeat;background-size:400% 200%;filter:drop-shadow(0 0 30px #6dcad566);z-index:-1}
+.oe-home-kicker{position:absolute;top:20px;left:20px;right:12px;font:700 10px var(--head);letter-spacing:1.5px;color:#ecc58d}
+.oe-home-feature h3{color:#fff3dd;margin:0 0 9px;font:750 clamp(27px,3vw,40px)/1 var(--head);text-shadow:0 3px 9px #000a}
+.oe-home-feature p{font:12px/1.6 'DM Sans',sans-serif;color:#c1d6df;margin:0 0 18px;max-width:330px}
+.oe-home-continue{display:flex;gap:12px;align-items:center;justify-content:center;width:100%;min-height:50px;background:linear-gradient(120deg,#f6d59f,#d5a466);border:1px solid #f6dfac;border-radius:7px;color:#1b2430;font:800 14px var(--head);letter-spacing:1.1px}
+.oe-home-continue:hover{background:#fff0bd}
+.oe-home-continue .ui-icon{width:20px;height:20px}
+.oe-home-continue span:last-child{margin-left:auto;font-size:22px}
+.oe-home-sidebar{min-width:0;display:flex;flex-direction:column;gap:8px}
+.oe-home-save{padding:15px;background:linear-gradient(135deg,#1c3747,#0e202e);border:1px solid #3d6071;border-radius:9px}
+.oe-home-save>strong{display:block;color:#fff2de;margin:7px 0 12px;font:700 19px var(--head)}
+.oe-home-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.oe-home-stats span{display:flex;flex-direction:column;font-size:10px;gap:2px;color:#9db7c4}
+.oe-home-stats b{color:#f1d6a9;font:750 24px var(--head)}
+.oe-home-heading{font:700 10px var(--head);letter-spacing:1.5px;color:#d7ae77;margin:8px 0 1px}
+.oe-home-menu .menu-action{display:flex;width:100%;align-items:center;gap:11px;min-height:63px;text-align:left;background:#122a39;border:1px solid #36576b;border-radius:8px;padding:11px;color:#e2eff4}
+.oe-home-menu .menu-action.main{background:#1d4050;border-color:#b18b58;color:#fff3dc}
+.oe-home-menu .menu-action:hover{border-color:#e0bb85;background:#224558}
+.oe-home-menu .menu-action .menu-action-icon{flex:0 0 auto}
+.oe-home-menu .menu-action small{display:block;color:#9ebdcb;font-size:10px;margin-top:3px}
+.oe-home-shortcuts{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.oe-home-shortcuts .menu-action{min-height:72px;padding:10px;gap:8px;font-size:12px}
+.oe-home-shortcuts .menu-action .ui-icon{width:17px;height:17px}
+@media(max-width:1050px){.sidebar .commander-profile{display:none}.sidebar .nav-head{padding-top:12px}.game-nav{padding:4px 7px}}
+@media(max-width:750px){.game-nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:7px}.game-nav .command-group-label{display:none}.sidebar .nav-link{min-height:58px;height:auto;flex-direction:column;justify-content:center;font-size:10px;gap:3px;padding:5px 2px;text-align:center}.sidebar .nav-icon{width:25px;min-width:25px;height:25px}.sidebar .nav-link.active{box-shadow:inset 0 -3px #e4bb7d}.oe-planet-portrait{min-height:140px}.modal:has(.oe-home-menu){padding:14px 13px}.oe-home-menu{grid-template-columns:1fr}.oe-home-feature{min-height:275px}.oe-home-feature h3{max-width:75%}.oe-home-planet{width:220px;right:-20px;top:-30px}.oe-home-sidebar{gap:7px}.oe-home-shortcuts{grid-template-columns:1fr 1fr}}
+@media(max-width:500px){.solar-planet-panel{width:142px;right:6px}.solar-detail-panel{display:none}.map-mode{display:none}.oe-home-feature{min-height:245px}.oe-home-feature h3{font-size:26px}.oe-home-planet{width:174px;top:-5px}.oe-build-card{grid-template-columns:30px minmax(0,1fr)}.oe-build-card button{grid-column:2;justify-self:start}.oe-home-shortcuts{gap:5px}.oe-home-menu .menu-action{padding:8px}}
+@media(prefers-reduced-motion:reduce){.oe-capacity-meter>span,.sidebar .nav-link{transition:none}}
