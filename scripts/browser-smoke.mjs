@@ -44,7 +44,7 @@ async function run() {
   const page = await context.newPage();
   watch(page);
   await page.goto(origin, { waitUntil: 'networkidle', timeout: 30000 });
-  await page.locator('#modal-root [data-action="close-modal"]').click();
+  await page.locator('#modal-root .modal-close').click();
   await visible(page, '#galaxy-canvas');
   assert.match(await page.locator('#top-turn').innerText(), /CYCLE 01/);
   await capture(page, 'galaxy-desktop.png');
@@ -90,9 +90,9 @@ async function run() {
 
   await page.locator('[data-action="end-turn"]').click();
   assert.match(await page.locator('#top-turn').innerText(), /CYCLE 02/);
-  await page.locator('#modal-root [data-action="close-modal"]').click();
+  await page.locator('#modal-root .modal-close').click();
   await page.reload({ waitUntil: 'networkidle' });
-  await page.locator('#modal-root [data-action="close-modal"]').click();
+  await page.locator('#modal-root .modal-close').click();
   assert.match(await page.locator('#top-turn').innerText(), /CYCLE 02/, 'reload must retain saved turn');
 
   // Narrow viewport: navigation and full resource bar remain available.
