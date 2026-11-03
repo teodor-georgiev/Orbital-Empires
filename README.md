@@ -13,6 +13,13 @@ python3 -m http.server 4173
 
 Open http://localhost:4173/. The game is not meant to be opened as a `file://` page: service workers require an HTTP/HTTPS origin. Browsers generally permit installation from HTTPS or localhost only.
 
+## Planetary and culture expansion (feature branch)
+
+- Toggle between galactic map and orbital solar-system view with procedurally generated clickable planets and biome-specific shaded spheres. Planet attributes derive from the star-system seed; colonization is still system-level in this milestone.
+- Grouped technology tree with prerequisites, four additional discoveries, and actual simulation bonuses.
+- Unity production, nine tradition unlocks, and three mutually exclusive social-policy slots with two choices each. Costs and permanent bonuses affect gameplay and persist in local saves; older v1 saves are accepted with defaults.
+- Display settings: Performance (1080p cap), Balanced (1440p cap), 4K Ultra (up to 3840×2160 backing pixels), three UI themes, and reduced motion. 4K does not modify OS display resolution.
+
 ## Gameplay included in v0.1
 
 - Seeded galaxy generation, navigable hyperlanes, fog of war, interactive pan/zoom map
