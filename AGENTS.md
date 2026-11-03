@@ -12,14 +12,6 @@ All ChatGPT, Claude, Codex and other coding sessions use **this GitHub repositor
 7. State actual code/QA/deployment status; never describe planned features as playable.
 8. Never bypass tests, permissions, secret handling, licensing or UI preview gates. Merge/deploy only via approved workflow.
 
-## Current provider routing and quota guard
-
-Keep four approved coding provider profiles available: **Claude Code CLI**, **Codex/OpenAI CLI**, **OpenCode CLI**, and **ChatGPT Web**. **Current active implementation provider: ChatGPT Web only.** Do not dispatch Claude, Codex CLI or OpenCode tasks, sign into their accounts, incur provider API usage, or automatically substitute models while quota is unavailable. Retain the separate development-lane and Git-worktree design for future opt-in activation. GitHub repository tools and normal GitHub CI remain allowed for ChatGPT Web coding. Record actual execution evidence; a configured lane is not a running agent.
-
-## Mandatory record of every implemented change
-
-Every feature and fix PR must document the actual code change, not only proposed ideas. Before requesting integration, add or update a dated record under `docs/changes/YYYY-MM-DD-feature.md` that states player-visible behavior, affected systems/files, exact tests and their verified results, save/version implications, conflicts with parallel lanes, and outstanding limitations. Update the `[Unreleased]` section of `CHANGELOG.md` for player-visible behavior; include issue/PR and final SHA in the PR description. Canonical specs and ADRs are edited only by the designated coordinator after review. No undocumented feature is considered complete, and no chat may claim an unmerged feature is live. Small repairs may use a concise change record.
-
 ## Mandatory picture-first UI design gate
 
 For every **new gameplay screen, major menu redesign, HUD/layout overhaul, planet/galaxy scene redesign or significant visual asset change**, all coding agents must follow this order:

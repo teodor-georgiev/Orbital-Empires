@@ -11,10 +11,9 @@ test('Solar Frontier: Earth, nearby stars, eight planets and starting-year rollo
   await page.locator('#new-start-year').fill('2250');
   await page.locator('#new-size').selectOption('60');
   await page.locator('[data-action="start"]').click();
-  await page.locator('[data-action="clock-toggle"]').click(); // Freeze the live simulation for deterministic assertions.
   await expect(page.locator('#modal-root')).toBeHidden();
   await expect(page.locator('.profile-name')).toHaveText('UNITED EARTH DIRECTORATE');
-  await expect(page.locator('#top-turn')).toHaveText('STARDATE 2250.01');
+  await expect(page.locator('#top-turn')).toHaveText('YEAR 2250.01');
   await expect(page.locator('#inspector')).toContainText('Sol');
 
   const game = await page.evaluate(() => JSON.parse(localStorage.getItem('orbital-empires-save-v1')));
@@ -37,8 +36,9 @@ test('Solar Frontier: Earth, nearby stars, eight planets and starting-year rollo
   await page.locator('#solar-stage [data-action="close-solar"]').first().click();
   await expect(page.locator('#solar-stage')).toBeHidden();
 
-  await page.locator('[data-action="step-month"]').click();
-  await expect(page.locator('#top-turn')).toHaveText('STARDATE 2250.02');
+  await page.locator('[data-action="end-turn"]').click();
+  await expect(page.locator('#top-turn')).toHaveText('YEAR 2250.02');
+  await page.locator('#modal-root .modal-close').click();
   await expect(page.locator('#modal-root')).toBeHidden();
   expect(errors).toEqual([]);
 });
@@ -52,9 +52,8 @@ test('Procedural non-Human faction selection and legacy save migration defaults'
   await page.locator('#new-faction').selectOption('auralian');
   await page.locator('#new-start-year').fill('2310');
   await page.locator('[data-action="start"]').click();
-  await page.locator('[data-action="clock-toggle"]').click();
   await expect(page.locator('.profile-name')).toHaveText('AURALIS CONCORD');
-  await expect(page.locator('#top-turn')).toHaveText('STARDATE 2310.01');
+  await expect(page.locator('#top-turn')).toHaveText('YEAR 2310.01');
   let data = await page.evaluate(() => JSON.parse(localStorage.getItem('orbital-empires-save-v1')));
   expect(data.empires[0].species).toBe('Auralian');
   expect(data.scenario).toBe('procedural');
@@ -67,7 +66,7 @@ test('Procedural non-Human faction selection and legacy save migration defaults'
   });
   await page.reload();
   await expect(page.locator('#modal-root')).toBeVisible();
-  await expect(page.locator('#top-turn')).toHaveText('STARDATE 2201.01');
+  await expect(page.locator('#top-turn')).toHaveText('YEAR 2201.01');
   expect(errors).toEqual([]);
 });
 
@@ -81,21 +80,7 @@ test('WebGL-disabled browser still shows a usable Solar System planet list', asy
   });
   await page.goto('/');
   await page.locator('#modal-root .modal-close').click();
-  await page.locator('[data-action="clock-toggle"]').click();
   await page.locator('[data-action="open-solar"]').first().click();
   await expect(page.locator('#solar-renderer')).toHaveText('2D COMPATIBILITY MODE');
   await expect(page.locator('#solar-planet-list .solar-planet-option')).toHaveCount(8);
-});
-
-test('real-time clock advances the game by month and pauses without catch-up',async ({page})=>{
- await page.goto('/');
- await page.locator('.oe-home-continue').click();
- await page.locator('[data-action="clock-speed"][data-speed="rapid"]').click();
- await expect(page.locator('#top-turn')).not.toHaveText('STARDATE 2200.01',{timeout:7000});
- await page.locator('[data-action="clock-toggle"]').click();
- const stopped=await page.locator('#top-turn').textContent();
- await page.waitForTimeout(650);
- await expect(page.locator('#top-turn')).toHaveText(stopped);
- await page.locator('[data-action="step-month"]').click();
- await expect(page.locator('#top-turn')).not.toHaveText(stopped);
 });

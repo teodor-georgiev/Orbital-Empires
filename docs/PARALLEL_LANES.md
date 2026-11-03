@@ -2,10 +2,6 @@
 
 > Updated 2026-11-03; extended from the existing four-lane playbook. **Eight lanes are proposed workstreams, not eight currently running agents.**
 
-## Provider allocation (quota-safe execution mode)
-
-Four provider profiles remain reserved: **ChatGPT Web**, **Claude Code CLI**, **Codex/OpenAI CLI**, and **OpenCode CLI**. This wave uses **ChatGPT Web exclusively** to make GitHub changes and review CI; other providers are intentionally inactive to avoid quota or API costs. Do not infer that the eight functional workstreams below are eight paid or running agents. Each independently activated lane requires its own isolated feature branch/worktree, file ownership, documented task, tests and PR. Restart external CLI lanes only after explicit quota availability and a verified runner/account test. Do not auto-substitute a different paid model.
-
 ## Shared source of truth
 
 - GitHub repository: `teodor-georgiev/Orbital-Empires`

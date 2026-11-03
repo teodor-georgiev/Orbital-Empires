@@ -2,13 +2,6 @@
 
 All published game builds use [Semantic Versioning](https://semver.org/). Version tags are created **only after** a reviewed integration and stable release, never on work-in-progress commits.
 
-## [Unreleased] — Monthly simulation and fleet routing (feature candidate)
-
-- Replaces the player-facing End Turn button with Play/Pause, 1×/3×/8× and single-month stepping. Default campaign starts in January 2200, and the fixed-step game advances autonomously when the page is active.
-- Economy, research, rival AI, politics and population advance each month; no offline catch-up. A compatibility `endTurn` alias remains for existing tests and integrations.
-- Player fleet movement gains queued multi-hop legal hyperlane routes, one-hop-per-month transit, ETA, hold orders and blocked-route handling. Legacy direct movement remains an API for backwards compatibility.
-- Adds deterministic clock/routing tests and a mandatory per-feature documentation gate. No save-schema bump; fleet route is an optional field.
-
 ## [0.3.1] — 2026-11-03 · Seeded biome planets
 
 - **Orbital environment:** deterministic starfield in WebGL and Canvas 2D fallback, visible asteroid fields, orbital comets, anomalies, rare black-hole systems and hostile void leviathans (fictional beyond Sol).

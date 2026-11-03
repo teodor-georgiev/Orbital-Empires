@@ -1,12 +1,6 @@
 # Orbital Empires
 
-An original **real-time-with-pause 4X strategy game** for the browser, designed for self-hosting and offline-capable installation (PWA).
-
-## Autonomous monthly simulation (development candidate)
-
-The galaxy begins in **January 2200** in the default Sol campaign, then advances through **every calendar month automatically** while the game is visible and the menu is closed. The header provides Pause/Play, 1×/3×/8× speeds and +1 month while paused. Economy, population, politics, rival decisions and technology resolve every month from the same fixed-step game logic; rendering is independent of simulation speed. Closing or hiding the tab suspends time without catching up elapsed real-world time.
-
-Select a fleet and a known destination to assign a shortest legal hyperlane route. Fleets move one hop per simulated month, show remaining ETA, and can receive Hold Position orders. Illegal or newly blocked routes stop automatically. No multiplayer or physics-scale continuous movement is claimed. This is an integration candidate on a feature PR, **not** proof that the public build is updated.
+An original **turn-based 4X strategy game** for the browser, designed for self-hosting and offline-capable installation (PWA).
 
 ## Play locally
 
