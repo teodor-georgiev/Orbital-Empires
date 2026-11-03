@@ -22,6 +22,7 @@ jobs:
           node --check sw.js
           node --check solar-view.js
           node --check system-model.js
+          node --check tests/e2e/browser-smoke.mjs
       - name: Run simulation tests
         run: npm test
       - name: Validate standalone PWA assets
