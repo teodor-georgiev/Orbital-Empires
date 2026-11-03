@@ -19,8 +19,32 @@ function makeRng(seed) {
   };
 }
 
+function solarSystemBodies(seed,system){
+ const next=makeRng(String(seed)+':sol:planets');
+ const entries=[
+  ['Mercury','Barren','#aaa59c',0.39,0.17,0],
+  ['Venus','Volcanic','#e2b486',0.72,0.30,0],
+  ['Earth','Terran','#5ebad5',1.00,0.34,1],
+  ['Mars','Desert','#ce8d65',1.52,0.24,2],
+  ['Jupiter','Gas Giant','#d3ab88',5.20,0.59,4],
+  ['Saturn','Gas Giant','#e7d5a7',9.58,0.49,4],
+  ['Uranus','Gas Giant','#9bd7de',19.2,0.39,2],
+  ['Neptune','Gas Giant','#729ece',30.1,0.39,2]
+ ];
+ const planets=entries.map(([name,biome,color,orbitalDistanceAu,radius,moonCount],id)=>({
+  id,name,biome,color,radius,
+  orbitRadius:Number((2.4+id*1.65).toFixed(2)),
+  orbitalDistanceAu,
+  phase:next()*Math.PI*2,inclination:(next()-.5)*.08,
+  habitability:name==='Earth'?3:0,isColonyWorld:name==='Earth',
+  moons:Array.from({length:moonCount},(_,m)=>({radius:.045+next()*.025,orbitRadius:radius+.20+m*.1,phase:next()*Math.PI*2}))
+ }));
+ return {star:{name:'Sun',color:'#ffe8ad',radius:.92},planets,belt:{orbitRadius:(planets[3].orbitRadius+planets[4].orbitRadius)/2},historical:true};
+}
+
 export function generateSystemBodies(seed, system) {
   if (!system || !Number.isInteger(system.id) || system.id < 0) throw new TypeError('A valid star system is required');
+  if(system.realStarId==='sol')return solarSystemBodies(seed,system);
   const next = makeRng(`${String(seed)}:system:${system.id}`);
   const count = 4 + Math.floor(next() * 4);
   const star = { name: system.star || 'Unknown star', color: /^#[0-9a-f]{6}$/i.test(system.color || '') ? system.color : '#ffe1b3', radius: 0.92 };
