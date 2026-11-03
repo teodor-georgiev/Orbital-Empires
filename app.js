@@ -72,7 +72,7 @@ function renderSolarHud(){
   $('#solar-system-name').textContent=system.name.toUpperCase()+' SYSTEM';
   $('#solar-renderer').textContent=solar.is3D()?'WEBGL 3D':'2D COMPATIBILITY MODE';
   $('#solar-planet-list').innerHTML=solarBodies.planets.map(p=>`<button class="solar-planet-option ${p.id===planet.id?'selected':''}" data-action="solar-planet" data-id="${p.id}" aria-pressed="${p.id===planet.id}"><span class="planet-thumbnail planet-${artworkBiome(p.biome)}" aria-hidden="true"></span><span class="planet-label-main">${escapeHTML(p.name)}<small>${escapeHTML(p.biome)}${p.isColonyWorld?' · CORE WORLD':''}</small></span><span>↗</span></button>`).join('');
-  $('#solar-planet-detail').innerHTML=`<span class="eyebrow cyan">${planet.isColonyWorld?'PRIMARY COLONY WORLD':'UNSURVEYED ORBITAL BODY'}</span><strong>${escapeHTML(planet.name)}</strong><span>${escapeHTML(planet.biome)} · Orbit ${(planet.orbitalDistanceAu??planet.orbitRadius).toFixed(2)} AU · ${planet.moons.length} moon${planet.moons.length===1?'':'s'}</span><small>${planet.isColonyWorld?`Habitable class ${planet.habitability}/3 · ${escapeHTML(system.feature)} · Use the right panel for colony actions.`:'Survey-only planet in v0.2. Future updates will add individual colonies and orbital infrastructure.'}</small>`;
+  $('#solar-planet-detail').innerHTML=`<span class="eyebrow cyan">${planet.isColonyWorld?'PRIMARY COLONY WORLD':solarBodies.historical?'KNOWN SOLAR SYSTEM PLANET':'UNSURVEYED ORBITAL BODY'}</span><strong>${escapeHTML(planet.name)}</strong><span>${escapeHTML(planet.biome)} · Orbit ${(planet.orbitalDistanceAu??planet.orbitRadius).toFixed(2)} AU · ${planet.moons.length} moon${planet.moons.length===1?'':'s'}</span><small>${planet.isColonyWorld?`Habitable class ${planet.habitability}/3 · ${escapeHTML(system.feature)} · Use the right panel for colony actions.`:solarBodies.historical?'Known Solar System planet. Visual size and spacing are not to scale. Earth is the only initial colony.':'Survey-only fictional planet. Future updates will add individual colonies and orbital infrastructure.'}</small>`;
 }
 
 function render(){
@@ -84,6 +84,7 @@ function render(){
   $('#top-turn').textContent=`YEAR ${getStardate(game)}`;
   $('.profile-name').textContent=player.name.toUpperCase();
   $('.profile-sub').textContent=player.motto.toUpperCase();
+  const emblem=$('.empire-emblem img');if(emblem){const art={Human:'terran',Auralian:'auralis',Vexari:'vex',Solari:'solari'};emblem.src='./assets/original/emblems/'+(art[player.species]||'../../icon')+'.svg';if(!art[player.species])emblem.src='./assets/icon.svg';emblem.alt=player.name+' emblem';}
   $('#time-controls').innerHTML=`<button data-action="clock-pause" aria-label="Pause simulation" ${clockState.speed===0?'disabled':''}>Ⅱ</button><button data-action="clock-play" aria-label="Resume simulation" ${clockState.speed>0?'disabled':''}>▶</button>${[1,2,5,10].map(speed=>`<button class="${clockState.speed===speed?'active':''}" data-action="clock-speed" data-id="${speed}" aria-label="Simulation speed ${speed} times" aria-pressed="${clockState.speed===speed}">${speed}×</button>`).join('')}<button data-action="clock-step" aria-label="Advance one month">+1 mo</button>`;
   $('#build-version').textContent=`BUILD v${APP_VERSION} · SINGLE PLAYER`;
   $('#map-summary').textContent=solarOpen?`${game.systems[selectedId].star} · ${solarBodies.planets.length} catalogued planets · ${solarBodies.planets.filter(p=>p.moons.length).length} moon systems`:`${systems.length} star systems · ${game.empires.filter(e=>!e.eliminated).length} civilizations · ${territory.length} controlled`;
@@ -110,8 +111,8 @@ function btn(action,label,cls='action-primary',attrs=''){return `<button class="
 function renderInspector(){switch(activePage){case 'colonies':return renderColonies();case 'research':return renderResearch();case 'military':return renderMilitary();case 'diplomacy':return renderDiplomacy();case 'intel':return renderIntel();case 'traditions':return renderTraditions();case 'policies':return renderPolicies();default:return renderSystem();}}
 function renderSystem(){const s=game.systems[selectedId],seen=hasSeen(game,s.id),visible=getVisibility(game).has(s.id);
  if(!seen)return header('LONG-RANGE SENSORS','Uncharted Sector','This star system is beyond current sensor range. Move a fleet or establish nearby colonies to reveal it.','NO SIGNAL')+`<div class="inspector-body">${section('EXPLORATION STATUS','<div class="empty-message"><div class="empty-icon">◌</div>Unknown star system. Explore with a fleet.</div>')}</div>`;
- const y=systemYield(game,s),owner=s.owner===0?'DIRECTORATE CONTROL':s.owner===null?'UNCLAIMED':game.empires[s.owner].short.toUpperCase();
- let html=header('STAR SYSTEM / '+String(s.id+1).padStart(3,'0'),escapeHTML(s.name),`${s.star} · ${s.biome} world · ${escapeHTML(s.feature)}`,owner);
+ const y=systemYield(game,s),owner=s.owner===0?'YOUR EMPIRE':s.owner===null?'UNCLAIMED':game.empires[s.owner].short.toUpperCase();
+ let html=header('STAR SYSTEM / '+String(s.id+1).padStart(3,'0'),escapeHTML(s.name),s.realStarId?`${escapeHTML(s.star)} · ${s.distanceLy===0?'Home system':`≈ ${s.distanceLy.toFixed(2)} light-years from Sol`} · Planetary resources fictional`: `${escapeHTML(s.star)} · ${escapeHTML(s.biome)} world · ${escapeHTML(s.feature)}`,owner);
  html+='<div class="inspector-body">';
  html+=section('ORBITAL OBSERVATORY',`<div class="orbital-entry"><span class="orbital-entry-icon">${gameIcon('orbit')}</span><div><strong>Explore the star system</strong><small>Visit planets, moons and orbital lanes in interactive ${solar.is3D()?'3D':'2D'}.</small></div></div>${btn(solarOpen?'close-solar':'open-solar',solarOpen?'← RETURN TO GALAXY':'✦ ENTER SOLAR SYSTEM','action-primary orbital-action')}`);
  html+=section('PLANETARY OVERVIEW',`<div class="planet-hero ${s.biome.toLowerCase().replaceAll(' ','-')}"><div class="planet-orbit"></div><div class="planet-art planet-${artworkBiome(s.biome)}" role="img" aria-label="${escapeHTML(s.biome)} planet artwork"></div><span class="planet-symbol">${escapeHTML(s.biome.toUpperCase())} PLANET</span><span class="planet-feature">${escapeHTML(s.feature.toUpperCase())}</span></div>`);
@@ -217,7 +218,7 @@ function openModal(type){if(clockState.speed>0){clockState=setClockSpeed(clockSt
    menuAction('save','Save progress','Save on this device','save')+
    menuAction('install','Install game','Play offline anywhere','install')+
    '</div>'+
-   '<div class="menu-overview"><strong>THE DIRECTORATE // CURRENT CAMPAIGN</strong><p>One commander. An entire galaxy to discover. All progress is saved locally in your browser.</p><div class="menu-stats">'+
+   '<div class="menu-overview"><strong>'+escapeHTML(game.empires[0].name.toUpperCase())+' // CURRENT CAMPAIGN</strong><p>One commander. An entire galaxy to discover. All progress is saved locally in your browser.</p><div class="menu-stats">'+
    '<div class="menu-stat"><b>'+String(game.turn)+'</b><span>CYCLE</span></div>'+
    '<div class="menu-stat"><b>'+String(ownedSystems(game).length)+'</b><span>COLONIES</span></div>'+
    '<div class="menu-stat"><b>'+String(game.systems.length)+'</b><span>STARS</span></div></div></div>'+
