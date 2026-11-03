@@ -120,7 +120,7 @@ function makeGL(gl) {
   return {program,locations,mesh,vertex,index,orbit};
 }
 
-export function createSolarView(canvas,{onSelect=()=>{}}={}) {
+export function createSolarView(canvas,{onSelect=()=>{},quality=()=>({scale:2,maxPixels:2560*1440}),shouldAnimate=()=>true}={}) {
   let gl=null,gfx=null,ctx=null,fallbackCanvas=null;
   function use2DFallback(){
     gl=null;gfx=null;
@@ -146,7 +146,7 @@ export function createSolarView(canvas,{onSelect=()=>{}}={}) {
     const angle=p.phase + t*.095/Math.pow(p.orbitRadius,1.05);
     return [Math.cos(angle)*p.orbitRadius,Math.sin(angle)*p.inclination*p.orbitRadius,Math.sin(angle)*p.orbitRadius];
   };
-  const frameTime=()=> (performance.now()-clockBase)/1000;
+  const frameTime=()=> shouldAnimate() ? (performance.now()-clockBase)/1000 : 0;
   function cameraMatrix(){
     const c=camera,d=c.distance;
     const eye=[Math.sin(c.yaw)*Math.cos(c.pitch)*d,Math.sin(c.pitch)*d,Math.cos(c.yaw)*Math.cos(c.pitch)*d];
@@ -155,7 +155,7 @@ export function createSolarView(canvas,{onSelect=()=>{}}={}) {
   function resize(){
     const rect=canvas.getBoundingClientRect();
     if(!rect.width||!rect.height)return;
-    width=rect.width;height=rect.height;dpr=Math.min(2,window.devicePixelRatio||1);
+    width=rect.width;height=rect.height;const preset=quality();dpr=Math.min(preset.scale,Math.sqrt(preset.maxPixels/(width*height)));
     const w=Math.max(1,Math.round(width*dpr)),h=Math.max(1,Math.round(height*dpr));
     if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
     if(fallbackCanvas){fallbackCanvas.width=w;fallbackCanvas.height=h;}
