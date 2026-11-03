@@ -8,6 +8,7 @@
 - Development integration: `feat/turn-based-4x-pwa`
 - Default/stable branch: `main` (never edit directly)
 - Project plan: [ROADMAP.md](ROADMAP.md)
+- **Canonical game spec and version protocol:** [specs/INDEX.md](specs/INDEX.md), [specs/EDITING_PROTOCOL.md](specs/EDITING_PROTOCOL.md), and root [AGENTS.md](../AGENTS.md). Independent chats propose edits through their own branches/PRs, never simultaneously write canonical spec files.
 - Prioritized tasks: [DEVELOPMENT_BACKLOG.md](DEVELOPMENT_BACKLOG.md)
 - Constraints: [ARCHITECTURE.md](ARCHITECTURE.md), [GAME_DESIGN.md](GAME_DESIGN.md)
 - Source assets: [ASSETS_AND_LICENSES.md](ASSETS_AND_LICENSES.md)

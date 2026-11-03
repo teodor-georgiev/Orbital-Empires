@@ -109,8 +109,9 @@ The **Download game ZIP** option is GitHub's published source branch archive, no
 
 **Donations:** The in-game Donate menu is visible, but no money is accepted until the project owner configures a verified HTTPS third-party fundraising URL in `support-config.js`. Only approved provider domains are supported; no payment form, secrets or transaction storage exists in the game. Sharing or starring the repository is available without payment.
 
-## Planet command UI and population (v0.2.2)
+## Planet command UI and population (v0.3.0)
 
 The command menu groups core decisions and the sidebar organizes exploration, development and fleet command. Select a discovered star, enter the solar system, then click a planet in WebGL 3D or use the keyboard-accessible orbital list. The right inspector shows the selected planet; the owned primary world shows colony population, growth, carrying capacity, production and immediate infrastructure upgrades. Non-primary planets remain survey-only until a later save-schema migration.
 
 Population follows a bounded logistic curve once per strategic cycle. Capacity depends on habitability and richness, growth slows toward that limit, and legacy save schema v1 remains compatible. See [implementation plan](docs/plans/2026-11-03-planet-command-population.md).
+

@@ -1,8 +1,10 @@
-# Orbital Empires — Game Design v0.1
+# Orbital Empires — Game Design foundations (historical v0.1)
+
+> Current implementation direction is in [v0.3.0 spec](specs/ORBITAL-EMPIRES-v0.3.0.md) and [ADR-0001](decisions/ADR-0001-REAL-TIME-AUTONOMY.md). The original v0.1 document below describes the prior turn-based design; it should not supersede newer dated decisions.
 
 ## North star
 
-A polished, turn-based 4X game playable in a browser and installable as a PWA, where **one turn represents one year** and a complete small-galaxy game is achievable in a sitting. Strategic depth should come from readable tradeoffs, not busywork.
+A polished, initially turn-based 4X game playable in a browser and installable as a PWA, where the early design expected **one turn to represent one year** (the shipped v0.2 HUD actually tracked calendar months; v0.3 proposes one logical simulation month per step) and a complete small-galaxy game is achievable in a sitting. Strategic depth should come from readable tradeoffs, not busywork.
 
 High-level inspiration: Galactic Civilizations (accessible turn-based expansion), Master of Orion/FreeOrion (planetary strategy), Stellaris (discovery, events and diplomacy). **No copyrighted code, textures, UI screens, faction names, or game text may be copied.**
 

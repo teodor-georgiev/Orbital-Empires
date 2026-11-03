@@ -72,13 +72,15 @@ try{
  await capture('02-orbital-system-desktop.png');
  const prior=await evaluate('parseFloat(document.querySelector(".oe-population-head b").textContent)');
  assert.ok(Number.isFinite(prior)&&prior>0);
+ const primaryId=await evaluate('document.querySelector(".solar-planet-option[aria-pressed=true]")?.dataset.id');
+ assert.ok(primaryId!==undefined,'homeworld must be selected');
  await evaluate("document.querySelector(\"[data-action=solar-planet][data-id=\\\"1\\\"]\").click();true");
  await ready("document.querySelector(\"[data-action=solar-planet][data-id=\\\"1\\\"]\")?.getAttribute('aria-pressed')==='true'&&document.getElementById('inspector').textContent.includes('Survey-only planet')",'survey-only planet selected');
  assert.equal(await evaluate('document.querySelectorAll(".oe-build-card").length'),0);
  assert.ok(await evaluate('document.body.classList.contains("oe-planet-focus")&&!document.getElementById("planet-focus-stage").hidden'));
  assert.ok(await evaluate('document.getElementById("planet-focus-stage").textContent.includes("SURVEY-ONLY PLANET")'));
- await evaluate("document.querySelector(\"[data-action=solar-planet][data-id=\\\"0\\\"]\").click();true");
- await ready("document.querySelector(\"[data-action=solar-planet][data-id=\\\"0\\\"]\")?.getAttribute('aria-pressed')==='true'&&!!document.querySelector('.oe-population-card')",'primary colony world selected');
+ await evaluate(`document.querySelector('[data-action=solar-planet][data-id="${primaryId}"]').click();true`);
+ await ready(`document.querySelector('[data-action=solar-planet][data-id="${primaryId}"]')?.getAttribute('aria-pressed')==='true'&&!!document.querySelector('.oe-population-card')`,'primary colony world selected');
  assert.equal(await evaluate('document.querySelectorAll(".oe-build-card").length'),4);
  assert.ok(await evaluate('document.getElementById("planet-focus-stage").textContent.includes("MANAGE COLONY")'));
  await capture('03-focused-planet-desktop.png');
