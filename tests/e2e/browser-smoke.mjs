@@ -88,7 +88,11 @@ try{
  await capture('03-focused-planet-biome-buildings.png');
  await evaluate('document.querySelector("[data-action=build][data-type=agri-domes]").click();true');
  await ready('document.querySelector(".oe-specialty-card")?.textContent.includes("Level 1/3")','Terran housing building purchased');
- await evaluate('document.querySelector("[data-action=solar-planet][data-id=4]").click();true');
+ const postBuildPlanets=await evaluate(`JSON.stringify([...document.querySelectorAll('[data-action=solar-planet]')].map(el=>({id:el.dataset.id,label:el.textContent.trim().slice(0,45)})))`);
+ console.log('POST_BUILD_PLANETS',postBuildPlanets);
+ const gasId=await evaluate(`[...document.querySelectorAll('[data-action=solar-planet]')].find(el=>el.textContent.includes('Jupiter'))?.dataset.id??null`);
+ assert.ok(gasId,'Jupiter should remain selectable after colony construction: '+postBuildPlanets);
+ await evaluate(`document.querySelector('[data-action=solar-planet][data-id="${gasId}"]').click();true`);
  await ready('document.querySelector(".oe-orbital-card")?.textContent.includes("Gas Harvester")','gas giant building available');
  await capture('04-gas-giant-building-desktop.png');
  await evaluate('document.querySelector("[data-action=build-orbital][data-type=gas-harvester]").click();true');
