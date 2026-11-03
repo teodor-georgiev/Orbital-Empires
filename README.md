@@ -15,10 +15,10 @@ Open http://localhost:4173/. The game is not meant to be opened as a `file://` p
 
 ## v0.3.0 Solar Frontier (integration candidate)
 
-- Playable **Humans** start on **Earth** in **Sol** with named nearby real stars (Alpha Centauri, Proxima Centauri, Barnard's Star, Wolf 359, Sirius). The map and hyperlanes are schematic fictional gameplay, not a physical star atlas.
-- Choose campaign start year **2000–3000** (default **2200**) and playable species in the procedural scenario. Existing saved campaigns are not reset.
-- Pause or run the strategic simulation automatically at **1×, 2×, 5× or 10×**, or step one month at a time. This is a transitional fixed-step clock using the existing turn rules, **not** fully autonomous government or continuous ship transit yet.
-- [Shared game specifications](docs/specs/INDEX.md), [coding-agent instructions](AGENTS.md), [versioned spec editing protocol](docs/specs/EDITING_PROTOCOL.md), [real-time-with-pause decision](docs/decisions/ADR-0001-REAL-TIME-AUTONOMY.md).
+- Playable **Humans** begin on **Earth** in **Sol** with named nearby real stars: Alpha Centauri, Proxima Centauri, Barnard's Star, Wolf 359, Sirius and more. Schematic positions and fictional hyperlanes/resources are clearly distinguished from factual catalog distances.
+- Choose start year **2000–3000** (default **2200**) and one of seven playable species in procedural campaigns. Existing save files remain compatible.
+- The move to real-time-with-pause and autonomous departments is approved as a game direction, but a separate [clock PR #19](https://github.com/teodor-georgiev/Orbital-Empires/pull/19) is being developed in another lane. This Sol scenario branch **does not** replace its clock implementation.
+- Shared source of truth: [AGENTS.md](AGENTS.md), [versioned game specifications](docs/specs/INDEX.md), [editing protocol](docs/specs/EDITING_PROTOCOL.md), [ADR](docs/decisions/ADR-0001-REAL-TIME-AUTONOMY.md).
 
 ## Gameplay included in v0.2
 
@@ -62,7 +62,7 @@ Develop only on feature/fix branches; require a successful test workflow and rev
 
 ## Game design and parallel development
 
-- [Current versioned game spec and all-agent collaboration protocol](docs/specs/INDEX.md)
+- [Shared game specs, versioning and all-agent collaboration](docs/specs/INDEX.md)
 - [Game systems and milestone design](docs/GAME_DESIGN.md)
 - [Current architecture and modularization gate](docs/ARCHITECTURE.md)
 - [Master roadmap: all game systems and milestones](docs/ROADMAP.md)
@@ -98,3 +98,13 @@ Choose a discovered star and click **Enter Solar System** (or click the same sta
 Eight detailed original AI-assisted planet illustrations are stored locally in `assets/planet-portraits/atlas.webp` (4 columns by 2 rows, 384-pixel tiles). They are **illustrations**, not photographs of real exoplanets, NASA photography, or Stellaris models. Jungle and Barren are color-graded from original Terran and Desert artwork. They are displayed in the planet inspector, solar-system HUD, main menu and new-campaign preview; the existing WebGL orbital geometry remains intact.
 
 The custom sprite set `assets/ui/interface-icons.svg` has 28 original vector interface icons for navigation, resources and game commands. `modules/styles/cinematic-ui.css` provides the command-theme refresh without touching game rules. The main menu appears on load and is accessible again from the header. All images, icons and styles are self-hosted and offline cached.
+
+## Install, download and optional donations (v0.2.1)
+
+The recommended option is **Install game** from the in-game main menu. Modern browsers install the HTTPS-hosted PWA and cache core files for offline play. If the browser does not show an install prompt, use its Install / Add to Home Screen action.
+
+The **Download game ZIP** option is GitHub's published source branch archive, not a signed Windows or macOS executable. Unzip it. With Python 3 installed, run `launch-windows.cmd` (Windows) or `sh launch-unix.sh` (macOS/Linux); `python3 launch-local.py` also works. This serves only at `127.0.0.1` with an automatically assigned local port and opens the browser. No public network server is started. Export a save backup via Download / Backup → Back up your save if you want to carry progress between devices. Restoring imported saves is not implemented yet.
+
+**PWA updates:** The service worker fetches newer app files from the hosting origin on reload when online and falls back to the cached versions offline. New Git changes reach players only after deployment; merging the reviewed `main` branch triggers Vercel production if the Git integration is configured and enabled. The browser does not forcibly restart an active game.
+
+**Donations:** The in-game Donate menu is visible, but no money is accepted until the project owner configures a verified HTTPS third-party fundraising URL in `support-config.js`. Only approved provider domains are supported; no payment form, secrets or transaction storage exists in the game. Sharing or starring the repository is available without payment.
