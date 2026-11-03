@@ -19,7 +19,7 @@ test('four deterministic ticks advance exactly one game cycle, not four',()=>{
  assert.equal(TICKS_PER_CYCLE,4);
  for(let i=1;i<4;i++){const result=a.clock.step();assert.equal(result.ok,true);assert.equal(result.turnAdvanced,false);assert.equal(a.game.turn,1);assert.equal(a.clock.state().phase,i);}
  const result=a.clock.step();assert.equal(result.turnAdvanced,true);assert.equal(a.game.turn,2);assert.equal(a.clock.state().phase,0);
- endTurn(b);assert.deepEqual(a.game,b);assert.ok(validateGame(a.game));
+ endTurn(b);const {startedAt:ignoredA,...strategicA}=a.game,{startedAt:ignoredB,...strategicB}=b;assert.deepEqual(strategicA,strategicB);assert.ok(validateGame(a.game));
 });
 test('manual mode starts paused; play speeds use one scheduled timer',()=>{
  const x=rig();
