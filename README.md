@@ -32,6 +32,12 @@ Open http://localhost:4173/. The game is not meant to be opened as a `file://` p
 
 Single-player games save locally in the browser (localStorage), not on the server. Clearing site data may erase progress. Multiplayer, accounts, cloud saves, and deterministic network synchronization are **not implemented**.
 
+## v0.3.1 — Living orbital environments
+
+Solar systems now have a seeded background starfield in both WebGL and Canvas 2D, visible asteroid belts, and inspectable objects below the planet list. Mining a belt costs 8 credits and yields 18 alloys; comet and anomaly scans provide one-time unity or research. Rare procedurally fictional systems can reveal a black-hole gravity well or a hostile void leviathan with a clearly stated combat cost.
+
+These are **game events**, not claims about real Sol or exoplanet discoveries. Sol retains its factual planet names with only a comet and asteroid belt from the new encounter pool. Exploration is available to a player's colonies or to fleets present in a system; site rewards are stored in the optional `spaceScans` map in existing v1 saves, so old campaigns remain loadable.
+
 ## Self-host on your own VPS
 
 This package provides a hardened static Nginx container that listens **only on 127.0.0.1:8087 on the server**, leaving an existing HTTPS reverse proxy and ports 80/443 untouched.
