@@ -2,6 +2,8 @@
 import { TRADITIONS, POLICIES, traditionCost, unityIncome, civicBonuses, canAdoptTradition, canEnactPolicy } from './modules/strategy/civics.js';
 export { TRADITIONS, POLICIES, traditionCost, unityIncome };
 import { SAVE_SCHEMA_VERSION } from './version.js';
+import { GOVERNMENTS, CIVICS, COUNCIL_OFFICES, LEADERS, FACTIONS, politicalStability, factionLoyalty, factionTargets, canReformGovernment, canAdoptCivic, canAppointLeader, reformGovernment, adoptCivic, appointLeader, advancePolitics, stabilityProductionFactor, validGovernmentState } from './modules/strategy/government.js';
+export { GOVERNMENTS, CIVICS, COUNCIL_OFFICES, LEADERS, FACTIONS, politicalStability, factionLoyalty, factionTargets, canReformGovernment, canAdoptCivic, canAppointLeader, reformGovernment, adoptCivic, appointLeader };
 export const VERSION = SAVE_SCHEMA_VERSION;
 export const WORLD = { width: 1140, height: 760 };
 export const EMPIRE_TEMPLATES = [
@@ -97,7 +99,7 @@ export function generateGame({seed='ORION-47',size=90,opponents=4,difficulty='no
   const homes=chooseHomes(g,opponents+1);
   for(let i=0;i<homes.length;i++){
     const t=EMPIRE_TEMPLATES[i];const home=homes[i];home.owner=i;home.population=6;home.capital=true;home.buildings={foundry:1,laboratory:1,exchange:1,citadel:1};
-    g.empires.push({...t,id:i,home:home.id,credits:i===0?175:150,alloys:i===0?124:110,influence:56,techs:[],research:'orbital-industry',progress:0,unity:25,traditions:[],policies:[],wars:{},relations:{},lastEnvoy:{},eliminated:false});
+    g.empires.push({...t,id:i,home:home.id,credits:i===0?175:150,alloys:i===0?124:110,influence:56,techs:[],research:'orbital-industry',progress:0,unity:25,traditions:[],policies:[],government:'directorate',civics:[],council:{},factionLoyalty:{guilds:55,scholars:55,settlers:55},wars:{},relations:{},lastEnvoy:{},eliminated:false});
     g.fleets.push({id:g.nextFleetId++,owner:i,system:home.id,ships:{corvette:3,frigate:0,cruiser:0},movedTurn:0,name:i===0?'First Expedition':'Home Guard'});
   }
   for(const e of g.empires)for(const r of g.empires)if(r.id!==e.id){e.wars[r.id]=false;e.relations[r.id]=e.id===0?0:roll(g,25)-12;}
@@ -124,7 +126,7 @@ function modifier(emp,stat){let mod=1;
  if(emp.trait==='Expansionist'&&stat==='influence')mod+=.15;if(stat==='influence'&&has(emp,'civic-administration'))mod+=.2;
   mod+=civicBonuses(emp)[stat]||0;
  if(has(emp,'terraforming'))mod+=.12;
- return mod;
+ return mod*stabilityProductionFactor(emp);
 }
 export function systemYield(g,s){if(s.owner===null)return {credits:0,alloys:0,science:0,influence:0};
  const emp=g.empires[s.owner],quality=.72+s.habitability*.18,rich=.7+s.richness*.17,pop=s.population||2;
@@ -192,6 +194,7 @@ function aiTurn(g,emp){if(!ownedSystems(g,emp.id).length){emp.eliminated=true;re
 }
 export function endTurn(g){if(g.gameOver)return failure('This campaign has ended. Start a new galaxy to continue.');g.turn++;
  for(const e of g.empires){const y=income(g,e.id);for(const k of ['credits','alloys','influence'])e[k]+=y[k];e.unity=(e.unity||0)+unityIncome(g,e.id);if(ownedSystems(g,e.id).length)empireResearch(g,e)}
+ for(const e of g.empires){const politics=advancePolitics(e);if(e.id===0&&politics.unrest)log(g,'POLITICAL UNREST: Public confidence has collapsed. Production is disrupted until stability recovers.','culture');}
  for(const s of g.systems){if(s.owner!==null&&s.population<16&&rand(g)<(.28+s.habitability*.08))s.population++;}
  for(const e of g.empires.slice(1)){aiTurn(g,e)}
  reveal(g);
@@ -203,6 +206,7 @@ export function endTurn(g){if(g.gameOver)return failure('This campaign has ended
 }
 export function validateGame(data){
  if(!data||data.version!==VERSION||!Array.isArray(data.systems)||!Array.isArray(data.empires)||!Array.isArray(data.fleets)||data.systems.length<40||data.systems.length>180||data.empires.length<2||data.empires.length>7)return false;
+ if(data.empires.some(e=>!e||!validGovernmentState(e)))return false;
  if(!Number.isInteger(data.turn)||data.turn<1||data.turn>100000||!Number.isInteger(data.rng)||data.systems.some((s,i)=>s.id!==i||!Array.isArray(s.neighbors)||!s.neighbors.every(n=>Number.isInteger(n)&&n>=0&&n<data.systems.length)||!(s.owner===null||Number.isInteger(s.owner)&&s.owner>=0&&s.owner<data.empires.length)))return false;
  return true;
 }
