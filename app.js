@@ -2,6 +2,7 @@ import { VERSION, WORLD, BUILDINGS, SHIPS, TECHS, TRADITIONS, POLICIES, traditio
 import { generateSystemBodies, selectSystemPlanet } from './system-model.js';
 import { createSolarView } from './solar-view.js';
 import { APP_VERSION } from './version.js';
+import { configuredDonationUrl } from './support-config.js';
 
 const SAVE_KEY = 'orbital-empires-save-v1';
 const PLANET_CLASSES=new Set(['terran','oceanic','desert','jungle','arctic','barren','volcanic','gas-giant']);
@@ -201,6 +202,8 @@ function openModal(type){modalType=type;const root=$('#modal-root');let html='';
    menuAction('book','Field manual','Learn the 4X systems','guide')+
    menuAction('save','Save progress','Save on this device','save')+
    menuAction('install','Install game','Play offline anywhere','install')+
+   menuAction('download','Download / backup','Install or save game files','download-menu')+
+   menuAction('heart','Donate','Support future development','donate-menu')+
    '</div>'+
    '<div class="menu-overview"><strong>THE DIRECTORATE // CURRENT CAMPAIGN</strong><p>One commander. An entire galaxy to discover. All progress is saved locally in your browser.</p><div class="menu-stats">'+
    '<div class="menu-stat"><b>'+String(game.turn)+'</b><span>CYCLE</span></div>'+
@@ -209,6 +212,8 @@ function openModal(type){modalType=type;const root=$('#modal-root');let html='';
    '<div class="menu-worlds" aria-label="Planet classes">'+tiles+'</div></div>';
   html=modalLayout('ORBITAL EMPIRES // GALACTIC COMMAND','A galaxy awaits your command.',body);
  }
+ else if(type==='download'){html=modalLayout('PLAY ANYWHERE','Download & Install',`<div class="distribution-panel"><p><b>Recommended:</b> install Orbital Empires directly from your browser. It runs as a standalone app and works offline after installation.</p><div class="distribution-choices"><button class="action-primary" data-action="install">${gameIcon('download')} INSTALL WEB APP</button><a class="action-secondary" href="https://github.com/teodor-georgiev/Orbital-Empires/archive/refs/heads/main.zip" target="_blank" rel="noopener noreferrer">${gameIcon('archive')} DOWNLOAD GAME ZIP</a><button class="action-secondary" data-action="export-save">${gameIcon('save')} BACK UP YOUR SAVE</button></div><p class="small-muted">The ZIP is a self-hosted source package, not a Windows .exe. Unzip and run the bundled local launcher with Python 3, or serve the folder over HTTPS. Saves remain only in this browser unless you export them.</p></div>`,btn('close-modal','BACK TO GAME','action-secondary'))}
+ else if(type==='donate'){const donation=configuredDonationUrl();const link=donation?`<a class="action-primary donation-action" href="${escapeHTML(donation)}" target="_blank" rel="noopener noreferrer">${gameIcon('heart')} OPEN EXTERNAL DONATION PAGE</a>`:'<div class="donation-pending">Donations are not enabled yet. There is no payment account or checkout connected to this game.</div>';html=modalLayout('SUPPORT THE PROJECT','Help build Orbital Empires',`<div class="donation-panel"><div class="donation-emblem">${gameIcon('heart')}</div><p>The game is free to play. If you enjoy it, you can support development or share it with others. Donating is always optional.</p>${link}<p class="small-muted">Payments, if enabled later, will be handled by an external provider. Orbital Empires does not collect or store payment details.</p><a class="project-link" href="https://github.com/teodor-georgiev/Orbital-Empires" target="_blank" rel="noopener noreferrer">${gameIcon('galaxy')} View project on GitHub</a></div>`,btn('close-modal','BACK TO GAME','action-secondary'))}
  else if(type==='new'){html=modalLayout('NEW CAMPAIGN','Create your galaxy.',`<div class="campaign-preview"><p>YOUR NEXT FRONTIER<br><strong>Eight worlds. Thousands of possibilities.</strong><br>Choose the seed, size, and rival empires.</p><div class="preview-orbs"><span class="planet-thumbnail planet-terran" aria-hidden="true"></span><span class="planet-thumbnail planet-desert" aria-hidden="true"></span><span class="planet-thumbnail planet-gas-giant" aria-hidden="true"></span></div></div><p>Generate a fresh, deterministic star map. Starting a new campaign replaces the current local save.</p><div class="form-grid"><div class="form-field full"><label for="new-seed">GALAXY SEED</label><input id="new-seed" value="${escapeHTML(game.seed)}" maxlength="40" autocomplete="off"></div><div class="form-field"><label for="new-size">STAR SYSTEMS</label><select id="new-size"><option value="60" ${game.systems.length===60?'selected':''}>60 · Compact</option><option value="90" ${game.systems.length===90?'selected':''}>90 · Standard</option><option value="140" ${game.systems.length===140?'selected':''}>140 · Vast</option><option value="180" ${game.systems.length===180?'selected':''}>180 · Epic</option></select></div><div class="form-field"><label for="new-opponents">RIVAL EMPIRES</label><select id="new-opponents">${[2,3,4,5,6].map(n=>`<option value="${n}" ${game.empires.length===n+1?'selected':''}>${n} civilizations</option>`).join('')}</select></div><div class="form-field full"><label for="new-difficulty">AI DIFFICULTY</label><select id="new-difficulty"><option value="easy">Cadet · Relaxed expansion</option><option value="normal" ${game.difficulty==='normal'?'selected':''}>Commander · Balanced</option><option value="hard" ${game.difficulty==='hard'?'selected':''}>Admiral · Aggressive expansion</option></select></div></div>`,btn('start','GENERATE GALAXY')+btn('close-modal','CANCEL','action-secondary'))}
  else if(type==='settings'){html=modalLayout('COMMAND OPTIONS','Display & Interface',`<div class="settings-hero"><strong>CHOOSE YOUR COMMAND DECK</strong><p>4K Ultra increases internal Canvas resolution up to 3840 × 2160 pixels. It does not change your monitor resolution; performance depends on your device.</p></div><div class="form-grid"><div class="form-field full"><label for="gfx-quality">GRAPHICS QUALITY</label><select id="gfx-quality"><option value="performance" ${settings.quality==='performance'?'selected':''}>Performance · 1080p cap</option><option value="balanced" ${settings.quality==='balanced'?'selected':''}>Balanced · 1440p cap</option><option value="ultra4k" ${settings.quality==='ultra4k'?'selected':''}>4K Ultra · 3840 × 2160 cap</option></select></div><div class="form-field"><label for="ui-theme">INTERFACE STYLE</label><select id="ui-theme"><option value="command" ${settings.theme==='command'?'selected':''}>Command · Teal</option><option value="nebula" ${settings.theme==='nebula'?'selected':''}>Nebula · Violet</option><option value="imperial" ${settings.theme==='imperial'?'selected':''}>Imperial · Gold</option></select></div><div class="form-field"><label for="motion-mode">ANIMATION</label><select id="motion-mode"><option value="full" ${settings.motion==='full'?'selected':''}>Full motion</option><option value="reduced" ${settings.motion==='reduced'?'selected':''}>Reduced motion</option></select></div></div>`,btn('save-settings','APPLY SETTINGS')+btn('close-modal','CANCEL','action-secondary'))}
  else if(type==='guide'){html=modalLayout('COMMAND HANDBOOK','How to rule the stars',`<div class="guide-steps"><div><strong>◎ EXPLORE</strong><p>Star systems are connected by glowing hyperlanes. Select a fleet in <b>Fleets & Shipyard</b>, click an adjacent star, and press Move in Galaxy Command. Each fleet can move once per turn.</p></div><div><strong>◈ EXPAND</strong><p>Claim an unowned system beside your colonies. Colony ships are abstracted into the colonization cost of credits, alloys, and influence.</p></div><div><strong>⬡ DEVELOP</strong><p>Build foundries, labs, markets, and defensive grids at your colonies. End Turn collects their production and advances technology.</p></div><div><strong>✧ RESEARCH</strong><p>Choose any unlocked technology in Research. Science generated each turn advances its progress; technology prerequisites open deeper branches.</p></div><div><strong>⌁ CONQUER</strong><p>Build ships at an owned colony. Declare war before entering rival territory. Battles resolve automatically based on fleet strength, defenses, and chance.</p></div><div><strong>♜ DIPLOMACY</strong><p>Send envoys to improve relations or negotiate peace after wars. AI empires colonize, research, build fleets, and sometimes declare war.</p></div></div><p><b>Victory:</b> control 65% of systems, or eliminate all competing civilizations. Your game saves automatically in this browser.</p>`,btn('close-modal','RETURN TO GALAXY'))}
@@ -239,6 +244,9 @@ function handleAction(action,data){
   case 'enact-policy':act(enactPolicy(game,data.id));break;
   case 'save':if(persist())notice('Campaign saved to this browser.');break;
   case 'install':installApp();break;
+  case 'download-menu':openModal('download');break;
+  case 'donate-menu':openModal('donate');break;
+  case 'export-save':exportSave();break;
   case 'open-solar':openSolarSystem();break;
   case 'close-solar':closeSolarSystem();break;
   case 'solar-reset':solar.resetCamera();break;
@@ -259,6 +267,15 @@ function handleAction(action,data){
   case 'diplomacy-panel':activePage='diplomacy';render();break;
   default:break;
  }
+}
+function exportSave(){
+ try{
+  const payload=JSON.stringify({version:1,exportedAt:new Date().toISOString(),game});
+  const url=URL.createObjectURL(new Blob([payload],{type:'application/json'}));
+  const anchor=document.createElement('a');anchor.href=url;anchor.download='orbital-empires-save-cycle-'+game.turn+'.json';
+  document.body.append(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  notice('Save backup downloaded. Store it safely.');
+ }catch{notice('Could not download save backup.','error');}
 }
 async function installApp(){if(deferredInstallPrompt){const prompt=deferredInstallPrompt;deferredInstallPrompt=null;prompt.prompt();const result=await prompt.userChoice;notice(result.outcome==='accepted'?'App installation requested.':'Install was dismissed.');return;}
  const mobile=/iphone|ipad|ipod/i.test(navigator.userAgent),secure=window.isSecureContext&&window.location.protocol!=='file:';

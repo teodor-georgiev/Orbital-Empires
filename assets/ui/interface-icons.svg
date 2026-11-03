@@ -28,5 +28,8 @@
   <symbol id="unity" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 3v18M3 12h18M6 6l12 12M18 6 6 18" opacity=".7"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></g></symbol>
   <symbol id="traditions" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 21h18M5 19V9l7-5 7 5v10M9 12h6M9 16h6M12 4V2M4 9h16"/></g></symbol>
   <symbol id="policies" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3v18m-9 0h18M5 7h14M7 7l-4 8h8L7 7Zm10 0-4 8h8l-4-8Z"/></g></symbol>
+  <symbol id="download" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m-4-4 4 4 4-4"/><path d="M4 17v3h16v-3"/><path d="M6 4H4v5m14-5h2v5" opacity=".55"/></g></symbol>
+  <symbol id="heart" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 20 4.3 12.5C-.1 8.3 4.3 2 9.1 5c1.2.6 2.2 1.8 2.9 2.8 1.5-2.7 3.7-4.4 6.4-2.7C23.3 7.3 23.8 12 12 20Z"/></g></symbol>
+  <symbol id="archive" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18v5H3zM5 10v11h14V10M9 14h6"/><path d="M8 5V3h8v2" opacity=".5"/></g></symbol>
 </defs>
 </svg>
