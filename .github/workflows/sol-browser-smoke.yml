@@ -1,0 +1,32 @@
+name: Solar Frontier browser smoke
+on:
+  pull_request:
+    branches: [feat/turn-based-4x-pwa]
+    paths:
+      - 'app.js'
+      - 'core.js'
+      - 'index.html'
+      - 'solar-view.js'
+      - 'system-model.js'
+      - 'modules/galaxy/**'
+      - 'modules/styles/**'
+      - 'tests/**'
+      - 'e2e/**'
+      - '.github/workflows/sol-browser-smoke.yml'
+permissions:
+  contents: read
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned test-only Playwright
+        run: npm install --no-save --ignore-scripts --no-audit --no-fund @playwright/test@1.56.1
+      - name: Install headless Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Verify Solar Frontier in real browser
+        run: npx playwright test --config=e2e/playwright.config.mjs
