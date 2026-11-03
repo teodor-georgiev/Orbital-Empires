@@ -7,6 +7,7 @@ import { populationForecast } from './modules/simulation/population.js';
 import { planetArtStyle } from './modules/visuals/planet-visual.js';
 import { configuredDonationUrl } from './support-config.js';
 import { isDevelopmentPage, renderDevelopment } from './modules/ui/development-workspace.js';
+import { renderStrategicOutliner } from './modules/ui/strategic-outliner.js';
 
 const SAVE_KEY = 'orbital-empires-save-v1';
 const PLANET_CLASSES=new Set(['terran','oceanic','desert','jungle','arctic','barren','volcanic','gas-giant']);
@@ -114,6 +115,7 @@ function render(){
   const resources=[['credits','CREDITS','credits'],['alloys','ALLOYS','alloys'],['science','SCIENCE','science'],['influence','INFLUENCE','influence'],['unity','UNITY','unity']];
   $('#resource-bar').innerHTML=resources.map(([icon,label,key])=>`<div class="resource"><span class="resource-icon">${gameIcon(icon)}</span><div class="resource-info"><small>${label}</small><strong>${key==='science'?fmt(yieldNow.science):fmt(player[key]||0)}<i>${key==='science'?'/ TURN':key==='unity'?`+${unityIncome(game)}`:`+${fmt(yieldNow[key])}`}</i></strong></div></div>`).join('');
   $('#profile-metrics').innerHTML=`<div class="profile-metric"><strong>${territory.length}</strong><small>COLONIES</small></div><div class="profile-metric"><strong>${totalFleets().length}</strong><small>FLEETS</small></div><div class="profile-metric"><strong>${player.techs.length}</strong><small>TECHS</small></div>`;
+  $('#strategic-outliner').innerHTML=renderStrategicOutliner(game,selectedId,selectedFleetId);
   $('#top-turn').textContent=`YEAR ${getStardate(game)}`;
   $('.profile-name').textContent=player.name.toUpperCase();
   $('.profile-sub').textContent=player.motto.toUpperCase();
