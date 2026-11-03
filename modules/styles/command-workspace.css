@@ -65,7 +65,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid #70e5ed;outline-
 .main-layout.progress-mode .map-footer,
 .main-layout.progress-mode .inspector{display:none!important}
 .progress-workspace{display:flex;flex:1;min-height:0;min-width:0;overflow:auto;padding:18px 0 22px;scrollbar-width:thin}
-.progress-workspace-content{display:flex;flex-direction:column;gap:0;width:100%;min-width:0}
+.progress-workspace-content{display:flex;flex-direction:column;gap:0;width:100%;max-width:1720px;margin:0 auto;min-width:0}
 .progress-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;padding:0 5px 19px;border-bottom:1px solid var(--command-stroke)}
 .progress-back{border:0;background:transparent;color:#80bdc8;font-size:12px;padding:4px 0 9px;text-align:left}
 .progress-back:hover{color:#ecf5f6}
@@ -147,12 +147,14 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid #70e5ed;outline-
   .progress-metrics{display:none}.progress-content-layout{grid-template-columns:minmax(0,1fr) 230px}
 }
 @media(max-width:760px){
-  .topbar{height:57px;min-height:57px;padding:0 8px;gap:6px}
+  .topbar{height:auto;min-height:57px;padding:7px 8px 0;gap:6px;flex-wrap:wrap}
   .brand{min-width:auto;width:auto}.brand small{display:none}.brand strong{font-size:14px}
   .brand-mark{height:30px;width:30px}.brand-mark svg{width:25px;height:25px}
   .header-actions{margin-left:auto}.header-help{display:none}
   .top-turn{font-size:10px}.turn-btn{padding:8px;font-size:11px}
-  .resource-bar{display:none}
+  .resource-bar{display:flex;order:3;flex:1 0 100%;justify-content:flex-start;overflow-x:auto;border-top:1px solid #2b4052;padding:5px 0 6px;scrollbar-width:thin}
+  .resource,.resource:nth-child(n+4){display:flex;flex:1 0 auto;min-width:78px;max-width:none;padding:3px 7px}
+  .resource-icon{display:none}.resource-info strong{font-size:13px}.resource-info small{font-size:8px}
   .main-layout,.main-layout.progress-mode{display:flex;flex-direction:column}
   .sidebar{flex:0 0 auto;max-height:58px;flex-direction:row;align-items:center;overflow-x:auto;overflow-y:hidden}
   .commander-profile,.nav-head,.sidebar-bottom{display:none}
