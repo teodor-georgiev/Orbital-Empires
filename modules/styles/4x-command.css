@@ -2,13 +2,16 @@
    Draws on the approved hybrid layout and established 4X navigation patterns.
    The map and right-hand selected-object inspector keep priority. */
 @media(min-width:1021px){
- .sidebar{display:flex;flex-direction:column;min-height:0}
+ .sidebar{display:flex;flex-direction:column;min-height:0;overflow-y:auto;scrollbar-width:thin}
  .sidebar .game-nav{flex:0 0 auto}
- .sidebar .sidebar-bottom{flex:0 0 auto}
+ /* Main menu already exposes new game, save, install and help. Drop duplicate
+    sidebar utilities so the empire outliner has useful vertical space. */
+ .sidebar .sidebar-bottom{display:none}
+ .sidebar .commander-profile{flex:0 0 auto}
 }
 .strategic-outliner{min-height:0;overflow:auto;scrollbar-width:thin;margin:5px 9px 11px;
  border:1px solid #314a5c;border-radius:9px;background:linear-gradient(165deg,#122638,#0a1828);
- padding:9px 8px 8px;flex:0 1 270px}
+ padding:9px 8px 8px;flex:1 1 210px;min-height:170px;max-height:340px}
 .outliner-heading{display:flex;align-items:center;justify-content:space-between;gap:5px;
  padding:3px 3px 9px;border-bottom:1px solid #29485d}
 .outliner-heading>span{display:flex;align-items:center;gap:5px;color:#c7dce8;font:700 10px/1.2 system-ui,sans-serif;letter-spacing:.55px}
