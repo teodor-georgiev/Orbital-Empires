@@ -38,11 +38,12 @@ function prerequisiteNames(page, item) {
   const source = developmentItems(page);
   return (item.prereqs || []).map(id => source.find(entry => entry.id === id)?.name || id);
 }
-function node(game, page, item, chosen) {
+function node(game, page, item, chosen, previous) {
   const state = developmentStatus(game, page, item);
   const statusClass = state.completed ? 'completed' : state.active ? 'researching' : state.ready ? 'available' : 'locked';
   const prerequisites = prerequisiteNames(page, item);
-  return '<button type="button" class="progress-node ' + statusClass + (chosen ? ' selected' : '') +
+  const connected = previous && (item.prereqs || []).includes(previous.id);
+  return '<button type="button" class="progress-node ' + statusClass + (connected ? ' connected' : '') + (chosen ? ' selected' : '') +
     '" data-action="select-development" data-id="' + escapeText(item.id) + '" aria-pressed="' + String(chosen) + '">' +
     '<span class="progress-node-top"><span class="progress-node-state">' + escapeText(state.status) + '</span><span class="progress-node-symbol" aria-hidden="true">' +
     (state.completed ? '✓' : state.missing.length ? '◇' : state.active ? '◉' : '✦') + '</span></span>' +
@@ -60,7 +61,7 @@ function details(game, page, item) {
   let meta = '';
   if (page === 'research') {
     const generated = income(game).science;
-    const remaining = Math.max(0, item.cost - (state.active ? empire.progress : 0));
+    const remaining = Math.max(0, item.cost - (empire.progress || 0));
     const estimatedTurns = generated > 0 ? Math.ceil(remaining / generated) : null;
     meta = '<div class="progress-details-row"><span>Research cost</span><b>' + number(item.cost) + ' Science</b></div>' +
       '<div class="progress-details-row"><span>Estimated time</span><b>' + (state.completed ? 'Finished' : (estimatedTurns === null ? 'No science income' : estimatedTurns + ' cycles')) + '</b></div>';
@@ -113,7 +114,7 @@ export function renderDevelopment(game, page = 'research', selectedId = null, fi
     const complete = groupItems.filter(item => developmentStatus(game, page, item).completed).length;
     return '<section class="progress-lane" aria-label="' + escapeText(group) + '">' +
       '<div class="progress-lane-heading"><h3>' + escapeText(group) + '</h3><span>' + complete + ' / ' + groupItems.length + '</span></div>' +
-      '<div class="progress-lane-nodes">' + groupItems.map(item => node(game, page, item, item.id === selected.id)).join('') + '</div></section>';
+      '<div class="progress-lane-nodes">' + groupItems.map((item, index) => node(game, page, item, item.id === selected.id, groupItems[index - 1])).join('') + '</div></section>';
   }).join('');
   const subline = page === 'research' ? (current ? 'Currently researching ' + current.name : 'Choose your next research project')
     : page === 'traditions' ? number(empire.unity || 0) + ' Unity available · next adoption costs ' + traditionCost(empire)
