@@ -4,9 +4,9 @@
 
 ## North star
 
-An original, installable, browser-first **turn-based** 4X space-strategy game. Inspiration: Galactic Civilizations, Master of Orion and Stellaris, but with original code, visuals and writing. Strategy is driven by memorable tradeoffs, compact turns and a galaxy that feels alive. No copyrighted game assets or source copied from other games.
+An original, installable, browser-first **real-time-with-pause (fixed-step simulation)** 4X space-strategy game, migrating gradually from its playable turn-based roots. Inspiration: Galactic Civilizations, Master of Orion and Stellaris, but with original code, visuals and writing. Strategy is driven by memorable tradeoffs, compact turns and a galaxy that feels alive. No copyrighted game assets or source copied from other games.
 
-**Core loop:** explore → survey → claim systems → develop colonies → research → adopt traditions and laws → trade/negotiate or fight → end turn → respond to events.
+**Core loop:** explore → survey → set policy and departmental goals → claim systems → develop colonies → research → adopt traditions and laws → trade/negotiate or fight → advance time, pause and intervene → respond to events. The current v0.3 preview adds the Human Sol scenario; a separate PR #19 develops initial automated time progression. Player-controlled departments are a future milestone.
 
 ## Current implementation vs ambitions
 
@@ -14,12 +14,12 @@ An original, installable, browser-first **turn-based** 4X space-strategy game. I
 | --- | --- |
 | Implemented on shared integration baseline | Deterministic star map and hyperlanes, map navigation/fog, turn-based resources, colonization, buildings, research, basic fleets/combat/diplomacy/AI, local saves, offline PWA |
 | Implemented on shared integration baseline | WebGL 3D solar-system scene with orbitable camera, planets/moons and 2D fallback; **additional planets are visual-only** |
-| Feature candidate, integration/QA required | `v0.2.0` Unity, traditions, social policies, grouped technology tree, 4K backing-canvas option, selectable UI palettes; integration branch `feat/oe-v020-civics-3d-integration-20261103` |
+| Implemented in v0.2.0 | Unity, traditions, social policies, technology tree and configurable 4K Canvas backing resolution |\n| Feature candidate, integration/QA required | `v0.3.0` Human Earth/Sol scenario, real nearby star names and distances (schematic positions), start year and faction selection. Initial simulation speed controls are under review in separate PR #19 |
 | Not implemented | Individual planet colonies, surface building, detailed politics, trade network, ship designer, espionage, multiplayer, campaigns and additional victory paths |
 
-**Existing live URL:** https://teodor-georgiev.github.io/Orbital-Empires/ — check the deployed commit and version, not just whether the URL responds. Version `v0.2.0` is not considered publicly shipped until checked after integration.
+**Existing live URL:** https://teodor-georgiev.github.io/Orbital-Empires/ — v0.2.0 was verified published on 2026-11-03. v0.3.0 must not be called live until its integration PR is merged and the exact deployed build verified.
 
-## Game systems we want to build
+**Current authoritative spec:** [v0.3.0 candidate](specs/ORBITAL-EMPIRES-v0.3.0.md). **Real-time/autonomy decision:** [ADR-0001](decisions/ADR-0001-REAL-TIME-AUTONOMY.md). All coding chats must read [AGENTS.md](../AGENTS.md) before changing files.\n\n## Game systems we want to build
 
 ### 1. Main menu and campaign setup
 
