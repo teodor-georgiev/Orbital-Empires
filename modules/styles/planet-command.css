@@ -93,3 +93,66 @@
 @media(max-width:750px){.game-nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:7px}.game-nav .command-group-label{display:none}.sidebar .nav-link{min-height:58px;height:auto;flex-direction:column;justify-content:center;font-size:10px;gap:3px;padding:5px 2px;text-align:center}.sidebar .nav-icon{width:25px;min-width:25px;height:25px}.sidebar .nav-link.active{box-shadow:inset 0 -3px #e4bb7d}.oe-planet-portrait{min-height:140px}.modal:has(.oe-home-menu){padding:14px 13px}.oe-home-menu{grid-template-columns:1fr}.oe-home-feature{min-height:275px}.oe-home-feature h3{max-width:75%}.oe-home-planet{width:220px;right:-20px;top:-30px}.oe-home-sidebar{gap:7px}.oe-home-shortcuts{grid-template-columns:1fr 1fr}}
 @media(max-width:500px){.solar-planet-panel{width:142px;right:6px}.solar-detail-panel{display:none}.map-mode{display:none}.oe-home-feature{min-height:245px}.oe-home-feature h3{font-size:26px}.oe-home-planet{width:174px;top:-5px}.oe-build-card{grid-template-columns:30px minmax(0,1fr)}.oe-build-card button{grid-column:2;justify-self:start}.oe-home-shortcuts{gap:5px}.oe-home-menu .menu-action{padding:8px}}
 @media(prefers-reduced-motion:reduce){.oe-capacity-meter>span,.sidebar .nav-link{transition:none}}
+
+/* Approved A+B+C visual: full galaxy, immersive orbits, focused planet. */
+.oe-mode-tabs{display:flex;gap:3px;border:1px solid #49697a;background:#0b2332;border-radius:7px;padding:3px;flex-shrink:0}
+.oe-mode-tabs button{border:0;border-radius:5px;background:transparent;color:#b0cfdf;font:700 10px var(--head);padding:9px 12px}
+.oe-mode-tabs button[aria-pressed="true"]{background:#e7bc7e;color:#132836}
+.oe-mode-tabs button:focus-visible,.oe-focus-actions button:focus-visible{outline:2px solid #79dfec;outline-offset:2px}
+.oe-planet-focus-stage[hidden]{display:none!important}
+.oe-planet-focus-stage{position:absolute;inset:0;z-index:2;overflow:hidden;pointer-events:none;isolation:isolate;background:radial-gradient(ellipse at 53% 44%,#244b66,#08182cea 72%,#061120)}
+.oe-planet-focus-stage:before{content:"";position:absolute;inset:0;opacity:.2;background-image:radial-gradient(#bbd6ed 1px,transparent 2px);background-size:41px 49px}
+.oe-focused-planet-art{position:absolute;left:47%;top:48%;transform:translate(-50%,-50%);width:min(64%,590px);aspect-ratio:1;border-radius:50%;background-image:url("../../assets/planet-portraits/atlas.webp");background-size:400% 200%;background-repeat:no-repeat;filter:drop-shadow(0 0 34px #54a3cf57)}
+.oe-focused-planet-art:after{content:"";position:absolute;inset:0;box-shadow:inset -28px -18px 60px #041729bb;border-radius:50%}
+.oe-focus-caption{pointer-events:auto;position:absolute;left:clamp(174px,24%,260px);bottom:18px;z-index:3;border:1px solid #567482;background:linear-gradient(135deg,#153344ee,#091a2dec);box-shadow:0 12px 40px #000b;max-width:min(400px,52%);border-radius:11px;padding:16px 20px}
+.oe-focus-caption h2{font:750 clamp(24px,2.3vw,34px)/1.05 var(--head);color:#fff4db;margin:8px 0 2px}
+.oe-focus-caption p{margin:0 0 9px;font-size:12px;color:#a9c7d4}
+.oe-focus-pop{display:flex;align-items:center;flex-wrap:wrap;gap:5px 15px}
+.oe-focus-pop strong{font:750 24px var(--head);color:#ffedc8}
+.oe-focus-pop strong small{font-size:11px;color:#9bb7c5}
+.oe-focus-pop span{font:700 11px var(--head);color:#a8eccd}
+.oe-focus-progress{flex:0 0 100%;height:7px;border-radius:8px;overflow:hidden;background:#284a5b}
+.oe-focus-progress i{display:block;height:100%;background:linear-gradient(90deg,#5bcad0,#efcd8d)}
+.oe-focus-income{display:flex;flex-wrap:wrap;gap:8px 12px;margin-top:12px;font:650 11px var(--head);color:#c3dfe9}
+.oe-focus-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.oe-focus-actions button{border:1px solid #537a8a;border-radius:6px;background:#1a3b4b;color:#dbeaf0;padding:10px 12px;font:700 11px var(--head)}
+.oe-focus-actions .oe-button-gold{color:#13232c;background:linear-gradient(120deg,#f9dbac,#d4a66d);border-color:#e9be85}
+body.oe-planet-focus .solar-reset{visibility:hidden}
+body.oe-planet-focus .solar-instructions{display:none}
+@media(min-width:951px){
+ body.oe-orbital-mode .main-layout{position:relative;grid-template-columns:62px minmax(0,1fr) 0}
+ body.oe-orbital-mode .sidebar{width:62px;overflow-x:hidden}
+ body.oe-orbital-mode .sidebar .commander-profile,body.oe-orbital-mode .sidebar .nav-head,body.oe-orbital-mode .sidebar .sidebar-bottom,body.oe-orbital-mode .sidebar .command-group-label{display:none}
+ body.oe-orbital-mode .sidebar .game-nav{display:flex;flex-direction:column;padding:7px;gap:6px}
+ body.oe-orbital-mode .sidebar .nav-link{font-size:0;padding:4px;justify-content:center;height:44px;min-height:44px;border-radius:8px}
+ body.oe-orbital-mode .sidebar .nav-icon{width:35px;min-width:35px;height:35px}
+ body.oe-orbital-mode .sidebar .nav-link .ui-icon{width:20px;height:20px}
+ body.oe-orbital-mode #inspector{position:absolute;z-index:8;top:14px;bottom:12px;right:14px;width:338px;max-width:calc(100vw - 290px);background:#091a2aee;box-shadow:0 15px 48px #000c;border:1px solid #47687a;border-radius:10px;overflow-y:auto}
+ body.oe-orbital-mode .solar-planet-panel{left:14px;right:auto;top:79px;width:183px;max-height:calc(100% - 125px);z-index:6}
+ body.oe-orbital-mode .solar-detail-panel{display:none}
+ body.oe-orbital-mode .solar-view-header{padding-right:352px}
+ body.oe-orbital-mode .map-top{padding-right:345px}
+ body.oe-orbital-mode .solar-instructions{left:210px}
+}
+@media(min-width:951px) and (max-width:1260px){
+ body.oe-orbital-mode #inspector{width:288px}
+ body.oe-orbital-mode .solar-view-header{padding-right:298px}
+ body.oe-orbital-mode .map-top{padding-right:295px}
+ body.oe-orbital-mode .oe-focused-planet-art{width:48%;left:44%}
+ body.oe-orbital-mode .oe-focus-caption{left:200px;max-width:calc(100% - 525px)}
+}
+@media(max-width:950px){
+ .oe-mode-tabs button{padding:7px 9px}
+ .oe-focused-planet-art{top:35%;left:50%;width:min(80%,450px)}
+ .oe-focus-caption{left:8px;right:8px;bottom:6px;max-width:none;padding:10px 13px}
+ .oe-focus-caption h2{font-size:24px}
+ .oe-focus-income{margin-top:5px}
+}
+@media(max-width:550px){
+ .solar-view-header .solar-system-identifier{display:none}
+ .oe-mode-tabs{margin-left:auto}
+ .oe-mode-tabs button{font-size:9px;padding:7px;min-width:52px}
+ .oe-focus-caption h2{font-size:20px}
+ .oe-focused-planet-art{top:29%;width:min(83%,325px)}
+ .oe-focus-income{display:none}
+}
