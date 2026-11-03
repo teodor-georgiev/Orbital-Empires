@@ -1,0 +1,3033 @@
+{
+  "version": 1,
+  "grid": "32x32",
+  "categories": [
+    "command",
+    "economy",
+    "materials",
+    "worlds",
+    "features",
+    "surface",
+    "orbital",
+    "ships",
+    "modules",
+    "weapons",
+    "defense",
+    "technology",
+    "sciences",
+    "traditions",
+    "policies",
+    "government",
+    "diplomacy",
+    "espionage",
+    "population",
+    "colonization",
+    "exploration",
+    "anomalies",
+    "map",
+    "status",
+    "actions"
+  ],
+  "icons": [
+    {
+      "id": "command-galaxy-map",
+      "label": "Galaxy map",
+      "category": "command",
+      "index": 0
+    },
+    {
+      "id": "command-sector-command",
+      "label": "Sector command",
+      "category": "command",
+      "index": 1
+    },
+    {
+      "id": "command-star-system",
+      "label": "Star system",
+      "category": "command",
+      "index": 2
+    },
+    {
+      "id": "command-planet-focus",
+      "label": "Planet focus",
+      "category": "command",
+      "index": 3
+    },
+    {
+      "id": "command-empire-overview",
+      "label": "Empire overview",
+      "category": "command",
+      "index": 4
+    },
+    {
+      "id": "command-command-bridge",
+      "label": "Command bridge",
+      "category": "command",
+      "index": 5
+    },
+    {
+      "id": "command-fleet-dispatch",
+      "label": "Fleet dispatch",
+      "category": "command",
+      "index": 6
+    },
+    {
+      "id": "command-colony-manager",
+      "label": "Colony manager",
+      "category": "command",
+      "index": 7
+    },
+    {
+      "id": "command-research-council",
+      "label": "Research council",
+      "category": "command",
+      "index": 8
+    },
+    {
+      "id": "command-tradition-tree",
+      "label": "Tradition tree",
+      "category": "command",
+      "index": 9
+    },
+    {
+      "id": "command-policy-chamber",
+      "label": "Policy chamber",
+      "category": "command",
+      "index": 10
+    },
+    {
+      "id": "command-government-council",
+      "label": "Government council",
+      "category": "command",
+      "index": 11
+    },
+    {
+      "id": "command-diplomatic-corps",
+      "label": "Diplomatic corps",
+      "category": "command",
+      "index": 12
+    },
+    {
+      "id": "command-espionage-bureau",
+      "label": "Espionage bureau",
+      "category": "command",
+      "index": 13
+    },
+    {
+      "id": "command-trade-hub",
+      "label": "Trade hub",
+      "category": "command",
+      "index": 14
+    },
+    {
+      "id": "command-ship-designer",
+      "label": "Ship designer",
+      "category": "command",
+      "index": 15
+    },
+    {
+      "id": "command-military-ledger",
+      "label": "Military ledger",
+      "category": "command",
+      "index": 16
+    },
+    {
+      "id": "command-event-log",
+      "label": "Event log",
+      "category": "command",
+      "index": 17
+    },
+    {
+      "id": "command-victory-report",
+      "label": "Victory report",
+      "category": "command",
+      "index": 18
+    },
+    {
+      "id": "command-game-settings",
+      "label": "Game settings",
+      "category": "command",
+      "index": 19
+    },
+    {
+      "id": "economy-credits",
+      "label": "Credits",
+      "category": "economy",
+      "index": 0
+    },
+    {
+      "id": "economy-income",
+      "label": "Income",
+      "category": "economy",
+      "index": 1
+    },
+    {
+      "id": "economy-expenditure",
+      "label": "Expenditure",
+      "category": "economy",
+      "index": 2
+    },
+    {
+      "id": "economy-treasury",
+      "label": "Treasury",
+      "category": "economy",
+      "index": 3
+    },
+    {
+      "id": "economy-taxes",
+      "label": "Taxes",
+      "category": "economy",
+      "index": 4
+    },
+    {
+      "id": "economy-trade-surplus",
+      "label": "Trade surplus",
+      "category": "economy",
+      "index": 5
+    },
+    {
+      "id": "economy-imports",
+      "label": "Imports",
+      "category": "economy",
+      "index": 6
+    },
+    {
+      "id": "economy-exports",
+      "label": "Exports",
+      "category": "economy",
+      "index": 7
+    },
+    {
+      "id": "economy-logistics",
+      "label": "Logistics",
+      "category": "economy",
+      "index": 8
+    },
+    {
+      "id": "economy-market-prices",
+      "label": "Market prices",
+      "category": "economy",
+      "index": 9
+    },
+    {
+      "id": "economy-production",
+      "label": "Production",
+      "category": "economy",
+      "index": 10
+    },
+    {
+      "id": "economy-maintenance",
+      "label": "Maintenance",
+      "category": "economy",
+      "index": 11
+    },
+    {
+      "id": "economy-efficiency",
+      "label": "Efficiency",
+      "category": "economy",
+      "index": 12
+    },
+    {
+      "id": "economy-stockpile",
+      "label": "Stockpile",
+      "category": "economy",
+      "index": 13
+    },
+    {
+      "id": "economy-scarcity",
+      "label": "Scarcity",
+      "category": "economy",
+      "index": 14
+    },
+    {
+      "id": "economy-prosperity",
+      "label": "Prosperity",
+      "category": "economy",
+      "index": 15
+    },
+    {
+      "id": "economy-economic-growth",
+      "label": "Economic growth",
+      "category": "economy",
+      "index": 16
+    },
+    {
+      "id": "economy-budget",
+      "label": "Budget",
+      "category": "economy",
+      "index": 17
+    },
+    {
+      "id": "economy-investments",
+      "label": "Investments",
+      "category": "economy",
+      "index": 18
+    },
+    {
+      "id": "economy-commerce",
+      "label": "Commerce",
+      "category": "economy",
+      "index": 19
+    },
+    {
+      "id": "materials-alloys",
+      "label": "Alloys",
+      "category": "materials",
+      "index": 0
+    },
+    {
+      "id": "materials-titanium",
+      "label": "Titanium",
+      "category": "materials",
+      "index": 1
+    },
+    {
+      "id": "materials-iron",
+      "label": "Iron",
+      "category": "materials",
+      "index": 2
+    },
+    {
+      "id": "materials-copper",
+      "label": "Copper",
+      "category": "materials",
+      "index": 3
+    },
+    {
+      "id": "materials-silicon",
+      "label": "Silicon",
+      "category": "materials",
+      "index": 4
+    },
+    {
+      "id": "materials-rare-earths",
+      "label": "Rare earths",
+      "category": "materials",
+      "index": 5
+    },
+    {
+      "id": "materials-exotic-gases",
+      "label": "Exotic gases",
+      "category": "materials",
+      "index": 6
+    },
+    {
+      "id": "materials-volatile-motes",
+      "label": "Volatile motes",
+      "category": "materials",
+      "index": 7
+    },
+    {
+      "id": "materials-crystals",
+      "label": "Crystals",
+      "category": "materials",
+      "index": 8
+    },
+    {
+      "id": "materials-dark-matter",
+      "label": "Dark matter",
+      "category": "materials",
+      "index": 9
+    },
+    {
+      "id": "materials-antimatter",
+      "label": "Antimatter",
+      "category": "materials",
+      "index": 10
+    },
+    {
+      "id": "materials-deuterium",
+      "label": "Deuterium",
+      "category": "materials",
+      "index": 11
+    },
+    {
+      "id": "materials-uranium",
+      "label": "Uranium",
+      "category": "materials",
+      "index": 12
+    },
+    {
+      "id": "materials-nanites",
+      "label": "Nanites",
+      "category": "materials",
+      "index": 13
+    },
+    {
+      "id": "materials-biomass",
+      "label": "Biomass",
+      "category": "materials",
+      "index": 14
+    },
+    {
+      "id": "materials-water-ice",
+      "label": "Water ice",
+      "category": "materials",
+      "index": 15
+    },
+    {
+      "id": "materials-hydrogen",
+      "label": "Hydrogen",
+      "category": "materials",
+      "index": 16
+    },
+    {
+      "id": "materials-plasma",
+      "label": "Plasma",
+      "category": "materials",
+      "index": 17
+    },
+    {
+      "id": "materials-living-metal",
+      "label": "Living metal",
+      "category": "materials",
+      "index": 18
+    },
+    {
+      "id": "materials-ancient-relics",
+      "label": "Ancient relics",
+      "category": "materials",
+      "index": 19
+    },
+    {
+      "id": "worlds-terran",
+      "label": "Terran",
+      "category": "worlds",
+      "index": 0
+    },
+    {
+      "id": "worlds-oceanic",
+      "label": "Oceanic",
+      "category": "worlds",
+      "index": 1
+    },
+    {
+      "id": "worlds-desert",
+      "label": "Desert",
+      "category": "worlds",
+      "index": 2
+    },
+    {
+      "id": "worlds-arctic",
+      "label": "Arctic",
+      "category": "worlds",
+      "index": 3
+    },
+    {
+      "id": "worlds-jungle",
+      "label": "Jungle",
+      "category": "worlds",
+      "index": 4
+    },
+    {
+      "id": "worlds-volcanic",
+      "label": "Volcanic",
+      "category": "worlds",
+      "index": 5
+    },
+    {
+      "id": "worlds-barren",
+      "label": "Barren",
+      "category": "worlds",
+      "index": 6
+    },
+    {
+      "id": "worlds-gas-giant",
+      "label": "Gas giant",
+      "category": "worlds",
+      "index": 7
+    },
+    {
+      "id": "worlds-ice-giant",
+      "label": "Ice giant",
+      "category": "worlds",
+      "index": 8
+    },
+    {
+      "id": "worlds-toxic",
+      "label": "Toxic",
+      "category": "worlds",
+      "index": 9
+    },
+    {
+      "id": "worlds-tundra",
+      "label": "Tundra",
+      "category": "worlds",
+      "index": 10
+    },
+    {
+      "id": "worlds-savanna",
+      "label": "Savanna",
+      "category": "worlds",
+      "index": 11
+    },
+    {
+      "id": "worlds-alpine",
+      "label": "Alpine",
+      "category": "worlds",
+      "index": 12
+    },
+    {
+      "id": "worlds-archipelago",
+      "label": "Archipelago",
+      "category": "worlds",
+      "index": 13
+    },
+    {
+      "id": "worlds-tidally-locked",
+      "label": "Tidally locked",
+      "category": "worlds",
+      "index": 14
+    },
+    {
+      "id": "worlds-rogue-planet",
+      "label": "Rogue planet",
+      "category": "worlds",
+      "index": 15
+    },
+    {
+      "id": "worlds-gaia",
+      "label": "Gaia",
+      "category": "worlds",
+      "index": 16
+    },
+    {
+      "id": "worlds-ecumenopolis",
+      "label": "Ecumenopolis",
+      "category": "worlds",
+      "index": 17
+    },
+    {
+      "id": "worlds-machine-world",
+      "label": "Machine world",
+      "category": "worlds",
+      "index": 18
+    },
+    {
+      "id": "worlds-hive-world",
+      "label": "Hive world",
+      "category": "worlds",
+      "index": 19
+    },
+    {
+      "id": "features-ancient-ruins",
+      "label": "Ancient ruins",
+      "category": "features",
+      "index": 0
+    },
+    {
+      "id": "features-fertile-valleys",
+      "label": "Fertile valleys",
+      "category": "features",
+      "index": 1
+    },
+    {
+      "id": "features-crystal-caves",
+      "label": "Crystal caves",
+      "category": "features",
+      "index": 2
+    },
+    {
+      "id": "features-volcanic-vents",
+      "label": "Volcanic vents",
+      "category": "features",
+      "index": 3
+    },
+    {
+      "id": "features-great-ocean",
+      "label": "Great ocean",
+      "category": "features",
+      "index": 4
+    },
+    {
+      "id": "features-ice-sheets",
+      "label": "Ice sheets",
+      "category": "features",
+      "index": 5
+    },
+    {
+      "id": "features-dense-forests",
+      "label": "Dense forests",
+      "category": "features",
+      "index": 6
+    },
+    {
+      "id": "features-desert-dunes",
+      "label": "Desert dunes",
+      "category": "features",
+      "index": 7
+    },
+    {
+      "id": "features-magnetic-storm",
+      "label": "Magnetic storm",
+      "category": "features",
+      "index": 8
+    },
+    {
+      "id": "features-mountain-range",
+      "label": "Mountain range",
+      "category": "features",
+      "index": 9
+    },
+    {
+      "id": "features-floating-islands",
+      "label": "Floating islands",
+      "category": "features",
+      "index": 10
+    },
+    {
+      "id": "features-toxic-bog",
+      "label": "Toxic bog",
+      "category": "features",
+      "index": 11
+    },
+    {
+      "id": "features-canyon-system",
+      "label": "Canyon system",
+      "category": "features",
+      "index": 12
+    },
+    {
+      "id": "features-subsurface-sea",
+      "label": "Subsurface sea",
+      "category": "features",
+      "index": 13
+    },
+    {
+      "id": "features-rich-asteroid-belt",
+      "label": "Rich asteroid belt",
+      "category": "features",
+      "index": 14
+    },
+    {
+      "id": "features-rare-fauna",
+      "label": "Rare fauna",
+      "category": "features",
+      "index": 15
+    },
+    {
+      "id": "features-geothermal-field",
+      "label": "Geothermal field",
+      "category": "features",
+      "index": 16
+    },
+    {
+      "id": "features-radiation-belt",
+      "label": "Radiation belt",
+      "category": "features",
+      "index": 17
+    },
+    {
+      "id": "features-precursor-archive",
+      "label": "Precursor archive",
+      "category": "features",
+      "index": 18
+    },
+    {
+      "id": "features-orbital-garden",
+      "label": "Orbital garden",
+      "category": "features",
+      "index": 19
+    },
+    {
+      "id": "surface-capital-hall",
+      "label": "Capital hall",
+      "category": "surface",
+      "index": 0
+    },
+    {
+      "id": "surface-foundry",
+      "label": "Foundry",
+      "category": "surface",
+      "index": 1
+    },
+    {
+      "id": "surface-research-lab",
+      "label": "Research lab",
+      "category": "surface",
+      "index": 2
+    },
+    {
+      "id": "surface-power-plant",
+      "label": "Power plant",
+      "category": "surface",
+      "index": 3
+    },
+    {
+      "id": "surface-farm-dome",
+      "label": "Farm dome",
+      "category": "surface",
+      "index": 4
+    },
+    {
+      "id": "surface-mining-complex",
+      "label": "Mining complex",
+      "category": "surface",
+      "index": 5
+    },
+    {
+      "id": "surface-civilian-factory",
+      "label": "Civilian factory",
+      "category": "surface",
+      "index": 6
+    },
+    {
+      "id": "surface-housing-district",
+      "label": "Housing district",
+      "category": "surface",
+      "index": 7
+    },
+    {
+      "id": "surface-medical-center",
+      "label": "Medical center",
+      "category": "surface",
+      "index": 8
+    },
+    {
+      "id": "surface-university",
+      "label": "University",
+      "category": "surface",
+      "index": 9
+    },
+    {
+      "id": "surface-temple",
+      "label": "Temple",
+      "category": "surface",
+      "index": 10
+    },
+    {
+      "id": "surface-administrative-center",
+      "label": "Administrative center",
+      "category": "surface",
+      "index": 11
+    },
+    {
+      "id": "surface-security-office",
+      "label": "Security office",
+      "category": "surface",
+      "index": 12
+    },
+    {
+      "id": "surface-trade-exchange",
+      "label": "Trade exchange",
+      "category": "surface",
+      "index": 13
+    },
+    {
+      "id": "surface-spaceport",
+      "label": "Spaceport",
+      "category": "surface",
+      "index": 14
+    },
+    {
+      "id": "surface-hydroponic-farm",
+      "label": "Hydroponic farm",
+      "category": "surface",
+      "index": 15
+    },
+    {
+      "id": "surface-terraforming-plant",
+      "label": "Terraforming plant",
+      "category": "surface",
+      "index": 16
+    },
+    {
+      "id": "surface-defense-battery",
+      "label": "Defense battery",
+      "category": "surface",
+      "index": 17
+    },
+    {
+      "id": "surface-unity-monument",
+      "label": "Unity monument",
+      "category": "surface",
+      "index": 18
+    },
+    {
+      "id": "surface-automated-assembler",
+      "label": "Automated assembler",
+      "category": "surface",
+      "index": 19
+    },
+    {
+      "id": "orbital-orbital-shipyard",
+      "label": "Orbital shipyard",
+      "category": "orbital",
+      "index": 0
+    },
+    {
+      "id": "orbital-research-station",
+      "label": "Research station",
+      "category": "orbital",
+      "index": 1
+    },
+    {
+      "id": "orbital-mining-station",
+      "label": "Mining station",
+      "category": "orbital",
+      "index": 2
+    },
+    {
+      "id": "orbital-observation-post",
+      "label": "Observation post",
+      "category": "orbital",
+      "index": 3
+    },
+    {
+      "id": "orbital-defense-platform",
+      "label": "Defense platform",
+      "category": "orbital",
+      "index": 4
+    },
+    {
+      "id": "orbital-relay-satellite",
+      "label": "Relay satellite",
+      "category": "orbital",
+      "index": 5
+    },
+    {
+      "id": "orbital-habitat-module",
+      "label": "Habitat module",
+      "category": "orbital",
+      "index": 6
+    },
+    {
+      "id": "orbital-trade-depot",
+      "label": "Trade depot",
+      "category": "orbital",
+      "index": 7
+    },
+    {
+      "id": "orbital-fuel-depot",
+      "label": "Fuel depot",
+      "category": "orbital",
+      "index": 8
+    },
+    {
+      "id": "orbital-sensor-array",
+      "label": "Sensor array",
+      "category": "orbital",
+      "index": 9
+    },
+    {
+      "id": "orbital-starbase-core",
+      "label": "Starbase core",
+      "category": "orbital",
+      "index": 10
+    },
+    {
+      "id": "orbital-docking-station",
+      "label": "Docking station",
+      "category": "orbital",
+      "index": 11
+    },
+    {
+      "id": "orbital-solar-collector",
+      "label": "Solar collector",
+      "category": "orbital",
+      "index": 12
+    },
+    {
+      "id": "orbital-ship-repair",
+      "label": "Ship repair",
+      "category": "orbital",
+      "index": 13
+    },
+    {
+      "id": "orbital-fleet-academy",
+      "label": "Fleet academy",
+      "category": "orbital",
+      "index": 14
+    },
+    {
+      "id": "orbital-asteroid-refinery",
+      "label": "Asteroid refinery",
+      "category": "orbital",
+      "index": 15
+    },
+    {
+      "id": "orbital-comet-harvester",
+      "label": "Comet harvester",
+      "category": "orbital",
+      "index": 16
+    },
+    {
+      "id": "orbital-orbital-elevator",
+      "label": "Orbital elevator",
+      "category": "orbital",
+      "index": 17
+    },
+    {
+      "id": "orbital-gateway-anchor",
+      "label": "Gateway anchor",
+      "category": "orbital",
+      "index": 18
+    },
+    {
+      "id": "orbital-ringworld-segment",
+      "label": "Ringworld segment",
+      "category": "orbital",
+      "index": 19
+    },
+    {
+      "id": "ships-scout",
+      "label": "Scout",
+      "category": "ships",
+      "index": 0
+    },
+    {
+      "id": "ships-corvette",
+      "label": "Corvette",
+      "category": "ships",
+      "index": 1
+    },
+    {
+      "id": "ships-frigate",
+      "label": "Frigate",
+      "category": "ships",
+      "index": 2
+    },
+    {
+      "id": "ships-destroyer",
+      "label": "Destroyer",
+      "category": "ships",
+      "index": 3
+    },
+    {
+      "id": "ships-cruiser",
+      "label": "Cruiser",
+      "category": "ships",
+      "index": 4
+    },
+    {
+      "id": "ships-battleship",
+      "label": "Battleship",
+      "category": "ships",
+      "index": 5
+    },
+    {
+      "id": "ships-carrier",
+      "label": "Carrier",
+      "category": "ships",
+      "index": 6
+    },
+    {
+      "id": "ships-dreadnought",
+      "label": "Dreadnought",
+      "category": "ships",
+      "index": 7
+    },
+    {
+      "id": "ships-science-vessel",
+      "label": "Science vessel",
+      "category": "ships",
+      "index": 8
+    },
+    {
+      "id": "ships-construction-ship",
+      "label": "Construction ship",
+      "category": "ships",
+      "index": 9
+    },
+    {
+      "id": "ships-colony-ship",
+      "label": "Colony ship",
+      "category": "ships",
+      "index": 10
+    },
+    {
+      "id": "ships-transport-ship",
+      "label": "Transport ship",
+      "category": "ships",
+      "index": 11
+    },
+    {
+      "id": "ships-tanker",
+      "label": "Tanker",
+      "category": "ships",
+      "index": 12
+    },
+    {
+      "id": "ships-freighter",
+      "label": "Freighter",
+      "category": "ships",
+      "index": 13
+    },
+    {
+      "id": "ships-interceptor",
+      "label": "Interceptor",
+      "category": "ships",
+      "index": 14
+    },
+    {
+      "id": "ships-bomber",
+      "label": "Bomber",
+      "category": "ships",
+      "index": 15
+    },
+    {
+      "id": "ships-patrol-craft",
+      "label": "Patrol craft",
+      "category": "ships",
+      "index": 16
+    },
+    {
+      "id": "ships-flagship",
+      "label": "Flagship",
+      "category": "ships",
+      "index": 17
+    },
+    {
+      "id": "ships-diplomatic-envoy",
+      "label": "Diplomatic envoy",
+      "category": "ships",
+      "index": 18
+    },
+    {
+      "id": "ships-drone-swarm",
+      "label": "Drone swarm",
+      "category": "ships",
+      "index": 19
+    },
+    {
+      "id": "modules-fusion-reactor",
+      "label": "Fusion reactor",
+      "category": "modules",
+      "index": 0
+    },
+    {
+      "id": "modules-ion-thruster",
+      "label": "Ion thruster",
+      "category": "modules",
+      "index": 1
+    },
+    {
+      "id": "modules-hyperdrive",
+      "label": "Hyperdrive",
+      "category": "modules",
+      "index": 2
+    },
+    {
+      "id": "modules-jump-drive",
+      "label": "Jump drive",
+      "category": "modules",
+      "index": 3
+    },
+    {
+      "id": "modules-shield-generator",
+      "label": "Shield generator",
+      "category": "modules",
+      "index": 4
+    },
+    {
+      "id": "modules-armor-plating",
+      "label": "Armor plating",
+      "category": "modules",
+      "index": 5
+    },
+    {
+      "id": "modules-targeting-sensor",
+      "label": "Targeting sensor",
+      "category": "modules",
+      "index": 6
+    },
+    {
+      "id": "modules-cargo-bay",
+      "label": "Cargo bay",
+      "category": "modules",
+      "index": 7
+    },
+    {
+      "id": "modules-hangar-deck",
+      "label": "Hangar deck",
+      "category": "modules",
+      "index": 8
+    },
+    {
+      "id": "modules-repair-bay",
+      "label": "Repair bay",
+      "category": "modules",
+      "index": 9
+    },
+    {
+      "id": "modules-electronic-warfare",
+      "label": "Electronic warfare",
+      "category": "modules",
+      "index": 10
+    },
+    {
+      "id": "modules-stealth-coating",
+      "label": "Stealth coating",
+      "category": "modules",
+      "index": 11
+    },
+    {
+      "id": "modules-survey-scanner",
+      "label": "Survey scanner",
+      "category": "modules",
+      "index": 12
+    },
+    {
+      "id": "modules-colonization-pod",
+      "label": "Colonization pod",
+      "category": "modules",
+      "index": 13
+    },
+    {
+      "id": "modules-fuel-tank",
+      "label": "Fuel tank",
+      "category": "modules",
+      "index": 14
+    },
+    {
+      "id": "modules-quantum-computer",
+      "label": "Quantum computer",
+      "category": "modules",
+      "index": 15
+    },
+    {
+      "id": "modules-crew-quarters",
+      "label": "Crew quarters",
+      "category": "modules",
+      "index": 16
+    },
+    {
+      "id": "modules-drone-control",
+      "label": "Drone control",
+      "category": "modules",
+      "index": 17
+    },
+    {
+      "id": "modules-radiator-array",
+      "label": "Radiator array",
+      "category": "modules",
+      "index": 18
+    },
+    {
+      "id": "modules-navigation-core",
+      "label": "Navigation core",
+      "category": "modules",
+      "index": 19
+    },
+    {
+      "id": "weapons-laser",
+      "label": "Laser",
+      "category": "weapons",
+      "index": 0
+    },
+    {
+      "id": "weapons-plasma-cannon",
+      "label": "Plasma cannon",
+      "category": "weapons",
+      "index": 1
+    },
+    {
+      "id": "weapons-railgun",
+      "label": "Railgun",
+      "category": "weapons",
+      "index": 2
+    },
+    {
+      "id": "weapons-mass-driver",
+      "label": "Mass driver",
+      "category": "weapons",
+      "index": 3
+    },
+    {
+      "id": "weapons-missile",
+      "label": "Missile",
+      "category": "weapons",
+      "index": 4
+    },
+    {
+      "id": "weapons-torpedo",
+      "label": "Torpedo",
+      "category": "weapons",
+      "index": 5
+    },
+    {
+      "id": "weapons-particle-beam",
+      "label": "Particle beam",
+      "category": "weapons",
+      "index": 6
+    },
+    {
+      "id": "weapons-disruptor",
+      "label": "Disruptor",
+      "category": "weapons",
+      "index": 7
+    },
+    {
+      "id": "weapons-flak-cannon",
+      "label": "Flak cannon",
+      "category": "weapons",
+      "index": 8
+    },
+    {
+      "id": "weapons-point-defense",
+      "label": "Point defense",
+      "category": "weapons",
+      "index": 9
+    },
+    {
+      "id": "weapons-ion-blaster",
+      "label": "Ion blaster",
+      "category": "weapons",
+      "index": 10
+    },
+    {
+      "id": "weapons-graviton-beam",
+      "label": "Graviton beam",
+      "category": "weapons",
+      "index": 11
+    },
+    {
+      "id": "weapons-neutron-lance",
+      "label": "Neutron lance",
+      "category": "weapons",
+      "index": 12
+    },
+    {
+      "id": "weapons-arc-emitter",
+      "label": "Arc emitter",
+      "category": "weapons",
+      "index": 13
+    },
+    {
+      "id": "weapons-kinetic-artillery",
+      "label": "Kinetic artillery",
+      "category": "weapons",
+      "index": 14
+    },
+    {
+      "id": "weapons-proton-launcher",
+      "label": "Proton launcher",
+      "category": "weapons",
+      "index": 15
+    },
+    {
+      "id": "weapons-antimatter-bomb",
+      "label": "Antimatter bomb",
+      "category": "weapons",
+      "index": 16
+    },
+    {
+      "id": "weapons-drone-strike",
+      "label": "Drone strike",
+      "category": "weapons",
+      "index": 17
+    },
+    {
+      "id": "weapons-pulse-laser",
+      "label": "Pulse laser",
+      "category": "weapons",
+      "index": 18
+    },
+    {
+      "id": "weapons-autocannon",
+      "label": "Autocannon",
+      "category": "weapons",
+      "index": 19
+    },
+    {
+      "id": "defense-deflector-shield",
+      "label": "Deflector shield",
+      "category": "defense",
+      "index": 0
+    },
+    {
+      "id": "defense-armor-shell",
+      "label": "Armor shell",
+      "category": "defense",
+      "index": 1
+    },
+    {
+      "id": "defense-hull-plating",
+      "label": "Hull plating",
+      "category": "defense",
+      "index": 2
+    },
+    {
+      "id": "defense-point-defense",
+      "label": "Point defense",
+      "category": "defense",
+      "index": 3
+    },
+    {
+      "id": "defense-evasion-thrusters",
+      "label": "Evasion thrusters",
+      "category": "defense",
+      "index": 4
+    },
+    {
+      "id": "defense-barrier-field",
+      "label": "Barrier field",
+      "category": "defense",
+      "index": 5
+    },
+    {
+      "id": "defense-fortress",
+      "label": "Fortress",
+      "category": "defense",
+      "index": 6
+    },
+    {
+      "id": "defense-planetary-shield",
+      "label": "Planetary shield",
+      "category": "defense",
+      "index": 7
+    },
+    {
+      "id": "defense-interdiction-field",
+      "label": "Interdiction field",
+      "category": "defense",
+      "index": 8
+    },
+    {
+      "id": "defense-hardened-bulkhead",
+      "label": "Hardened bulkhead",
+      "category": "defense",
+      "index": 9
+    },
+    {
+      "id": "defense-repair-drones",
+      "label": "Repair drones",
+      "category": "defense",
+      "index": 10
+    },
+    {
+      "id": "defense-decoy-launcher",
+      "label": "Decoy launcher",
+      "category": "defense",
+      "index": 11
+    },
+    {
+      "id": "defense-counter-missile",
+      "label": "Counter missile",
+      "category": "defense",
+      "index": 12
+    },
+    {
+      "id": "defense-aegis-grid",
+      "label": "Aegis grid",
+      "category": "defense",
+      "index": 13
+    },
+    {
+      "id": "defense-combat-readiness",
+      "label": "Combat readiness",
+      "category": "defense",
+      "index": 14
+    },
+    {
+      "id": "defense-shield-recharge",
+      "label": "Shield recharge",
+      "category": "defense",
+      "index": 15
+    },
+    {
+      "id": "defense-emergency-jump",
+      "label": "Emergency jump",
+      "category": "defense",
+      "index": 16
+    },
+    {
+      "id": "defense-reinforcement",
+      "label": "Reinforcement",
+      "category": "defense",
+      "index": 17
+    },
+    {
+      "id": "defense-defense-doctrine",
+      "label": "Defense doctrine",
+      "category": "defense",
+      "index": 18
+    },
+    {
+      "id": "defense-garrison",
+      "label": "Garrison",
+      "category": "defense",
+      "index": 19
+    },
+    {
+      "id": "technology-stellar-survey",
+      "label": "Stellar survey",
+      "category": "technology",
+      "index": 0
+    },
+    {
+      "id": "technology-orbital-industry",
+      "label": "Orbital industry",
+      "category": "technology",
+      "index": 1
+    },
+    {
+      "id": "technology-fusion-grid",
+      "label": "Fusion grid",
+      "category": "technology",
+      "index": 2
+    },
+    {
+      "id": "technology-fleet-logistics",
+      "label": "Fleet logistics",
+      "category": "technology",
+      "index": 3
+    },
+    {
+      "id": "technology-quantum-laboratories",
+      "label": "Quantum laboratories",
+      "category": "technology",
+      "index": 4
+    },
+    {
+      "id": "technology-frontier-charters",
+      "label": "Frontier charters",
+      "category": "technology",
+      "index": 5
+    },
+    {
+      "id": "technology-synthetic-smelting",
+      "label": "Synthetic smelting",
+      "category": "technology",
+      "index": 6
+    },
+    {
+      "id": "technology-galactic-markets",
+      "label": "Galactic markets",
+      "category": "technology",
+      "index": 7
+    },
+    {
+      "id": "technology-shield-matrix",
+      "label": "Shield matrix",
+      "category": "technology",
+      "index": 8
+    },
+    {
+      "id": "technology-capital-shipyards",
+      "label": "Capital shipyards",
+      "category": "technology",
+      "index": 9
+    },
+    {
+      "id": "technology-terraforming",
+      "label": "Terraforming",
+      "category": "technology",
+      "index": 10
+    },
+    {
+      "id": "technology-stellar-nexus",
+      "label": "Stellar nexus",
+      "category": "technology",
+      "index": 11
+    },
+    {
+      "id": "technology-cultural-networks",
+      "label": "Cultural networks",
+      "category": "technology",
+      "index": 12
+    },
+    {
+      "id": "technology-frontier-habitats",
+      "label": "Frontier habitats",
+      "category": "technology",
+      "index": 13
+    },
+    {
+      "id": "technology-exotic-materials",
+      "label": "Exotic materials",
+      "category": "technology",
+      "index": 14
+    },
+    {
+      "id": "technology-civic-administration",
+      "label": "Civic administration",
+      "category": "technology",
+      "index": 15
+    },
+    {
+      "id": "technology-hyperspace-sensors",
+      "label": "Hyperspace sensors",
+      "category": "technology",
+      "index": 16
+    },
+    {
+      "id": "technology-gene-tailoring",
+      "label": "Gene tailoring",
+      "category": "technology",
+      "index": 17
+    },
+    {
+      "id": "technology-machine-learning",
+      "label": "Machine learning",
+      "category": "technology",
+      "index": 18
+    },
+    {
+      "id": "technology-void-engineering",
+      "label": "Void engineering",
+      "category": "technology",
+      "index": 19
+    },
+    {
+      "id": "sciences-physics",
+      "label": "Physics",
+      "category": "sciences",
+      "index": 0
+    },
+    {
+      "id": "sciences-chemistry",
+      "label": "Chemistry",
+      "category": "sciences",
+      "index": 1
+    },
+    {
+      "id": "sciences-biology",
+      "label": "Biology",
+      "category": "sciences",
+      "index": 2
+    },
+    {
+      "id": "sciences-astronomy",
+      "label": "Astronomy",
+      "category": "sciences",
+      "index": 3
+    },
+    {
+      "id": "sciences-geology",
+      "label": "Geology",
+      "category": "sciences",
+      "index": 4
+    },
+    {
+      "id": "sciences-engineering",
+      "label": "Engineering",
+      "category": "sciences",
+      "index": 5
+    },
+    {
+      "id": "sciences-computing",
+      "label": "Computing",
+      "category": "sciences",
+      "index": 6
+    },
+    {
+      "id": "sciences-mathematics",
+      "label": "Mathematics",
+      "category": "sciences",
+      "index": 7
+    },
+    {
+      "id": "sciences-medicine",
+      "label": "Medicine",
+      "category": "sciences",
+      "index": 8
+    },
+    {
+      "id": "sciences-sociology",
+      "label": "Sociology",
+      "category": "sciences",
+      "index": 9
+    },
+    {
+      "id": "sciences-cybernetics",
+      "label": "Cybernetics",
+      "category": "sciences",
+      "index": 10
+    },
+    {
+      "id": "sciences-artificial-intelligence",
+      "label": "Artificial intelligence",
+      "category": "sciences",
+      "index": 11
+    },
+    {
+      "id": "sciences-astrophysics",
+      "label": "Astrophysics",
+      "category": "sciences",
+      "index": 12
+    },
+    {
+      "id": "sciences-materials-science",
+      "label": "Materials science",
+      "category": "sciences",
+      "index": 13
+    },
+    {
+      "id": "sciences-xenobiology",
+      "label": "Xenobiology",
+      "category": "sciences",
+      "index": 14
+    },
+    {
+      "id": "sciences-robotics",
+      "label": "Robotics",
+      "category": "sciences",
+      "index": 15
+    },
+    {
+      "id": "sciences-quantum-theory",
+      "label": "Quantum theory",
+      "category": "sciences",
+      "index": 16
+    },
+    {
+      "id": "sciences-neural-networks",
+      "label": "Neural networks",
+      "category": "sciences",
+      "index": 17
+    },
+    {
+      "id": "sciences-archaeology",
+      "label": "Archaeology",
+      "category": "sciences",
+      "index": 18
+    },
+    {
+      "id": "sciences-ecology",
+      "label": "Ecology",
+      "category": "sciences",
+      "index": 19
+    },
+    {
+      "id": "traditions-frontier-spirit",
+      "label": "Frontier spirit",
+      "category": "traditions",
+      "index": 0
+    },
+    {
+      "id": "traditions-pathfinders",
+      "label": "Pathfinders",
+      "category": "traditions",
+      "index": 1
+    },
+    {
+      "id": "traditions-settlers-covenant",
+      "label": "Settlers covenant",
+      "category": "traditions",
+      "index": 2
+    },
+    {
+      "id": "traditions-merchant-leagues",
+      "label": "Merchant leagues",
+      "category": "traditions",
+      "index": 3
+    },
+    {
+      "id": "traditions-orbital-artisans",
+      "label": "Orbital artisans",
+      "category": "traditions",
+      "index": 4
+    },
+    {
+      "id": "traditions-golden-age",
+      "label": "Golden age",
+      "category": "traditions",
+      "index": 5
+    },
+    {
+      "id": "traditions-scientific-method",
+      "label": "Scientific method",
+      "category": "traditions",
+      "index": 6
+    },
+    {
+      "id": "traditions-living-archives",
+      "label": "Living archives",
+      "category": "traditions",
+      "index": 7
+    },
+    {
+      "id": "traditions-cosmic-insight",
+      "label": "Cosmic insight",
+      "category": "traditions",
+      "index": 8
+    },
+    {
+      "id": "traditions-diplomatic-wisdom",
+      "label": "Diplomatic wisdom",
+      "category": "traditions",
+      "index": 9
+    },
+    {
+      "id": "traditions-martial-heritage",
+      "label": "Martial heritage",
+      "category": "traditions",
+      "index": 10
+    },
+    {
+      "id": "traditions-naval-honor",
+      "label": "Naval honor",
+      "category": "traditions",
+      "index": 11
+    },
+    {
+      "id": "traditions-unity-first",
+      "label": "Unity first",
+      "category": "traditions",
+      "index": 12
+    },
+    {
+      "id": "traditions-cultural-renaissance",
+      "label": "Cultural renaissance",
+      "category": "traditions",
+      "index": 13
+    },
+    {
+      "id": "traditions-exploration-charter",
+      "label": "Exploration charter",
+      "category": "traditions",
+      "index": 14
+    },
+    {
+      "id": "traditions-industrial-pride",
+      "label": "Industrial pride",
+      "category": "traditions",
+      "index": 15
+    },
+    {
+      "id": "traditions-colony-fellowship",
+      "label": "Colony fellowship",
+      "category": "traditions",
+      "index": 16
+    },
+    {
+      "id": "traditions-mutual-aid",
+      "label": "Mutual aid",
+      "category": "traditions",
+      "index": 17
+    },
+    {
+      "id": "traditions-innovation-legacy",
+      "label": "Innovation legacy",
+      "category": "traditions",
+      "index": 18
+    },
+    {
+      "id": "traditions-ancient-traditions",
+      "label": "Ancient traditions",
+      "category": "traditions",
+      "index": 19
+    },
+    {
+      "id": "policies-open-markets",
+      "label": "Open markets",
+      "category": "policies",
+      "index": 0
+    },
+    {
+      "id": "policies-directed-industry",
+      "label": "Directed industry",
+      "category": "policies",
+      "index": 1
+    },
+    {
+      "id": "policies-academic-freedom",
+      "label": "Academic freedom",
+      "category": "policies",
+      "index": 2
+    },
+    {
+      "id": "policies-civic-service",
+      "label": "Civic service",
+      "category": "policies",
+      "index": 3
+    },
+    {
+      "id": "policies-fleet-doctrine",
+      "label": "Fleet doctrine",
+      "category": "policies",
+      "index": 4
+    },
+    {
+      "id": "policies-diplomatic-corps",
+      "label": "Diplomatic corps",
+      "category": "policies",
+      "index": 5
+    },
+    {
+      "id": "policies-public-healthcare",
+      "label": "Public healthcare",
+      "category": "policies",
+      "index": 6
+    },
+    {
+      "id": "policies-scientific-funding",
+      "label": "Scientific funding",
+      "category": "policies",
+      "index": 7
+    },
+    {
+      "id": "policies-military-spending",
+      "label": "Military spending",
+      "category": "policies",
+      "index": 8
+    },
+    {
+      "id": "policies-open-borders",
+      "label": "Open borders",
+      "category": "policies",
+      "index": 9
+    },
+    {
+      "id": "policies-closed-borders",
+      "label": "Closed borders",
+      "category": "policies",
+      "index": 10
+    },
+    {
+      "id": "policies-migration-rights",
+      "label": "Migration rights",
+      "category": "policies",
+      "index": 11
+    },
+    {
+      "id": "policies-trade-tariffs",
+      "label": "Trade tariffs",
+      "category": "policies",
+      "index": 12
+    },
+    {
+      "id": "policies-environmental-care",
+      "label": "Environmental care",
+      "category": "policies",
+      "index": 13
+    },
+    {
+      "id": "policies-education-reform",
+      "label": "Education reform",
+      "category": "policies",
+      "index": 14
+    },
+    {
+      "id": "policies-industrial-subsidy",
+      "label": "Industrial subsidy",
+      "category": "policies",
+      "index": 15
+    },
+    {
+      "id": "policies-welfare-policy",
+      "label": "Welfare policy",
+      "category": "policies",
+      "index": 16
+    },
+    {
+      "id": "policies-central-planning",
+      "label": "Central planning",
+      "category": "policies",
+      "index": 17
+    },
+    {
+      "id": "policies-free-enterprise",
+      "label": "Free enterprise",
+      "category": "policies",
+      "index": 18
+    },
+    {
+      "id": "policies-civil-liberties",
+      "label": "Civil liberties",
+      "category": "policies",
+      "index": 19
+    },
+    {
+      "id": "government-directorate",
+      "label": "Directorate",
+      "category": "government",
+      "index": 0
+    },
+    {
+      "id": "government-parliament",
+      "label": "Parliament",
+      "category": "government",
+      "index": 1
+    },
+    {
+      "id": "government-technocracy",
+      "label": "Technocracy",
+      "category": "government",
+      "index": 2
+    },
+    {
+      "id": "government-imperium",
+      "label": "Imperium",
+      "category": "government",
+      "index": 3
+    },
+    {
+      "id": "government-council",
+      "label": "Council",
+      "category": "government",
+      "index": 4
+    },
+    {
+      "id": "government-senate",
+      "label": "Senate",
+      "category": "government",
+      "index": 5
+    },
+    {
+      "id": "government-chancellor",
+      "label": "Chancellor",
+      "category": "government",
+      "index": 6
+    },
+    {
+      "id": "government-admiralty",
+      "label": "Admiralty",
+      "category": "government",
+      "index": 7
+    },
+    {
+      "id": "government-federal-charter",
+      "label": "Federal charter",
+      "category": "government",
+      "index": 8
+    },
+    {
+      "id": "government-constitution",
+      "label": "Constitution",
+      "category": "government",
+      "index": 9
+    },
+    {
+      "id": "government-mandate",
+      "label": "Mandate",
+      "category": "government",
+      "index": 10
+    },
+    {
+      "id": "government-meritocracy",
+      "label": "Meritocracy",
+      "category": "government",
+      "index": 11
+    },
+    {
+      "id": "government-autonomy",
+      "label": "Autonomy",
+      "category": "government",
+      "index": 12
+    },
+    {
+      "id": "government-bureaucracy",
+      "label": "Bureaucracy",
+      "category": "government",
+      "index": 13
+    },
+    {
+      "id": "government-civil-service",
+      "label": "Civil service",
+      "category": "government",
+      "index": 14
+    },
+    {
+      "id": "government-representation",
+      "label": "Representation",
+      "category": "government",
+      "index": 15
+    },
+    {
+      "id": "government-public-works",
+      "label": "Public works",
+      "category": "government",
+      "index": 16
+    },
+    {
+      "id": "government-reform",
+      "label": "Reform",
+      "category": "government",
+      "index": 17
+    },
+    {
+      "id": "government-stability",
+      "label": "Stability",
+      "category": "government",
+      "index": 18
+    },
+    {
+      "id": "government-legitimacy",
+      "label": "Legitimacy",
+      "category": "government",
+      "index": 19
+    },
+    {
+      "id": "diplomacy-first-contact",
+      "label": "First contact",
+      "category": "diplomacy",
+      "index": 0
+    },
+    {
+      "id": "diplomacy-embassy",
+      "label": "Embassy",
+      "category": "diplomacy",
+      "index": 1
+    },
+    {
+      "id": "diplomacy-alliance",
+      "label": "Alliance",
+      "category": "diplomacy",
+      "index": 2
+    },
+    {
+      "id": "diplomacy-federation",
+      "label": "Federation",
+      "category": "diplomacy",
+      "index": 3
+    },
+    {
+      "id": "diplomacy-trade-treaty",
+      "label": "Trade treaty",
+      "category": "diplomacy",
+      "index": 4
+    },
+    {
+      "id": "diplomacy-nonaggression",
+      "label": "Nonaggression",
+      "category": "diplomacy",
+      "index": 5
+    },
+    {
+      "id": "diplomacy-peace-offer",
+      "label": "Peace offer",
+      "category": "diplomacy",
+      "index": 6
+    },
+    {
+      "id": "diplomacy-war-declaration",
+      "label": "War declaration",
+      "category": "diplomacy",
+      "index": 7
+    },
+    {
+      "id": "diplomacy-envoy",
+      "label": "Envoy",
+      "category": "diplomacy",
+      "index": 8
+    },
+    {
+      "id": "diplomacy-favor",
+      "label": "Favor",
+      "category": "diplomacy",
+      "index": 9
+    },
+    {
+      "id": "diplomacy-trust",
+      "label": "Trust",
+      "category": "diplomacy",
+      "index": 10
+    },
+    {
+      "id": "diplomacy-rivalry",
+      "label": "Rivalry",
+      "category": "diplomacy",
+      "index": 11
+    },
+    {
+      "id": "diplomacy-diplomatic-incident",
+      "label": "Diplomatic incident",
+      "category": "diplomacy",
+      "index": 12
+    },
+    {
+      "id": "diplomacy-negotiation",
+      "label": "Negotiation",
+      "category": "diplomacy",
+      "index": 13
+    },
+    {
+      "id": "diplomacy-ceasefire",
+      "label": "Ceasefire",
+      "category": "diplomacy",
+      "index": 14
+    },
+    {
+      "id": "diplomacy-tribute",
+      "label": "Tribute",
+      "category": "diplomacy",
+      "index": 15
+    },
+    {
+      "id": "diplomacy-protectorate",
+      "label": "Protectorate",
+      "category": "diplomacy",
+      "index": 16
+    },
+    {
+      "id": "diplomacy-open-borders",
+      "label": "Open borders",
+      "category": "diplomacy",
+      "index": 17
+    },
+    {
+      "id": "diplomacy-sanctions",
+      "label": "Sanctions",
+      "category": "diplomacy",
+      "index": 18
+    },
+    {
+      "id": "diplomacy-resolution",
+      "label": "Resolution",
+      "category": "diplomacy",
+      "index": 19
+    },
+    {
+      "id": "espionage-intelligence",
+      "label": "Intelligence",
+      "category": "espionage",
+      "index": 0
+    },
+    {
+      "id": "espionage-infiltration",
+      "label": "Infiltration",
+      "category": "espionage",
+      "index": 1
+    },
+    {
+      "id": "espionage-counterintelligence",
+      "label": "Counterintelligence",
+      "category": "espionage",
+      "index": 2
+    },
+    {
+      "id": "espionage-spy-network",
+      "label": "Spy network",
+      "category": "espionage",
+      "index": 3
+    },
+    {
+      "id": "espionage-sabotage",
+      "label": "Sabotage",
+      "category": "espionage",
+      "index": 4
+    },
+    {
+      "id": "espionage-codebreaking",
+      "label": "Codebreaking",
+      "category": "espionage",
+      "index": 5
+    },
+    {
+      "id": "espionage-covert-mission",
+      "label": "Covert mission",
+      "category": "espionage",
+      "index": 6
+    },
+    {
+      "id": "espionage-sleeper-cell",
+      "label": "Sleeper cell",
+      "category": "espionage",
+      "index": 7
+    },
+    {
+      "id": "espionage-surveillance",
+      "label": "Surveillance",
+      "category": "espionage",
+      "index": 8
+    },
+    {
+      "id": "espionage-reconnaissance",
+      "label": "Reconnaissance",
+      "category": "espionage",
+      "index": 9
+    },
+    {
+      "id": "espionage-disinformation",
+      "label": "Disinformation",
+      "category": "espionage",
+      "index": 10
+    },
+    {
+      "id": "espionage-secrets",
+      "label": "Secrets",
+      "category": "espionage",
+      "index": 11
+    },
+    {
+      "id": "espionage-encrypted-signal",
+      "label": "Encrypted signal",
+      "category": "espionage",
+      "index": 12
+    },
+    {
+      "id": "espionage-intercept",
+      "label": "Intercept",
+      "category": "espionage",
+      "index": 13
+    },
+    {
+      "id": "espionage-black-operation",
+      "label": "Black operation",
+      "category": "espionage",
+      "index": 14
+    },
+    {
+      "id": "espionage-agency",
+      "label": "Agency",
+      "category": "espionage",
+      "index": 15
+    },
+    {
+      "id": "espionage-extraction",
+      "label": "Extraction",
+      "category": "espionage",
+      "index": 16
+    },
+    {
+      "id": "espionage-undercover",
+      "label": "Undercover",
+      "category": "espionage",
+      "index": 17
+    },
+    {
+      "id": "espionage-signal-analysis",
+      "label": "Signal analysis",
+      "category": "espionage",
+      "index": 18
+    },
+    {
+      "id": "espionage-security-breach",
+      "label": "Security breach",
+      "category": "espionage",
+      "index": 19
+    },
+    {
+      "id": "population-population",
+      "label": "Population",
+      "category": "population",
+      "index": 0
+    },
+    {
+      "id": "population-growth",
+      "label": "Growth",
+      "category": "population",
+      "index": 1
+    },
+    {
+      "id": "population-capacity",
+      "label": "Capacity",
+      "category": "population",
+      "index": 2
+    },
+    {
+      "id": "population-happiness",
+      "label": "Happiness",
+      "category": "population",
+      "index": 3
+    },
+    {
+      "id": "population-approval",
+      "label": "Approval",
+      "category": "population",
+      "index": 4
+    },
+    {
+      "id": "population-stability",
+      "label": "Stability",
+      "category": "population",
+      "index": 5
+    },
+    {
+      "id": "population-loyalty",
+      "label": "Loyalty",
+      "category": "population",
+      "index": 6
+    },
+    {
+      "id": "population-housing",
+      "label": "Housing",
+      "category": "population",
+      "index": 7
+    },
+    {
+      "id": "population-migration",
+      "label": "Migration",
+      "category": "population",
+      "index": 8
+    },
+    {
+      "id": "population-employment",
+      "label": "Employment",
+      "category": "population",
+      "index": 9
+    },
+    {
+      "id": "population-healthcare",
+      "label": "Healthcare",
+      "category": "population",
+      "index": 10
+    },
+    {
+      "id": "population-education",
+      "label": "Education",
+      "category": "population",
+      "index": 11
+    },
+    {
+      "id": "population-food-supply",
+      "label": "Food supply",
+      "category": "population",
+      "index": 12
+    },
+    {
+      "id": "population-poverty",
+      "label": "Poverty",
+      "category": "population",
+      "index": 13
+    },
+    {
+      "id": "population-strata",
+      "label": "Strata",
+      "category": "population",
+      "index": 14
+    },
+    {
+      "id": "population-citizenship",
+      "label": "Citizenship",
+      "category": "population",
+      "index": 15
+    },
+    {
+      "id": "population-habitability",
+      "label": "Habitability",
+      "category": "population",
+      "index": 16
+    },
+    {
+      "id": "population-discontent",
+      "label": "Discontent",
+      "category": "population",
+      "index": 17
+    },
+    {
+      "id": "population-unrest",
+      "label": "Unrest",
+      "category": "population",
+      "index": 18
+    },
+    {
+      "id": "population-assimilation",
+      "label": "Assimilation",
+      "category": "population",
+      "index": 19
+    },
+    {
+      "id": "colonization-colonize",
+      "label": "Colonize",
+      "category": "colonization",
+      "index": 0
+    },
+    {
+      "id": "colonization-outpost",
+      "label": "Outpost",
+      "category": "colonization",
+      "index": 1
+    },
+    {
+      "id": "colonization-settler",
+      "label": "Settler",
+      "category": "colonization",
+      "index": 2
+    },
+    {
+      "id": "colonization-frontier",
+      "label": "Frontier",
+      "category": "colonization",
+      "index": 3
+    },
+    {
+      "id": "colonization-expansion",
+      "label": "Expansion",
+      "category": "colonization",
+      "index": 4
+    },
+    {
+      "id": "colonization-survey-rights",
+      "label": "Survey rights",
+      "category": "colonization",
+      "index": 5
+    },
+    {
+      "id": "colonization-resource-claim",
+      "label": "Resource claim",
+      "category": "colonization",
+      "index": 6
+    },
+    {
+      "id": "colonization-habitat",
+      "label": "Habitat",
+      "category": "colonization",
+      "index": 7
+    },
+    {
+      "id": "colonization-infrastructure",
+      "label": "Infrastructure",
+      "category": "colonization",
+      "index": 8
+    },
+    {
+      "id": "colonization-new-colony",
+      "label": "New colony",
+      "category": "colonization",
+      "index": 9
+    },
+    {
+      "id": "colonization-homeworld",
+      "label": "Homeworld",
+      "category": "colonization",
+      "index": 10
+    },
+    {
+      "id": "colonization-terraform",
+      "label": "Terraform",
+      "category": "colonization",
+      "index": 11
+    },
+    {
+      "id": "colonization-atmosphere",
+      "label": "Atmosphere",
+      "category": "colonization",
+      "index": 12
+    },
+    {
+      "id": "colonization-biosphere",
+      "label": "Biosphere",
+      "category": "colonization",
+      "index": 13
+    },
+    {
+      "id": "colonization-settlement",
+      "label": "Settlement",
+      "category": "colonization",
+      "index": 14
+    },
+    {
+      "id": "colonization-colony-tier",
+      "label": "Colony tier",
+      "category": "colonization",
+      "index": 15
+    },
+    {
+      "id": "colonization-production-queue",
+      "label": "Production queue",
+      "category": "colonization",
+      "index": 16
+    },
+    {
+      "id": "colonization-pioneer",
+      "label": "Pioneer",
+      "category": "colonization",
+      "index": 17
+    },
+    {
+      "id": "colonization-founding-charter",
+      "label": "Founding charter",
+      "category": "colonization",
+      "index": 18
+    },
+    {
+      "id": "colonization-territory",
+      "label": "Territory",
+      "category": "colonization",
+      "index": 19
+    },
+    {
+      "id": "exploration-survey",
+      "label": "Survey",
+      "category": "exploration",
+      "index": 0
+    },
+    {
+      "id": "exploration-anomaly",
+      "label": "Anomaly",
+      "category": "exploration",
+      "index": 1
+    },
+    {
+      "id": "exploration-star-chart",
+      "label": "Star chart",
+      "category": "exploration",
+      "index": 2
+    },
+    {
+      "id": "exploration-nebula",
+      "label": "Nebula",
+      "category": "exploration",
+      "index": 3
+    },
+    {
+      "id": "exploration-wormhole",
+      "label": "Wormhole",
+      "category": "exploration",
+      "index": 4
+    },
+    {
+      "id": "exploration-black-hole",
+      "label": "Black hole",
+      "category": "exploration",
+      "index": 5
+    },
+    {
+      "id": "exploration-pulsar",
+      "label": "Pulsar",
+      "category": "exploration",
+      "index": 6
+    },
+    {
+      "id": "exploration-supernova",
+      "label": "Supernova",
+      "category": "exploration",
+      "index": 7
+    },
+    {
+      "id": "exploration-comet",
+      "label": "Comet",
+      "category": "exploration",
+      "index": 8
+    },
+    {
+      "id": "exploration-asteroid",
+      "label": "Asteroid",
+      "category": "exploration",
+      "index": 9
+    },
+    {
+      "id": "exploration-derelict",
+      "label": "Derelict",
+      "category": "exploration",
+      "index": 10
+    },
+    {
+      "id": "exploration-alien-signal",
+      "label": "Alien signal",
+      "category": "exploration",
+      "index": 11
+    },
+    {
+      "id": "exploration-precursor-site",
+      "label": "Precursor site",
+      "category": "exploration",
+      "index": 12
+    },
+    {
+      "id": "exploration-artifact",
+      "label": "Artifact",
+      "category": "exploration",
+      "index": 13
+    },
+    {
+      "id": "exploration-rift",
+      "label": "Rift",
+      "category": "exploration",
+      "index": 14
+    },
+    {
+      "id": "exploration-unknown-system",
+      "label": "Unknown system",
+      "category": "exploration",
+      "index": 15
+    },
+    {
+      "id": "exploration-scanner",
+      "label": "Scanner",
+      "category": "exploration",
+      "index": 16
+    },
+    {
+      "id": "exploration-navigation-beacon",
+      "label": "Navigation beacon",
+      "category": "exploration",
+      "index": 17
+    },
+    {
+      "id": "exploration-route-planning",
+      "label": "Route planning",
+      "category": "exploration",
+      "index": 18
+    },
+    {
+      "id": "exploration-deep-space",
+      "label": "Deep space",
+      "category": "exploration",
+      "index": 19
+    },
+    {
+      "id": "anomalies-ancient-signal",
+      "label": "Ancient signal",
+      "category": "anomalies",
+      "index": 0
+    },
+    {
+      "id": "anomalies-abandoned-station",
+      "label": "Abandoned station",
+      "category": "anomalies",
+      "index": 1
+    },
+    {
+      "id": "anomalies-precursor-vault",
+      "label": "Precursor vault",
+      "category": "anomalies",
+      "index": 2
+    },
+    {
+      "id": "anomalies-distress-call",
+      "label": "Distress call",
+      "category": "anomalies",
+      "index": 3
+    },
+    {
+      "id": "anomalies-hostile-fauna",
+      "label": "Hostile fauna",
+      "category": "anomalies",
+      "index": 4
+    },
+    {
+      "id": "anomalies-spatial-rift",
+      "label": "Spatial rift",
+      "category": "anomalies",
+      "index": 5
+    },
+    {
+      "id": "anomalies-solar-flare",
+      "label": "Solar flare",
+      "category": "anomalies",
+      "index": 6
+    },
+    {
+      "id": "anomalies-comet-tail",
+      "label": "Comet tail",
+      "category": "anomalies",
+      "index": 7
+    },
+    {
+      "id": "anomalies-black-hole-pulse",
+      "label": "Black hole pulse",
+      "category": "anomalies",
+      "index": 8
+    },
+    {
+      "id": "anomalies-mysterious-ship",
+      "label": "Mysterious ship",
+      "category": "anomalies",
+      "index": 9
+    },
+    {
+      "id": "anomalies-strange-moon",
+      "label": "Strange moon",
+      "category": "anomalies",
+      "index": 10
+    },
+    {
+      "id": "anomalies-cosmic-storm",
+      "label": "Cosmic storm",
+      "category": "anomalies",
+      "index": 11
+    },
+    {
+      "id": "anomalies-dark-nebula",
+      "label": "Dark nebula",
+      "category": "anomalies",
+      "index": 12
+    },
+    {
+      "id": "anomalies-lost-colony",
+      "label": "Lost colony",
+      "category": "anomalies",
+      "index": 13
+    },
+    {
+      "id": "anomalies-cryogenic-vessel",
+      "label": "Cryogenic vessel",
+      "category": "anomalies",
+      "index": 14
+    },
+    {
+      "id": "anomalies-alien-monument",
+      "label": "Alien monument",
+      "category": "anomalies",
+      "index": 15
+    },
+    {
+      "id": "anomalies-quantum-echo",
+      "label": "Quantum echo",
+      "category": "anomalies",
+      "index": 16
+    },
+    {
+      "id": "anomalies-ghost-fleet",
+      "label": "Ghost fleet",
+      "category": "anomalies",
+      "index": 17
+    },
+    {
+      "id": "anomalies-time-anomaly",
+      "label": "Time anomaly",
+      "category": "anomalies",
+      "index": 18
+    },
+    {
+      "id": "anomalies-unstable-star",
+      "label": "Unstable star",
+      "category": "anomalies",
+      "index": 19
+    },
+    {
+      "id": "map-friendly-territory",
+      "label": "Friendly territory",
+      "category": "map",
+      "index": 0
+    },
+    {
+      "id": "map-rival-territory",
+      "label": "Rival territory",
+      "category": "map",
+      "index": 1
+    },
+    {
+      "id": "map-neutral-territory",
+      "label": "Neutral territory",
+      "category": "map",
+      "index": 2
+    },
+    {
+      "id": "map-unclaimed-system",
+      "label": "Unclaimed system",
+      "category": "map",
+      "index": 3
+    },
+    {
+      "id": "map-hyperlane",
+      "label": "Hyperlane",
+      "category": "map",
+      "index": 4
+    },
+    {
+      "id": "map-trade-route",
+      "label": "Trade route",
+      "category": "map",
+      "index": 5
+    },
+    {
+      "id": "map-fleet-route",
+      "label": "Fleet route",
+      "category": "map",
+      "index": 6
+    },
+    {
+      "id": "map-sensor-range",
+      "label": "Sensor range",
+      "category": "map",
+      "index": 7
+    },
+    {
+      "id": "map-survey-radius",
+      "label": "Survey radius",
+      "category": "map",
+      "index": 8
+    },
+    {
+      "id": "map-claimed-border",
+      "label": "Claimed border",
+      "category": "map",
+      "index": 9
+    },
+    {
+      "id": "map-war-front",
+      "label": "War front",
+      "category": "map",
+      "index": 10
+    },
+    {
+      "id": "map-system-capital",
+      "label": "System capital",
+      "category": "map",
+      "index": 11
+    },
+    {
+      "id": "map-shipyard-system",
+      "label": "Shipyard system",
+      "category": "map",
+      "index": 12
+    },
+    {
+      "id": "map-owned-colony",
+      "label": "Owned colony",
+      "category": "map",
+      "index": 13
+    },
+    {
+      "id": "map-resource-world",
+      "label": "Resource world",
+      "category": "map",
+      "index": 14
+    },
+    {
+      "id": "map-frontier-region",
+      "label": "Frontier region",
+      "category": "map",
+      "index": 15
+    },
+    {
+      "id": "map-danger-zone",
+      "label": "Danger zone",
+      "category": "map",
+      "index": 16
+    },
+    {
+      "id": "map-waypoint",
+      "label": "Waypoint",
+      "category": "map",
+      "index": 17
+    },
+    {
+      "id": "map-map-marker",
+      "label": "Map marker",
+      "category": "map",
+      "index": 18
+    },
+    {
+      "id": "map-rally-point",
+      "label": "Rally point",
+      "category": "map",
+      "index": 19
+    },
+    {
+      "id": "status-available",
+      "label": "Available",
+      "category": "status",
+      "index": 0
+    },
+    {
+      "id": "status-locked",
+      "label": "Locked",
+      "category": "status",
+      "index": 1
+    },
+    {
+      "id": "status-active",
+      "label": "Active",
+      "category": "status",
+      "index": 2
+    },
+    {
+      "id": "status-completed",
+      "label": "Completed",
+      "category": "status",
+      "index": 3
+    },
+    {
+      "id": "status-queued",
+      "label": "Queued",
+      "category": "status",
+      "index": 4
+    },
+    {
+      "id": "status-upgrading",
+      "label": "Upgrading",
+      "category": "status",
+      "index": 5
+    },
+    {
+      "id": "status-paused",
+      "label": "Paused",
+      "category": "status",
+      "index": 6
+    },
+    {
+      "id": "status-warning",
+      "label": "Warning",
+      "category": "status",
+      "index": 7
+    },
+    {
+      "id": "status-critical",
+      "label": "Critical",
+      "category": "status",
+      "index": 8
+    },
+    {
+      "id": "status-damaged",
+      "label": "Damaged",
+      "category": "status",
+      "index": 9
+    },
+    {
+      "id": "status-healthy",
+      "label": "Healthy",
+      "category": "status",
+      "index": 10
+    },
+    {
+      "id": "status-repaired",
+      "label": "Repaired",
+      "category": "status",
+      "index": 11
+    },
+    {
+      "id": "status-incoming",
+      "label": "Incoming",
+      "category": "status",
+      "index": 12
+    },
+    {
+      "id": "status-outgoing",
+      "label": "Outgoing",
+      "category": "status",
+      "index": 13
+    },
+    {
+      "id": "status-retreating",
+      "label": "Retreating",
+      "category": "status",
+      "index": 14
+    },
+    {
+      "id": "status-under-attack",
+      "label": "Under attack",
+      "category": "status",
+      "index": 15
+    },
+    {
+      "id": "status-occupied",
+      "label": "Occupied",
+      "category": "status",
+      "index": 16
+    },
+    {
+      "id": "status-peaceful",
+      "label": "Peaceful",
+      "category": "status",
+      "index": 17
+    },
+    {
+      "id": "status-starving",
+      "label": "Starving",
+      "category": "status",
+      "index": 18
+    },
+    {
+      "id": "status-thriving",
+      "label": "Thriving",
+      "category": "status",
+      "index": 19
+    },
+    {
+      "id": "actions-confirm",
+      "label": "Confirm",
+      "category": "actions",
+      "index": 0
+    },
+    {
+      "id": "actions-cancel",
+      "label": "Cancel",
+      "category": "actions",
+      "index": 1
+    },
+    {
+      "id": "actions-select",
+      "label": "Select",
+      "category": "actions",
+      "index": 2
+    },
+    {
+      "id": "actions-inspect",
+      "label": "Inspect",
+      "category": "actions",
+      "index": 3
+    },
+    {
+      "id": "actions-details",
+      "label": "Details",
+      "category": "actions",
+      "index": 4
+    },
+    {
+      "id": "actions-expand",
+      "label": "Expand",
+      "category": "actions",
+      "index": 5
+    },
+    {
+      "id": "actions-collapse",
+      "label": "Collapse",
+      "category": "actions",
+      "index": 6
+    },
+    {
+      "id": "actions-next-turn",
+      "label": "Next turn",
+      "category": "actions",
+      "index": 7
+    },
+    {
+      "id": "actions-pause",
+      "label": "Pause",
+      "category": "actions",
+      "index": 8
+    },
+    {
+      "id": "actions-resume",
+      "label": "Resume",
+      "category": "actions",
+      "index": 9
+    },
+    {
+      "id": "actions-speed-up",
+      "label": "Speed up",
+      "category": "actions",
+      "index": 10
+    },
+    {
+      "id": "actions-slow-down",
+      "label": "Slow down",
+      "category": "actions",
+      "index": 11
+    },
+    {
+      "id": "actions-zoom-in",
+      "label": "Zoom in",
+      "category": "actions",
+      "index": 12
+    },
+    {
+      "id": "actions-zoom-out",
+      "label": "Zoom out",
+      "category": "actions",
+      "index": 13
+    },
+    {
+      "id": "actions-center-view",
+      "label": "Center view",
+      "category": "actions",
+      "index": 14
+    },
+    {
+      "id": "actions-back",
+      "label": "Back",
+      "category": "actions",
+      "index": 15
+    },
+    {
+      "id": "actions-forward",
+      "label": "Forward",
+      "category": "actions",
+      "index": 16
+    },
+    {
+      "id": "actions-save",
+      "label": "Save",
+      "category": "actions",
+      "index": 17
+    },
+    {
+      "id": "actions-load",
+      "label": "Load",
+      "category": "actions",
+      "index": 18
+    },
+    {
+      "id": "actions-download",
+      "label": "Download",
+      "category": "actions",
+      "index": 19
+    }
+  ]
+}
