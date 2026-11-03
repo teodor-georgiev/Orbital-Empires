@@ -18,3 +18,8 @@
 - Planet buildings PR #33 also edits `core.js`, `app.js`, and `sw.js`; it requires a deliberate rebased integration rather than concurrent writes.
 - This is fixed-step real-time-with-pause, not a physics simulator; economic balance uses the existing per-cycle amounts as monthly yields and requires later tuning.
 - New gameplay controls extend the existing header only; no new full-screen layout or major visual overhaul, so a new picture-first menu gate is not applicable. Browser screenshot validation still required before release.
+
+## Integration reconciliation
+
+- Rebasing was necessary because biome buildings and space environments entered the shared integration branch after this feature began. The monthly feature was manually merged on top of integration commit `e8707c0dd104f2c354c6ea84489085c4c131d37a` without replacing the planetary economy, shaders, environmental events, UI or tests.
+- The browser smoke flow pauses the monthly clock during deterministic planet-building assertions, then steps exactly one month. The branch's CI result remains authoritative; no green status is assumed until it completes.
