@@ -23,3 +23,5 @@
 
 - Rebasing was necessary because biome buildings and space environments entered the shared integration branch after this feature began. The monthly feature was manually merged on top of integration commit `e8707c0dd104f2c354c6ea84489085c4c131d37a` without replacing the planetary economy, shaders, environmental events, UI or tests.
 - The browser smoke flow pauses the monthly clock during deterministic planet-building assertions, then steps exactly one month. The branch's CI result remains authoritative; no green status is assumed until it completes.
+
+- Updated both Playwright browser suites to explicitly pause the default-running clock before asserting planetary selection, resource costs or saved state. Added a live clock smoke test that verifies automatic month progression, pause and single-month stepping.
