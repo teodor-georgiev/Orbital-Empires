@@ -68,7 +68,8 @@ try{
  await ready('document.getElementById("modal-root").hidden&&!!document.querySelector("[data-action=open-solar]")','galaxy after menu resume');
  assert.ok(await evaluate('document.querySelectorAll("#strategic-outliner [data-action=select-system]").length>0'),'4X colony outliner must contain real selectable colonies');
  assert.ok(await evaluate('document.querySelectorAll("#strategic-outliner [data-action=select-fleet]").length>0'),'4X fleet outliner must show existing fleets');
- assert.ok(await evaluate('document.querySelector("#strategic-outliner").getBoundingClientRect().height>50'),'4X desktop outliner must be visible');
+ assert.ok(await evaluate('document.querySelector("#strategic-outliner").getBoundingClientRect().height>180'),'4X desktop outliner must be usable');
+ assert.ok(await evaluate('document.querySelector("#map-viewport").getBoundingClientRect().height>440'),'galaxy map must fill available canvas, without hidden Progress spacer');
  assert.ok(await evaluate('document.querySelector("#strategic-outliner .outliner-icon").getBBox().width>4'),'first atlas icon must have visible geometry');
  await capture('01-galaxy-desktop.png');
  // Verify that contextual icons also draw inside all three real Progress views.
