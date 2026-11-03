@@ -8,7 +8,7 @@ test('original ship and outpost meshes are finite nonempty triangles',()=>{
  }
  const station=buildOutpostMesh();assert.ok(station.length>120);assert.equal(station.length%18,0);
 });
-test('ship positions and marquee selection use stable IDs and don't mutate world',()=>{
+test('ship positions and marquee selection use stable IDs without changing world state',()=>{
  const unit={id:7,localOrder:{kind:'hold'}},p=shipLocalPosition(unit,{planets:[]});
  assert.equal(p.length,3);assert.ok(p.every(Number.isFinite));
  const positions=[{id:1,x:20,y:30,owner:0},{id:2,x:90,y:85,owner:0},{id:3,x:23,y:25,owner:1}];
