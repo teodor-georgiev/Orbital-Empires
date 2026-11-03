@@ -7,6 +7,7 @@ import { populationForecast } from './modules/simulation/population.js';
 import { planetArtStyle } from './modules/visuals/planet-visual.js';
 import { configuredDonationUrl } from './support-config.js';
 import { isDevelopmentPage, renderDevelopment } from './modules/ui/development-workspace.js';
+import { renderStrategicOutliner } from './modules/ui/strategic-outliner.js';
 
 const SAVE_KEY = 'orbital-empires-save-v1';
 const PLANET_CLASSES=new Set(['terran','oceanic','desert','jungle','arctic','barren','volcanic','gas-giant']);
@@ -17,6 +18,18 @@ function artworkBiome(name){
 }
 const GAME_ART_ICONS=new Set(['galaxy','colonies','progress','government','fleets','diplomacy','intel','credits','alloys','science','influence','unity','research','traditions','policies']);
 function gameIcon(id){const key=/^[a-z-]+$/.test(id)?id:'star';const sprite=GAME_ART_ICONS.has(key)?'strategy-icons':'interface-icons';return '<svg class="ui-icon" aria-hidden="true" focusable="false"><use href="./assets/ui/'+sprite+'.svg#'+key+'"></use></svg>';}
+const BUILD_ART = Object.freeze({
+ 'agri-domes':'surface-farm-dome','biosphere-lab':'surface-research-lab',
+ 'tidal-generators':'surface-power-plant','canopy-arcology':'surface-housing-district',
+ 'solar-array':'surface-power-plant','dust-extractors':'surface-mining-complex',
+ 'cryo-refinery':'surface-foundry','polar-observatory':'surface-university',
+ 'magma-foundry':'surface-foundry','geothermal-grid':'surface-power-plant',
+ 'deep-core-mine':'surface-mining-complex','crystal-resonator':'surface-research-lab',
+ 'sealed-vault':'surface-research-lab',
+ 'gas-harvester':'orbital-fuel-depot','orbital-mines':'orbital-mining-station',
+ 'orbital-observatory':'orbital-observation-post'
+});
+function buildingArt(id){const key=BUILD_ART[id]||'surface-capital-hall';return '<svg class="oe-building-art" aria-hidden="true" focusable="false"><use href="./assets/ui/empire-icon-atlas.svg#'+key+'"></use></svg>';}
 function menuAction(icon,title,note,action,primary=false){return '<button class="menu-action'+(primary?' main':'')+'" data-action="'+action+'"><span class="menu-action-icon">'+gameIcon(icon)+'</span><span>'+title+'<small>'+note+'</small></span></button>';}
 
 const $ = selector => document.querySelector(selector);
@@ -114,6 +127,7 @@ function render(){
   const resources=[['credits','CREDITS','credits'],['alloys','ALLOYS','alloys'],['science','SCIENCE','science'],['influence','INFLUENCE','influence'],['unity','UNITY','unity']];
   $('#resource-bar').innerHTML=resources.map(([icon,label,key])=>`<div class="resource"><span class="resource-icon">${gameIcon(icon)}</span><div class="resource-info"><small>${label}</small><strong>${key==='science'?fmt(yieldNow.science):fmt(player[key]||0)}<i>${key==='science'?'/ TURN':key==='unity'?`+${unityIncome(game)}`:`+${fmt(yieldNow[key])}`}</i></strong></div></div>`).join('');
   $('#profile-metrics').innerHTML=`<div class="profile-metric"><strong>${territory.length}</strong><small>COLONIES</small></div><div class="profile-metric"><strong>${totalFleets().length}</strong><small>FLEETS</small></div><div class="profile-metric"><strong>${player.techs.length}</strong><small>TECHS</small></div>`;
+  $('#strategic-outliner').innerHTML=renderStrategicOutliner(game,selectedId,selectedFleetId);
   $('#top-turn').textContent=`YEAR ${getStardate(game)}`;
   $('.profile-name').textContent=player.name.toUpperCase();
   $('.profile-sub').textContent=player.motto.toUpperCase();
@@ -160,11 +174,11 @@ function renderInspector(){if(solarOpen&&activePage==='system')return selectedSp
 
 function biomeBuildingCard(s,b){
  const lv=s.buildings[b.id]||0,allowed=canBuild(game,s.id,b.id),price=lv<3?b.credit[lv]+' credits · '+b.cost[lv]+' alloys':'MAX LEVEL';
- return `<div class="oe-build-card oe-specialty-card"><div class="oe-build-icon">${escapeHTML(b.icon)}</div><div><strong>${escapeHTML(b.name)}</strong><small>${escapeHTML(b.description)}</small><small>Level ${lv}/3 · ${escapeHTML(b.effect)}</small><small>${price} · <span class="${allowed.ok?'oe-available':'oe-unavailable'}">${allowed.ok?'READY':escapeHTML(allowed.message)}</span></small></div><button data-action="build" data-type="${b.id}" ${allowed.ok?'':'disabled'} aria-label="Build ${escapeHTML(b.name)}">${lv===3?'MAX':'BUILD'}</button></div>`;
+ return `<div class="oe-build-card oe-specialty-card"><div class="oe-build-icon">${buildingArt(b.id)}</div><div><strong>${escapeHTML(b.name)}</strong><small>${escapeHTML(b.description)}</small><small>Level ${lv}/3 · ${escapeHTML(b.effect)}</small><small>${price} · <span class="${allowed.ok?'oe-available':'oe-unavailable'}">${allowed.ok?'READY':escapeHTML(allowed.message)}</span></small></div><button data-action="build" data-type="${b.id}" ${allowed.ok?'':'disabled'} aria-label="Build ${escapeHTML(b.name)}">${lv===3?'MAX':'BUILD'}</button></div>`;
 }
 function orbitalBuildingCard(s,planet,b){
  const lv=s.orbitalSites?.[planet.id]?.[b.id]||0,allowed=canBuildOrbital(game,s.id,planet.id,b.id),price=lv<3?b.credit[lv]+' credits · '+b.cost[lv]+' alloys':'MAX LEVEL';
- return `<div class="oe-build-card oe-orbital-card"><div class="oe-build-icon">${escapeHTML(b.icon)}</div><div><strong>${escapeHTML(b.name)}</strong><small>${escapeHTML(b.description)}</small><small>Level ${lv}/3 · ${escapeHTML(b.effect)}</small><small>${price} · <span class="${allowed.ok?'oe-available':'oe-unavailable'}">${allowed.ok?'READY':escapeHTML(allowed.message)}</span></small></div><button data-action="build-orbital" data-type="${b.id}" ${allowed.ok?'':'disabled'} aria-label="Build ${escapeHTML(b.name)} on ${escapeHTML(planet.name)}">${lv===3?'MAX':'BUILD'}</button></div>`;
+ return `<div class="oe-build-card oe-orbital-card"><div class="oe-build-icon">${buildingArt(b.id)}</div><div><strong>${escapeHTML(b.name)}</strong><small>${escapeHTML(b.description)}</small><small>Level ${lv}/3 · ${escapeHTML(b.effect)}</small><small>${price} · <span class="${allowed.ok?'oe-available':'oe-unavailable'}">${allowed.ok?'READY':escapeHTML(allowed.message)}</span></small></div><button data-action="build-orbital" data-type="${b.id}" ${allowed.ok?'':'disabled'} aria-label="Build ${escapeHTML(b.name)} on ${escapeHTML(planet.name)}">${lv===3?'MAX':'BUILD'}</button></div>`;
 }
 function biomeChoices(s){
  const available=BIOME_BUILDINGS.filter(b=>b.allowed.includes(s.biome)),locked=BIOME_BUILDINGS.filter(b=>!b.allowed.includes(s.biome));
@@ -196,7 +210,7 @@ function renderPlanetInspector(){
    if(owned){
     const y=systemYield(game,s);
     body+=section('COLONY PRODUCTION',`<div class="oe-yield-grid">${stat('CREDITS','+'+y.credits,'gold')}${stat('ALLOYS','+'+y.alloys,'cyan')}${stat('SCIENCE','+'+y.science)}${stat('INFLUENCE','+'+y.influence)}</div>`);
-    body+=section('COLONY INFRASTRUCTURE',`<p class="oe-section-hint">Choose an upgrade. Costs are charged immediately; you can review the result after each cycle.</p>${BUILDINGS.map(b=>{const level=s.buildings[b.id]||0,valid=canBuild(game,s.id,b.id),cost=level<3?`${b.credit[level]} credits · ${b.cost[level]} alloys`:'MAXIMUM';return `<div class="oe-build-card"><div class="oe-build-icon">${escapeHTML(b.icon)}</div><div><strong>${escapeHTML(b.name)}</strong><small>Level ${level}/3 · ${escapeHTML(b.effect)}</small><small>${cost}</small></div><button type="button" data-action="build" data-type="${b.id}" ${!valid.ok?'disabled':''} aria-label="Upgrade ${escapeHTML(b.name)}">${level===3?'MAX':'UPGRADE'}</button></div>`}).join('')}`);
+    body+=section('COLONY INFRASTRUCTURE',`<p class="oe-section-hint">Choose an upgrade. Costs are charged immediately; you can review the result after each cycle.</p>${BUILDINGS.map(b=>{const level=s.buildings[b.id]||0,valid=canBuild(game,s.id,b.id),cost=level<3?`${b.credit[level]} credits · ${b.cost[level]} alloys`:'MAXIMUM';return `<div class="oe-build-card"><div class="oe-build-icon">${buildingArt(b.id)}</div><div><strong>${escapeHTML(b.name)}</strong><small>Level ${level}/3 · ${escapeHTML(b.effect)}</small><small>${cost}</small></div><button type="button" data-action="build" data-type="${b.id}" ${!valid.ok?'disabled':''} aria-label="Upgrade ${escapeHTML(b.name)}">${level===3?'MAX':'UPGRADE'}</button></div>`}).join('')}`);
     body+=section('BIOME-SPECIALIZED BUILDINGS',biomeChoices(s));
    }else{
     body+=section('FOREIGN ADMINISTRATION',`<div class="oe-info-box">Controlled by ${escapeHTML(game.empires[s.owner].name)}. You can inspect the world, but not manage its buildings.</div>${btn('diplomacy-panel','OPEN DIPLOMACY','action-secondary')}`);
