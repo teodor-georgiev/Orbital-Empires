@@ -241,15 +241,37 @@ function openModal(type){modalType=type;const root=$('#modal-root');let html='';
  root.innerHTML=html;root.hidden=false;root.querySelector('.modal-close')?.focus();}
 function closeModal(){modalType=null;$('#modal-root').hidden=true;$('#modal-root').innerHTML='';}
 $('#modal-root').addEventListener('click',e=>{if(e.target.id==='modal-root'&&modalType!=='welcome')closeModal()});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(modalType)closeModal();else if(solarOpen)closeSolarSystem();return;}if(e.target instanceof HTMLInputElement||e.target instanceof HTMLSelectElement)return;if(e.key==='Enter'&&modalType===null&&game&&!game.gameOver&&e.ctrlKey){e.preventDefault();handleAction('end-turn',{})}if(e.key==='?'&&modalType===null)openModal('guide');});
+document.addEventListener('keydown',e=>{
+ const currentTab=e.target instanceof Element?e.target.closest('.progress-tab'):null;
+ if(currentTab&&['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){
+  e.preventDefault();
+  const pages=['research','traditions','policies'],index=pages.indexOf(activePage);
+  const next=e.key==='Home'?0:e.key==='End'?pages.length-1:
+    (index+(e.key==='ArrowLeft'?-1:1)+pages.length)%pages.length;
+  activePage=pages[next];selectedDevelopmentId=null;developmentFilter='all';render();
+  document.querySelector('.progress-tab[data-nav="'+activePage+'"]')?.focus({preventScroll:true});
+  return;
+ }
+ if(e.key==='Escape'){
+  if(modalType)closeModal();
+  else if(solarOpen)closeSolarSystem();
+  else if(isDevelopmentPage(activePage)){activePage='system';selectedDevelopmentId=null;developmentFilter='all';render();requestAnimationFrame(resizeCanvas);}
+  return;
+ }
+ if(e.target instanceof HTMLInputElement||e.target instanceof HTMLSelectElement)return;
+ if(e.key==='Enter'&&modalType===null&&game&&!game.gameOver&&e.ctrlKey){e.preventDefault();handleAction('end-turn',{})}
+ if(e.key==='?'&&modalType===null)openModal('guide');
+});
 
 document.addEventListener('click',event=>{
  const nav=event.target.closest('[data-nav]');
  if(nav){
   const wasProgress=isDevelopmentPage(activePage);
+  const wasProgressTab=nav.classList.contains('progress-tab');
   if(solarOpen)closeSolarSystem();
   if(activePage!==nav.dataset.nav){selectedDevelopmentId=null;developmentFilter='all';}
   activePage=nav.dataset.nav;render();
+  if(wasProgressTab)document.querySelector('.progress-tab[data-nav="'+activePage+'"]')?.focus({preventScroll:true});
   if(wasProgress&&!isDevelopmentPage(activePage))requestAnimationFrame(resizeCanvas);
   return;
  }
