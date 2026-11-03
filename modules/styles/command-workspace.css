@@ -99,7 +99,7 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid #70e5ed;outline-
 .progress-lane-heading span{font:600 10px var(--head);color:#7c9ba9}
 .progress-lane-nodes{display:flex;flex-direction:column;gap:21px}
 .progress-node{position:relative;display:flex;flex-direction:column;gap:7px;text-align:left;min-height:125px;width:100%;border:1px solid #375269;border-radius:8px;background:#0e1d2d;color:#d6e4ef;padding:12px;transition:background .16s,border-color .16s,box-shadow .16s}
-.progress-node + .progress-node:before{content:'';position:absolute;top:-22px;left:24px;width:1px;height:20px;background:#54778e}
+.progress-node.connected:before{content:'';position:absolute;top:-22px;left:24px;width:1px;height:20px;background:#54778e}
 .progress-node:hover{background:#182d42;border-color:#6ba9bd}
 .progress-node.selected{border-color:#73d7e4;box-shadow:0 0 0 1px #4d9baa,0 3px 20px #2eacc42a;background:#17334a}
 .progress-node.completed{border-color:#3f7c70;background:#102b2c}
