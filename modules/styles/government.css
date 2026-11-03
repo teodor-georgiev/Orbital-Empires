@@ -26,3 +26,6 @@
 .government-option-description{font:11px/1.48 'DM Sans',sans-serif;color:#9fb6c4}
 .government-option-bonus{font:700 11px/1.3 var(--head);color:#efd09c}
 @media(max-width:750px){.government-panel{display:flex!important;flex-direction:column!important}.government-option{min-height:67px}}
+
+/* Planet-command mobile menu uses a grid: nine tabs are balanced as 3 × 3. */
+@media(max-width:750px){.sidebar .game-nav{grid-template-columns:repeat(3,minmax(0,1fr))}.sidebar .game-nav .nav-link{font-size:11px;line-height:1.25;white-space:normal;min-width:0}}
