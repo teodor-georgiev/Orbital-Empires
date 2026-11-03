@@ -15,7 +15,7 @@ M1 uses **original procedural canvas/SVG/CSS visuals**, so it does not redistrib
 
 ## Pinned asset acquisition
 
-Use `npm run assets:fetch` (Node.js 22+) on a machine with outbound HTTPS access. The script only fetches the three pinned upstream files, checks size/file signature, and writes a SHA-256 inventory. Downloads are saved to an ignored `assets/vendor/` staging area. **Not integrated with gameplay, rendering, Docker, or PWA caching yet.**
+Use `npm run assets:fetch` (Node.js 22+) on a machine with outbound HTTPS access. The script only fetches the five pinned upstream files, checks size/file signature, and writes a SHA-256 inventory. Downloads are saved to an ignored `assets/vendor/` staging area. **Not integrated with gameplay, rendering, Docker, or PWA caching yet.**
 
 | Local file after download | Original official source | License | Notes |
 | --- | --- | --- | --- |
@@ -24,3 +24,18 @@ Use `npm run assets:fetch` (Node.js 22+) on a machine with outbound HTTPS access
 | `assets/vendor/pixijs/pixi.min.mjs` | https://github.com/pixijs/pixijs/releases/tag/v8.22.0 | MIT | v8.22.0 minified, self-hostable ES module from jsDelivr; preserve MIT license text in `docs/third_party/PIXI-LICENSE.txt` |
 
 **Distinction:** PixiJS is a 2D WebGL/WebGPU renderer; it cannot directly display Kenney GLB/3D scenes. The currently shipped Canvas map stays unchanged until the rendering lane wires in a verified replacement. No CDN is required at game runtime. Downloading third-party code does not imply it is safe to run without review; ensure downstream bundle provenance before release.
+
+## Original Orbital Empires art (committed)
+
+`assets/original/` contains **18 newly authored SVG game sprites**: five spacecraft, six planetary biomes, three orbital stations and four unique faction emblems. They are source-editable, transparent-background project artwork rather than copied material. They can be used in a commercial build; the repository does **not** claim that they are third-party CC0 assets. Browse `assets/original/gallery.html` from the local development HTTP server. Metadata and provenance: `assets/original/catalog.json`.
+
+## Additional verified CC0 download options
+
+| Resource | Landing page and license | Download / action |
+| --- | --- | --- |
+| Kenney Planets (50+ sprites) | https://kenney.nl/assets/planets and Kenney-authored OpenGameArt https://opengameart.org/content/planets-8 | Automated into `assets/vendor/kenney/kenney_planets.zip` via `npm run assets:fetch` |
+| Kenney Sci-Fi RTS (120+ graphics) | https://kenney.nl/assets/sci-fi-rts and Kenney-authored OpenGameArt https://opengameart.org/content/sci-fi-rts-120-sprites | Automated into `assets/vendor/kenney/kenney_rtssci-fi.zip` via `npm run assets:fetch` |
+| Quaternius Ultimate Space Kit (92 models) | https://quaternius.com/packs/ultimatespacekit.html (CC0 on pack page) | Manual download; not bundled or mirrored; verify any current pack-specific terms |
+| Poly Haven | https://polyhaven.com/license (CC0) | Selective curated HDRI/texture/3D downloads; avoid bulk-importing large unneeded files |
+
+The OpenGameArt files above are creator-uploaded copies (Kenney is the listed author). Do not copy or vendor anything that has uncertain license provenance. **Remote ZIP download success and extraction still require a network-enabled host.** None of these downloads are committed to Git or served at runtime by default.
