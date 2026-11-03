@@ -6,6 +6,7 @@ for (const [device, viewport] of Object.entries({desktop:{width:1440,height:900}
     await page.setViewportSize(viewport);
     await page.goto('/');
     await page.locator('.oe-home-continue').click();
+    await page.locator('[data-action="clock-toggle"]').click(); // Keep resource assertions deterministic.
     await page.locator('[data-action="open-solar"]').first().click();
     await expect(page.locator('#solar-stage')).toBeVisible();
     await expect(page.locator('#solar-planet-list .solar-planet-option')).toHaveCount(8);
@@ -33,6 +34,7 @@ for (const [device, viewport] of Object.entries({desktop:{width:1440,height:900}
     await page.screenshot({path:testInfo.outputPath(`space-${device}-mined.png`),fullPage:true});
     await page.reload();
     await page.locator('.oe-home-continue').click();
+    await page.locator('[data-action="clock-toggle"]').click(); // Keep resource assertions deterministic.
     await page.locator('[data-action="open-solar"]').first().click();
     await page.locator('[data-action="solar-site"][data-id="asteroid-belt"]').click();
     await expect(page.locator('[data-action="survey-site"]')).toBeDisabled();

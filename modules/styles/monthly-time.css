@@ -1,0 +1,11 @@
+/* Compact fixed-month controls added to existing header. */
+.oe-time-controls{display:flex;align-items:center;gap:3px;padding:3px;border:1px solid #345b6a;border-radius:6px;background:#0d2431;white-space:nowrap}
+.oe-time-controls button{height:31px;min-width:33px;padding:0 8px;background:transparent;color:#9dc6d0;border:1px solid transparent;border-radius:4px;font:700 12px Rajdhani,sans-serif;cursor:pointer}
+.oe-time-controls button:hover,.oe-time-controls button:focus-visible{background:#224554;color:#efffff}
+.oe-time-controls button.selected{background:#20525c;border-color:#498f93;color:#aafaf4}
+.oe-time-controls #oe-clock-toggle{background:#23616b;color:#eafffa;min-width:64px}
+.oe-time-controls #oe-clock-toggle[aria-pressed=false]{background:#655329;color:#fff2c7}
+.oe-time-controls button:disabled{opacity:.35;cursor:not-allowed}
+@media(max-width:1100px){.oe-time-controls button{height:29px;min-width:29px;padding:0 5px}.oe-time-controls #oe-clock-toggle{min-width:53px}}
+@media(max-width:750px){.oe-time-controls{order:1}.oe-time-controls button{font-size:11px}.header-actions{flex-wrap:wrap;justify-content:flex-end}}
+@media(max-width:450px){.oe-time-controls{width:100%;justify-content:center;order:3}.oe-time-controls button{flex:1}.resource-bar{order:4}}
