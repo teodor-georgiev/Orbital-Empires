@@ -13,9 +13,10 @@ python3 -m http.server 4173
 
 Open http://localhost:4173/. The game is not meant to be opened as a `file://` page: service workers require an HTTP/HTTPS origin. Browsers generally permit installation from HTTPS or localhost only.
 
-## Gameplay included in v0.1
+## Gameplay included in v0.2
 
 - Seeded galaxy generation, navigable hyperlanes, fog of war, interactive pan/zoom map
+- Click through into solar systems with WebGL 3D planets and moons, camera rotation, zoom and Canvas 2D fallback. Visual-only planets retain the existing core-colony mechanics.
 - 2–6 AI rivals; colony expansion and resource generation
 - Buildings, research, fleet recruitment, turn-based movement and combat
 - Diplomacy, wars and peace, empire overview, campaign victory conditions
@@ -39,7 +40,9 @@ This package provides a hardened static Nginx container that listens **only on 1
 ## Project structure
 
 - `core.js`: deterministic, dependency-free 4X simulation
-- `app.js`: browser UI, canvas rendering and local save support
+- `app.js`: browser UI, galaxy canvas and local save support
+- `system-model.js`: stable planet and moon metadata derived from existing game systems
+- `solar-view.js`: interactive WebGL solar-scene rendering with Canvas 2D fallback
 - `style.css`: responsive visual design
 - `manifest.webmanifest`, `sw.js`, `assets/`: installable/offline PWA
 - `tests/game.test.js`: simulation and game-rules tests
@@ -76,3 +79,7 @@ PixiJS renders **2D**, not Kenney's native 3D GLB files. Models need pre-rendere
 The repository includes **18 original vector game sprites** in `assets/original/` (ships, planets, orbital stations and faction insignia) and a self-contained [gallery](assets/original/gallery.html). They are ready for the graphics lane to integrate but do not yet replace the existing Canvas visuals.
 
 `npm run assets:fetch` also fetches Kenney's CC0 **Planets** and **Sci-Fi RTS** packs from creator-uploaded OpenGameArt files, alongside the original Kenney packs and PixiJS; all downloaded archives stay gitignored under `assets/vendor/`. See [asset license and provenance inventory](docs/ASSETS_AND_LICENSES.md).
+
+## Exploring a solar system (v0.2)
+
+Choose a discovered star and click **Enter Solar System** (or click the same star twice). Drag to orbit the 3D camera, scroll to zoom and click/select a planet from the orbital list. Use **Back to Galaxy** or Escape to return. Colony actions remain in the right inspector; additional orbital bodies are illustrative until the individual planet economy milestone. See [the implementation plan](docs/plans/2026-11-03-solar-system-3d.md).

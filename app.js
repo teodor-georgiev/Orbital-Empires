@@ -1,4 +1,6 @@
 import { VERSION, WORLD, BUILDINGS, SHIPS, TECHS, generateGame, getEmpire, ownedSystems, getVisibility, hasSeen, getNeighbors, income, systemYield, score, fleetPower, availableTechs, colonyCost, canColonize, colonize, canBuild, build, canRecruit, recruit, canMove, moveFleet, chooseResearch, declareWar, sendEnvoy, offerPeace, endTurn, validateGame } from './core.js';
+import { generateSystemBodies, selectSystemPlanet } from './system-model.js';
+import { createSolarView } from './solar-view.js';
 
 const SAVE_KEY = 'orbital-empires-save-v1';
 const $ = selector => document.querySelector(selector);
@@ -10,10 +12,12 @@ let game, activePage='system', selectedId=0, selectedFleetId=null, modalType=nul
 const viewport=$('#map-viewport'), canvas=$('#galaxy-canvas'), ctx=canvas.getContext('2d',{alpha:false});
 const view={cx:WORLD.width/2,cy:WORLD.height/2,zoom:.7,auto:true,width:0,height:0};
 let stars=[],pulse=0,drag=null,hovered=null,toastTimer=null,lastRenderTick=0;
+let solarOpen=false,solarBodies=null,selectedPlanet=0;
+const solar=createSolarView($('#solar-canvas'),{onSelect: id => {selectedPlanet=id;renderSolarHud();}});
 
 function loadGame(){try{const obj=JSON.parse(localStorage.getItem(SAVE_KEY));if(validateGame(obj))return obj;}catch(e){}return null;}
 function persist(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(game));return true;}catch(e){notice('Saving is unavailable in this browser. Try a normal tab.','error');return false;}}
-function activateGame(g,withWelcome=false){game=g;selectedId=g.empires[0].home;selectedFleetId=g.fleets.find(f=>f.owner===0)?.id??null;activePage='system';view.auto=true;rebuildStarfield();persist();render();if(withWelcome)openModal('welcome');}
+function activateGame(g,withWelcome=false){closeSolarSystem();game=g;selectedId=g.empires[0].home;selectedFleetId=g.fleets.find(f=>f.owner===0)?.id??null;activePage='system';view.auto=true;rebuildStarfield();persist();render();if(withWelcome)openModal('welcome');}
 function notice(message,type='ok'){const node=$('#toast');node.textContent=message;node.className='toast show'+(type==='error'?' error':'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>node.className='toast',3200);}
 function act(result){if(!result)return;if(!result.ok){notice(result.message,'error');render();return;}persist();render();notice(result.message);}
 function palette(owner){return owner===null?'#91a9ba':game.empires[owner]?.color||'#aabbcc';}
@@ -25,6 +29,32 @@ function totalFleets(id=0){return game.fleets.filter(f=>f.owner===id)}
 function researchPct(e){if(!e.research)return 100;const t=TECHS.find(t=>t.id===e.research);return t?Math.min(100,(e.progress/t.cost)*100):0;}
 function maybeSelectFleetForSystem(id){const fs=game.fleets.filter(f=>f.owner===0&&f.system===id);if(fs.length)selectedFleetId=fs[0].id;}
 
+function openSolarSystem(id=selectedId){
+  const system=game?.systems[id];
+  if(!system || !hasSeen(game,system.id)){notice('This star system must be discovered before you can enter it.','error');return;}
+  selectedId=id;activePage='system';selectedPlanet=0;
+  solarBodies=generateSystemBodies(game.seed,system);
+  solarOpen=true;
+  const stage=$('#solar-stage');stage.hidden=false;viewport.classList.add('system-mode');
+  $('#map-tooltip').hidden=true;
+  solar.open(system,solarBodies);
+  render();
+}
+function closeSolarSystem(){
+  if(!solarOpen)return;
+  solarOpen=false;solarBodies=null;selectedPlanet=0;solar.close();
+  $('#solar-stage').hidden=true;viewport.classList.remove('system-mode');
+  if(game)render();
+}
+function renderSolarHud(){
+  if(!solarOpen||!solarBodies)return;
+  const system=game.systems[selectedId],planet=selectSystemPlanet(solarBodies,selectedPlanet)||solarBodies.planets[0];
+  $('#solar-system-name').textContent=system.name.toUpperCase()+' SYSTEM';
+  $('#solar-renderer').textContent=solar.is3D()?'WEBGL 3D':'2D COMPATIBILITY MODE';
+  $('#solar-planet-list').innerHTML=solarBodies.planets.map(p=>`<button class="solar-planet-option ${p.id===planet.id?'selected':''}" data-action="solar-planet" data-id="${p.id}" aria-pressed="${p.id===planet.id}"><span class="solar-planet-dot" style="--planet-color:${p.color}"></span><span class="planet-label-main">${escapeHTML(p.name)}<small>${escapeHTML(p.biome)}${p.isColonyWorld?' · CORE WORLD':''}</small></span><span>↗</span></button>`).join('');
+  $('#solar-planet-detail').innerHTML=`<span class="eyebrow cyan">${planet.isColonyWorld?'PRIMARY COLONY WORLD':'UNSURVEYED ORBITAL BODY'}</span><strong>${escapeHTML(planet.name)}</strong><span>${escapeHTML(planet.biome)} · Orbit ${planet.orbitRadius.toFixed(1)} AU · ${planet.moons.length} moon${planet.moons.length===1?'':'s'}</span><small>${planet.isColonyWorld?`Habitable class ${planet.habitability}/3 · ${escapeHTML(system.feature)} · Use the right panel for colony actions.`:'Survey-only planet in v0.2. Future updates will add individual colonies and orbital infrastructure.'}</small>`;
+}
+
 function render(){
   if(!game)return;
   const player=game.empires[0],yieldNow=income(game),territory=ownedSystems(game),systems=game.systems;
@@ -32,9 +62,12 @@ function render(){
   $('#resource-bar').innerHTML=resources.map(([icon,label,key])=>`<div class="resource"><span class="resource-icon">${icon}</span><div class="resource-info"><small>${label}</small><strong>${key==='science'?fmt(yieldNow.science):fmt(player[key])}<i>${key==='science'?'/ TURN':`+${fmt(yieldNow[key])}`}</i></strong></div></div>`).join('');
   $('#profile-metrics').innerHTML=`<div class="profile-metric"><strong>${territory.length}</strong><small>COLONIES</small></div><div class="profile-metric"><strong>${totalFleets().length}</strong><small>FLEETS</small></div><div class="profile-metric"><strong>${player.techs.length}</strong><small>TECHS</small></div>`;
   $('#top-turn').textContent=`CYCLE ${String(game.turn).padStart(2,'0')}`;
-  $('#map-summary').textContent=`${systems.length} star systems · ${game.empires.filter(e=>!e.eliminated).length} civilizations · ${territory.length} controlled`;
+  $('#map-summary').textContent=solarOpen?`${game.systems[selectedId].star} · ${solarBodies.planets.length} catalogued planets · ${solarBodies.planets.filter(p=>p.moons.length).length} moon systems`:`${systems.length} star systems · ${game.empires.filter(e=>!e.eliminated).length} civilizations · ${territory.length} controlled`;
+  $('.map-top h1').innerHTML=solarOpen?`${escapeHTML(game.systems[selectedId].name)} <span>System</span>`:'Galactic Sector <span>01</span>';
+  $('.map-top .eyebrow').textContent=solarOpen?'LOCAL STELLAR OBSERVATORY':'EXPLORATION OVERVIEW';
+  $('.map-mode').textContent=solarOpen?'◉ ORBITAL VIEW · 3D':'● LIVE STRATEGIC MAP · TURN BASED';
   $('#sector-id').textContent=game.seed.slice(0,15).toUpperCase();
-  $('#footer-coordinates').textContent=`STARDATE ${2201+Math.floor((game.turn-1)/12)}.${String((game.turn-1)%12+1).padStart(2,'0')} // STRATEGIC VIEW`;
+  $('#footer-coordinates').textContent=`STARDATE ${2201+Math.floor((game.turn-1)/12)}.${String((game.turn-1)%12+1).padStart(2,'0')} // ${solarOpen?'ORBITAL SURVEY':'STRATEGIC VIEW'}`;
   $('#event-text').textContent=game.logs[0]?.message||'Welcome to the galaxy.';
   $('#footer-status').textContent=game.gameOver?'CAMPAIGN COMPLETE':'GALACTIC NETWORK CONNECTED';
   const directive=territory.length<3?['Expand the frontier','Claim three systems to secure your first sector.',territory.length/3]:player.techs.length<2?['Discover new technologies','Research two technologies to advance your empire.',player.techs.length/2]:totalFleets().reduce((n,f)=>n+fleetPower(game,f),0)<55?['Establish galactic security','Build a fleet worth 55 combat power.',totalFleets().reduce((n,f)=>n+fleetPower(game,f),0)/55]:['Unite the frontier','Control 65% of the galaxy for Dominion victory.',territory.length/(systems.length*.65)];
@@ -42,6 +75,7 @@ function render(){
   for(const btn of document.querySelectorAll('[data-nav]')){btn.classList.toggle('active',btn.dataset.nav===activePage)}
   const inspector=$('#inspector');inspector.innerHTML=renderInspector();
   const turnBtn=$('[data-action="end-turn"]');turnBtn.disabled=!!game.gameOver;
+  if(solarOpen)renderSolarHud();
 }
 function header(kicker,title,description,meta='SYSTEM ONLINE'){
  return `<div class="inspector-head"><div class="inspector-headline"><span>${kicker}</span><span>${meta}</span></div><h2>${title}</h2><p class="inspector-desc">${description}</p></div>`;
@@ -55,6 +89,7 @@ function renderSystem(){const s=game.systems[selectedId],seen=hasSeen(game,s.id)
  const y=systemYield(game,s),owner=s.owner===0?'DIRECTORATE CONTROL':s.owner===null?'UNCLAIMED':game.empires[s.owner].short.toUpperCase();
  let html=header('STAR SYSTEM / '+String(s.id+1).padStart(3,'0'),escapeHTML(s.name),`${s.star} · ${s.biome} world · ${escapeHTML(s.feature)}`,owner);
  html+='<div class="inspector-body">';
+ html+=section('ORBITAL OBSERVATORY',`<div class="orbital-entry"><span class="orbital-entry-icon">✦</span><div><strong>Explore the star system</strong><small>Visit planets, moons and orbital lanes in interactive ${solar.is3D()?'3D':'2D'}.</small></div></div>${btn(solarOpen?'close-solar':'open-solar',solarOpen?'← RETURN TO GALAXY':'✦ ENTER SOLAR SYSTEM','action-primary orbital-action')}`);
  html+=section('PLANETARY OVERVIEW',`<div class="planet-hero ${s.biome.toLowerCase().replaceAll(' ','-')}"><div class="planet-orbit"></div><div class="planet-art"></div><span class="planet-symbol">${escapeHTML(s.biome.toUpperCase())} PLANET</span><span class="planet-feature">${escapeHTML(s.feature.toUpperCase())}</span></div>`);
  html+=section('SYSTEM ANALYSIS',`<div class="stat-grid">${stat('HABITABILITY','★'.repeat(s.habitability)+'<span style="opacity:.28">'+'★'.repeat(3-s.habitability)+'</span>','gold')}${stat('MINERAL RICHNESS',`${s.richness}/4`,'cyan')}${stat('POPULATION',s.owner===null?'—':`${s.population}.0 B`)}${stat('OWNERSHIP',s.owner===null?'Neutral':s.owner===0?'Terran':game.empires[s.owner].short)}</div>`);
  if(s.owner===0){html+=section('COLONY PRODUCTION',`<div class="stat-grid">${stat('CREDITS / CYCLE','+'+y.credits,'gold')}${stat('ALLOYS / CYCLE','+'+y.alloys,'cyan')}${stat('SCIENCE / CYCLE','+'+y.science)}${stat('INFLUENCE / CYCLE','+'+y.influence)}</div>`);
@@ -85,7 +120,7 @@ function resizeCanvas(){const rect=canvas.getBoundingClientRect(),dpr=Math.min(w
 function screenPos(s){return {x:(s.x-view.cx)*view.zoom+view.width/2,y:(s.y-view.cy)*view.zoom+view.height/2};}
 function fromScreen(x,y){return{x:view.cx+(x-view.width/2)/view.zoom,y:view.cy+(y-view.height/2)/view.zoom};}
 function colorAlpha(color,a){if(color[0]==='#'){const n=parseInt(color.slice(1),16);return`rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;}return color;}
-function draw(now){requestAnimationFrame(draw);if(!game||!view.width||now-lastRenderTick<36)return;lastRenderTick=now;pulse=now/1000;
+function draw(now){requestAnimationFrame(draw);if(solarOpen)return;if(!game||!view.width||now-lastRenderTick<36)return;lastRenderTick=now;pulse=now/1000;
  const w=view.width,h=view.height;ctx.clearRect(0,0,w,h);
  let bg=ctx.createRadialGradient(w*.48,h*.45,15,w*.48,h*.45,Math.max(w,h)*.8);bg.addColorStop(0,'#13243b');bg.addColorStop(.4,'#0d192b');bg.addColorStop(1,'#050d18');ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
  for(const glow of [{x:.28,y:.3,r:.46,c:'rgba(18,76,95,.14)'},{x:.82,y:.7,r:.48,c:'rgba(65,42,105,.15)'},{x:.55,y:.72,r:.24,c:'rgba(20,53,89,.18)'}]){const g=ctx.createRadialGradient(glow.x*w,glow.y*h,0,glow.x*w,glow.y*h,glow.r*Math.max(w,h));g.addColorStop(0,glow.c);g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);}
@@ -121,7 +156,7 @@ function posEvent(event){const r=canvas.getBoundingClientRect();return{x:event.c
 viewport.addEventListener('pointerdown',e=>{if(e.target!==canvas||!game)return;const p=posEvent(e);drag={pointer:e.pointerId,x:p.x,y:p.y,prevX:p.x,prevY:p.y,moved:false};canvas.setPointerCapture(e.pointerId);});
 canvas.addEventListener('pointermove',e=>{if(!game)return;const p=posEvent(e);if(drag&&drag.pointer===e.pointerId){const dx=p.x-drag.prevX,dy=p.y-drag.prevY;if(Math.abs(p.x-drag.x)+Math.abs(p.y-drag.y)>6)drag.moved=true;if(drag.moved){view.auto=false;view.cx-=dx/view.zoom;view.cy-=dy/view.zoom;}drag.prevX=p.x;drag.prevY=p.y;$('#map-tooltip').hidden=true;return;}
  const s=findStar(p.x,p.y),tip=$('#map-tooltip');if(s){hovered=s.id;tip.hidden=false;tip.innerHTML=`<strong>${escapeHTML(s.name)}</strong><small>${escapeHTML(labelOwner(s))} · ${escapeHTML(s.star)}</small>`;tip.style.left=Math.min(Math.max(p.x+17,12),view.width-165)+'px';tip.style.top=Math.max(7,Math.min(p.y-37,view.height-65))+'px';canvas.style.cursor='pointer';}else{tip.hidden=true;canvas.style.cursor='grab';}});
-canvas.addEventListener('pointerup',e=>{if(!drag||drag.pointer!==e.pointerId)return;const p=posEvent(e);if(!drag.moved){const s=findStar(p.x,p.y);if(s){selectedId=s.id;activePage='system';render()}}drag=null;});
+canvas.addEventListener('pointerup',e=>{if(!drag||drag.pointer!==e.pointerId)return;const p=posEvent(e);if(!drag.moved){const s=findStar(p.x,p.y);if(s){if(s.id===selectedId&&activePage==='system')openSolarSystem(s.id);else{selectedId=s.id;activePage='system';render();}}}drag=null;});
 canvas.addEventListener('pointercancel',()=>drag=null);
 canvas.addEventListener('pointerleave',()=>{$('#map-tooltip').hidden=true});
 viewport.addEventListener('wheel',e=>{if(!game)return;e.preventDefault();const r=canvas.getBoundingClientRect();zoomAt(e.deltaY<0?1.13:.885,e.clientX-r.left,e.clientY-r.top);},{passive:false});
@@ -137,10 +172,10 @@ function openModal(type){modalType=type;const root=$('#modal-root');let html='';
  root.innerHTML=html;root.hidden=false;root.querySelector('.modal-close')?.focus();}
 function closeModal(){modalType=null;$('#modal-root').hidden=true;$('#modal-root').innerHTML='';}
 $('#modal-root').addEventListener('click',e=>{if(e.target.id==='modal-root'&&modalType!=='welcome')closeModal()});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();return;}if(e.target instanceof HTMLInputElement||e.target instanceof HTMLSelectElement)return;if(e.key==='Enter'&&modalType===null&&game&&!game.gameOver&&e.ctrlKey){e.preventDefault();handleAction('end-turn',{})}if(e.key==='?'&&modalType===null)openModal('guide');});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(modalType)closeModal();else if(solarOpen)closeSolarSystem();return;}if(e.target instanceof HTMLInputElement||e.target instanceof HTMLSelectElement)return;if(e.key==='Enter'&&modalType===null&&game&&!game.gameOver&&e.ctrlKey){e.preventDefault();handleAction('end-turn',{})}if(e.key==='?'&&modalType===null)openModal('guide');});
 
 document.addEventListener('click',event=>{
- const nav=event.target.closest('[data-nav]');if(nav){activePage=nav.dataset.nav;render();return;}
+ const nav=event.target.closest('[data-nav]');if(nav){if(solarOpen)closeSolarSystem();activePage=nav.dataset.nav;render();return;}
  const action=event.target.closest('[data-action]');if(!action||action.disabled)return;
  handleAction(action.dataset.action,action.dataset);
 });
@@ -154,10 +189,14 @@ function handleAction(action,data){
   case 'guide':openModal('guide');break;
   case 'save':if(persist())notice('Campaign saved to this browser.');break;
   case 'install':installApp();break;
+  case 'open-solar':openSolarSystem();break;
+  case 'close-solar':closeSolarSystem();break;
+  case 'solar-reset':solar.resetCamera();break;
+  case 'solar-planet':{if(!solarOpen||!selectSystemPlanet(solarBodies,id))break;selectedPlanet=id;solar.selectPlanet(id);renderSolarHud();break;}
   case 'zoom-in':zoomAt(1.27);break;
   case 'zoom-out':zoomAt(.78);break;
   case 'center':recenter();break;
-  case 'select-system':selectedId=id;activePage='system';maybeSelectFleetForSystem(id);render();break;
+  case 'select-system':if(solarOpen)closeSolarSystem();selectedId=id;activePage='system';maybeSelectFleetForSystem(id);render();break;
   case 'select-fleet':selectedFleetId=id;activePage='military';render();notice('Fleet selected. Click a neighboring system, then issue a Move order.');break;
   case 'colonize':act(colonize(game,selectedId));break;
   case 'build':act(build(game,selectedId,data.type));break;
