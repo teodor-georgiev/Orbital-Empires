@@ -14,12 +14,15 @@ An original, installable, browser-first **real-time-with-pause (fixed-step simul
 | --- | --- |
 | Implemented on shared integration baseline | Deterministic star map and hyperlanes, map navigation/fog, turn-based resources, colonization, buildings, research, basic fleets/combat/diplomacy/AI, local saves, offline PWA |
 | Implemented on shared integration baseline | WebGL 3D solar-system scene with orbitable camera, planets/moons and 2D fallback; **additional planets are visual-only** |
-| Implemented in v0.2.0 | Unity, traditions, social policies, technology tree and configurable 4K Canvas backing resolution |\n| Feature candidate, integration/QA required | `v0.3.0` Human Earth/Sol scenario, real nearby star names and distances (schematic positions), start year and faction selection. Initial simulation speed controls are under review in separate PR #19 |
+| Implemented in v0.2.0 | Unity, traditions, social policies, technology tree and configurable 4K Canvas backing resolution |
+| Feature candidate, integration/QA required | `v0.3.0` Human Earth/Sol scenario, real nearby star names and distances (schematic positions), start year and faction selection. Initial simulation speed controls are under review in separate PR #19 |
 | Not implemented | Individual planet colonies, surface building, detailed politics, trade network, ship designer, espionage, multiplayer, campaigns and additional victory paths |
 
 **Existing live URL:** https://teodor-georgiev.github.io/Orbital-Empires/ — v0.2.0 was verified published on 2026-11-03. v0.3.0 must not be called live until its integration PR is merged and the exact deployed build verified.
 
-**Current authoritative spec:** [v0.3.0 candidate](specs/ORBITAL-EMPIRES-v0.3.0.md). **Real-time/autonomy decision:** [ADR-0001](decisions/ADR-0001-REAL-TIME-AUTONOMY.md). All coding chats must read [AGENTS.md](../AGENTS.md) before changing files.\n\n## Game systems we want to build
+**Current authoritative spec:** [v0.3.0 candidate](specs/ORBITAL-EMPIRES-v0.3.0.md). **Real-time/autonomy decision:** [ADR-0001](decisions/ADR-0001-REAL-TIME-AUTONOMY.md). All coding chats must read [AGENTS.md](../AGENTS.md) before changing files.
+
+## Game systems we want to build
 
 ### 1. Main menu and campaign setup
 
