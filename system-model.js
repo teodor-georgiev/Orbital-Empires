@@ -1,5 +1,6 @@
 /** Visual bodies are derived from the save data; they never alter gameplay or its save schema. */
 import { hashSeed } from './core.js';
+import { generateSpaceFeatures,generateStarfield } from './modules/space/environment.js';
 
 const TYPES = [
   ['Barren', '#b2a99c'], ['Volcanic', '#c47549'], ['Oceanic', '#3ba5c4'],
@@ -42,9 +43,16 @@ function solarSystemBodies(seed,system){
  return {star:{name:'Sun',color:'#ffe8ad',radius:.92},planets,belt:{orbitRadius:(planets[3].orbitRadius+planets[4].orbitRadius)/2},historical:true};
 }
 
+function withEnvironment(seed,system,bodies){
+  const features=generateSpaceFeatures(seed,system);
+  const sites=features.sites.map(site=>site.kind==='asteroid'?{...site,orbitRadius:bodies.belt.orbitRadius}:site);
+  const star=features.blackHole?{...bodies.star,name:'Black hole',kind:'black-hole',radius:.71,color:'#151126'}:bodies.star;
+  return {...bodies,star,sites,backgroundStars:generateStarfield(seed,system.id)};
+}
+
 export function generateSystemBodies(seed, system) {
   if (!system || !Number.isInteger(system.id) || system.id < 0) throw new TypeError('A valid star system is required');
-  if(system.realStarId==='sol')return solarSystemBodies(seed,system);
+  if(system.realStarId==='sol')return withEnvironment(seed,system,solarSystemBodies(seed,system));
   const next = makeRng(`${String(seed)}:system:${system.id}`);
   const count = 4 + Math.floor(next() * 4);
   const star = { name: system.star || 'Unknown star', color: /^#[0-9a-f]{6}$/i.test(system.color || '') ? system.color : '#ffe1b3', radius: 0.92 };
@@ -76,7 +84,7 @@ export function generateSystemBodies(seed, system) {
     });
     orbitRadius += 1.38 + next() * 0.55;
   }
-  return { star, planets, belt: { orbitRadius: (planets[1].orbitRadius + planets[2].orbitRadius) / 2 } };
+  return withEnvironment(seed,system,{ star, planets, belt: { orbitRadius: (planets[1].orbitRadius + planets[2].orbitRadius) / 2 } });
 }
 
 export function selectSystemPlanet(bodies, id) {
