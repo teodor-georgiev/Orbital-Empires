@@ -156,12 +156,14 @@ button:focus-visible,[tabindex]:focus-visible{outline:2px solid #70e5ed;outline-
   .resource,.resource:nth-child(n+4){display:flex;flex:1 0 auto;min-width:78px;max-width:none;padding:3px 7px}
   .resource-icon{display:none}.resource-info strong{font-size:13px}.resource-info small{font-size:8px}
   .main-layout,.main-layout.progress-mode{display:flex;flex-direction:column}
-  .sidebar{flex:0 0 auto;max-height:58px;flex-direction:row;align-items:center;overflow-x:auto;overflow-y:hidden}
+  .sidebar{order:0;position:sticky;top:0;z-index:10;display:flex;flex:0 0 auto;min-height:58px;max-height:58px;flex-direction:row;align-items:center;overflow-x:auto;overflow-y:hidden;background:#0b192b;border-top:0;border-bottom:1px solid #30495d}
   .commander-profile,.nav-head,.sidebar-bottom{display:none}
   .game-nav{display:flex;flex-direction:row;flex:none;padding:5px 8px;gap:5px}
-  .sidebar .nav-link{min-width:108px;width:auto;height:42px;padding:0 9px}
+  .sidebar .nav-link{min-width:116px;width:auto;height:42px;font-size:11px!important;justify-content:flex-start!important;padding:0 9px!important;gap:7px;white-space:nowrap}
   .sidebar .nav-link .nav-indicator{display:none}
-  .galaxy-wrapper{flex:1;min-height:260px;padding:0 9px}
+  .galaxy-wrapper{order:1;flex:1;min-height:260px;padding:0 9px}
+  .main-layout.progress-mode .galaxy-wrapper{height:auto;min-height:calc(100dvh - 160px)}
+  .main-layout.progress-mode .progress-workspace{overflow:visible}
   .inspector{max-height:34vh;min-height:180px;border-top:1px solid #304a60}
   .map-top{height:66px}.map-mode{display:none}
   .progress-workspace{padding:10px 0 15px}
