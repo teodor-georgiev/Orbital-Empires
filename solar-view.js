@@ -208,7 +208,7 @@ export function createSolarView(canvas,{onSelect=()=>{},quality=()=>({scale:2,ma
       const pos=at(p,time);ball(pos,p.radius*1.3,p.color,0,p.biome==='Gas Giant'?2:0);
       const screen=projectPoint(pos,matrix,width,height);
       const sizePoint=projectPoint([pos[0]+p.radius*1.3,pos[1],pos[2]],matrix,width,height);
-      if(screen)points.push({id:p.id,x:screen.x,y:screen.y,r:Math.max(15,Math.abs((sizePoint?.x||screen.x+12)-screen.x)+8),depth:screen.depth});
+      if(screen)points.push({id:p.id,x:screen.x,y:screen.y,r:Math.max(23,Math.abs((sizePoint?.x||screen.x+12)-screen.x)+14),depth:screen.depth});
       for(const moon of p.moons){
         const angle=moon.phase+time*.4;
         const satellite=[pos[0]+Math.cos(angle)*moon.orbitRadius,pos[1]+Math.sin(angle)*.10,pos[2]+Math.sin(angle)*moon.orbitRadius];
@@ -232,7 +232,7 @@ export function createSolarView(canvas,{onSelect=()=>{},quality=()=>({scale:2,ma
     for(const p of bodies.planets){
       const phase=p.phase+time*.095/Math.pow(p.orbitRadius,1.05),x=cx+Math.cos(phase)*p.orbitRadius*scale,y=cy+Math.sin(phase)*p.orbitRadius*scale*.48;
       const radius=Math.max(5,p.radius*scale);fallbackSphere(x,y,radius,p.color);
-      lastPoints.push({id:p.id,x,y,r:Math.max(16,radius+8),depth:0});
+      lastPoints.push({id:p.id,x,y,r:Math.max(23,radius+12),depth:0});
     }
   }
   function tick(){

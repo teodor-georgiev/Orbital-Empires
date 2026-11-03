@@ -2,6 +2,7 @@
 import { TRADITIONS, POLICIES, traditionCost, unityIncome, civicBonuses, canAdoptTradition, canEnactPolicy } from './modules/strategy/civics.js';
 export { TRADITIONS, POLICIES, traditionCost, unityIncome };
 import { SAVE_SCHEMA_VERSION } from './version.js';
+import { advancePopulation } from './modules/simulation/population.js';
 import { NEARBY_STARS, nearbySystemSeed } from './modules/galaxy/real-stars.js';
 export const VERSION = SAVE_SCHEMA_VERSION;
 export const WORLD = { width: 1140, height: 760 };
@@ -203,7 +204,7 @@ function aiTurn(g,emp){if(!ownedSystems(g,emp.id).length){emp.eliminated=true;re
 }
 export function endTurn(g){if(g.gameOver)return failure('This campaign has ended. Start a new galaxy to continue.');g.turn++;
  for(const e of g.empires){const y=income(g,e.id);for(const k of ['credits','alloys','influence'])e[k]+=y[k];e.unity=(e.unity||0)+unityIncome(g,e.id);if(ownedSystems(g,e.id).length)empireResearch(g,e)}
- for(const s of g.systems){if(s.owner!==null&&s.population<16&&rand(g)<(.28+s.habitability*.08))s.population++;}
+ for(const system of g.systems)if(system.owner!==null)advancePopulation(system);
  for(const e of g.empires.slice(1)){aiTurn(g,e)}
  reveal(g);
  for(const e of g.empires)if(!ownedSystems(g,e.id).length)e.eliminated=true;

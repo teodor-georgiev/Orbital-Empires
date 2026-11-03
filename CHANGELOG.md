@@ -4,6 +4,10 @@ All published game builds use [Semantic Versioning](https://semver.org/). Versio
 
 ## [0.3.0] — 2026-11-03 · Preview candidate
 
+- Approved A+B+C hybrid: galaxy command, cinematic planet management and immersive orbital view with floating inspector.
+- Deterministic asymptotic population growth, visible carrying capacity, and click-to-focus planets; browser desktop/mobile screenshots validated.
+- Original reference visual saved under docs/design/; save schema v1 preserved.
+
 - Optional Human Solar Frontier scenario, starting on Earth in Sol with a curated, cited nearby-star catalog including Alpha Centauri and Proxima Centauri.
 - Editable starting year (2000–3000) and player-species selection in a procedural galaxy.
 - Sol 3D viewer shows eight real-named Solar System planets with Earth as the colony; real orbital distances displayed separately from visual scene spacing.
