@@ -33,21 +33,30 @@
 - `previewColonyUpgrade(game, systemId, building, systemYieldFn, reserves = {})`: returns `null` for foreign, unavailable biome, max level or unknown building; otherwise `{systemId, buildingId, buildingName, nextLevel, cost, gain, affordable, preservesReserves, shortfalls}`.
 - `recommendColonyInvestments(game, buildings, systemYieldFn, {reserves = {}, limit = 3} = {})`: at most one recommendation per owned colony, sorted by reserves, affordability, summed positive gain and stable ID order.
 
-- [ ] Write tests proving projected delta equals yield after actual `build` and that preview does not mutate.
-- [ ] Write tests for biome restrictions, max levels, insufficient stockpiles, reserve preservation, competing colonies and deterministic order.
-- [ ] Run GitHub Actions (RED): tests fail because preview module does not exist.
-- [ ] Implement both pure exports with no dependency on `app.js`.
-- [ ] Run full Node + browser CI (GREEN).
+- [x] Write tests proving projected delta equals yield after actual `build` and that preview does not mutate.
+- [x] Write tests for biome restrictions, max levels, insufficient stockpiles, reserve preservation, competing colonies and deterministic order.
+- [x] Run GitHub Actions (RED): tests fail because preview module does not exist.
+- [x] Implement both pure exports with no dependency on `app.js`.
+- [x] Run full Node + browser CI (GREEN).
 
 ## Task 2 — Existing inspector advice (not a new route)
 **Files:** Modify `app.js` only, plus `tests/e2e/browser-smoke.mjs` for browser acceptance.
 
-- [ ] Extend browser smoke to enter Colonies after loading, show upgrade forecasts, verify clicking Manage opens the correct colony, return to map, and take a desktop screenshot; repeat on mobile.
-- [ ] Run RED workflow and confirm new assertions fail with missing advice.
-- [ ] Import `recommendColonyInvestments` and add a compact, clearly labeled read-only section to `renderColonies`.
-- [ ] Show cost, immediate production delta, and reserve safety; link to existing `inspect-colony`, never create a fake purchase button.
+- [x] Extend browser smoke to enter Colonies after loading, show upgrade forecasts, verify clicking Manage opens the correct colony, return to map, and take a desktop screenshot; repeat on mobile.
+- [x] Run RED workflow and confirm new assertions fail with missing advice.
+- [x] Import `recommendColonyInvestments` and add a compact, clearly labeled read-only section to `renderColonies`.
+- [x] Show cost, immediate production delta, and reserve safety; link to existing `inspect-colony`, never create a fake purchase button.
 - [ ] Run full Node + CDP CI on exact head and inspect screenshots, mobile overflow and PWA smoke.
 - [ ] Review full diff, request independent review, keep PR draft until integration and design gates.
 
 ## Deferred
 A standalone full-screen Economy workspace, production/upkeep rebalance, AI governors spending resources, automation permissions and a real market all require separate specs and tests.
+
+## Observed implementation evidence (2026-11-04)
+- Forecast TDD RED: [Game validation #41820408719](https://github.com/teodor-georgiev/Orbital-Empires/actions/runs/41820408719) failed for missing `upgrade-preview.js` as expected.
+- Forecast TDD GREEN: [Game validation #41820549960](https://github.com/teodor-georgiev/Orbital-Empires/actions/runs/41820549960) passed.
+- Browser TDD RED: [Game validation #41820798859](https://github.com/teodor-georgiev/Orbital-Empires/actions/runs/41820798859) (retry) failed because the new advice card was missing; initial attempt was an unrelated Chrome-launch transient.
+- Browser geometry RED: [Game validation #41821670779](https://github.com/teodor-georgiev/Orbital-Empires/actions/runs/41821670779) caught an unreadably narrow card. CSS and markup were repaired.
+- Browser + Node GREEN after layout fix: [Game validation #41821919975](https://github.com/teodor-georgiev/Orbital-Empires/actions/runs/41821919975) passed and produced actual 1440×900 and 390×844 screenshots. Final screenshot-only test cleanup is on a newer commit and requires exact-head CI.
+- **No new screen:** reused existing right-side Colonies inspector and seven-item navigation; manual building actions unchanged. 
+- **Not released:** independent review, parent PR #53 integration, conflict checks against UI PR #52, staging and exact published-build validation remain.
