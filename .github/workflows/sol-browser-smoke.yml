@@ -1,7 +1,7 @@
 name: Solar Frontier browser smoke
 on:
   pull_request:
-    branches: [feat/turn-based-4x-pwa]
+    branches: [feat/turn-based-4x-pwa, feat/oe-realtime-monthly-fleet-20261103]
     paths:
       - 'app.js'
       - 'core.js'
@@ -9,6 +9,8 @@ on:
       - 'solar-view.js'
       - 'system-model.js'
       - 'modules/galaxy/**'
+      - 'modules/strategy/**'
+      - 'modules/visuals/**'
       - 'modules/styles/**'
       - 'tests/**'
       - 'e2e/**'

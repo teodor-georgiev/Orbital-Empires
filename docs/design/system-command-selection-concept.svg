@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="820" viewBox="0 0 1400 820" role="img" aria-labelledby="title desc">
+<title id="title">Orbital Empires system-command concept: ship selection, defense outpost, and deploy controls</title>
+<desc id="desc">Original desktop and mobile mockup of the existing solar view extended with visible hulls, a defensive station, drag-selection marquee, and a compact ship-command overlay.</desc>
+<defs>
+ <radialGradient id="bg"><stop stop-color="#17344e"/><stop offset=".7" stop-color="#071929"/><stop offset="1" stop-color="#030a15"/></radialGradient>
+ <radialGradient id="sun"><stop stop-color="#fff8de"/><stop offset=".42" stop-color="#ffd18d"/><stop offset="1" stop-color="#a75634"/></radialGradient>
+ <linearGradient id="metal"><stop stop-color="#dcf6fc"/><stop offset=".5" stop-color="#638ca5"/><stop offset="1" stop-color="#284960"/></linearGradient>
+ <g id="corvette"><path d="M 0,-25 L -8,-3 L -23,8 L -23,15 L -5,7 L -5,17 L 0,12 L 5,17 L 5,7 L 23,15 L 23,8 L 8,-3 Z" fill="url(#metal)" stroke="#a1d8e9"/><path d="M -5,18 L -5,27 L 0,23 L 5,27 L 5,18" fill="#6deafa"/></g>
+ <g id="station"><path d="M 0,-68 L 12,-18 L 62,-8 L 26,8 L 43,44 L 0,26 L -43,44 L -26,8 L -62,-8 L -12,-18 Z" fill="url(#metal)" stroke="#91cedf" stroke-width="3"/><circle r="17" fill="#1a5b70" stroke="#9ae3e8" stroke-width="5"/><circle r="7" fill="#d4dbe1"/></g>
+</defs>
+<rect width="1400" height="820" fill="#030915"/>
+<text x="28" y="36" fill="#8fe7ef" font-family="Arial" font-size="22" font-weight="bold">ORBITAL EMPIRES / SYSTEM COMMAND — ORIGINAL VISUAL TARGET</text>
+<text x="28" y="59" fill="#a2b8c7" font-family="Arial" font-size="14">Concept only · not a gameplay screenshot · proposed overlay to existing solar UI</text>
+<rect x="24" y="78" width="1030" height="711" rx="15" fill="url(#bg)" stroke="#365d72" stroke-width="2"/>
+<g stroke="#4f92a2" stroke-opacity=".23" fill="none"><ellipse cx="490" cy="428" rx="156" ry="79"/><ellipse cx="490" cy="428" rx="300" ry="151"/><ellipse cx="490" cy="428" rx="420" ry="216"/></g>
+<g fill="#a0d9e9"><circle cx="112" cy="129" r="1.5"/><circle cx="900" cy="159" r="2"/><circle cx="813" cy="636" r="1"/><circle cx="243" cy="615" r="1.6"/><circle cx="959" cy="695" r="1"/></g>
+<circle cx="490" cy="428" r="45" fill="url(#sun)"/><circle cx="490" cy="428" r="69" fill="#f9ad60" opacity=".07"/>
+<circle cx="340" cy="393" r="18" fill="#66a9b6" stroke="#b0f0f2"/><text x="307" y="363" fill="#c1e4ee" font-family="Arial" font-size="16">Earth</text>
+<circle cx="731" cy="526" r="16" fill="#aa675a"/><text x="739" y="558" fill="#c6d5db" font-family="Arial" font-size="15">Mars</text>
+<g transform="translate(565,310) scale(.55)"><use href="#station"/></g>
+<rect x="578" y="284" width="106" height="44" rx="7" fill="#112c3b" stroke="#6ecad5"/>
+<text x="588" y="301" fill="#a3eaf1" font-family="Arial" font-size="12">SOL OUTPOST</text><text x="588" y="318" fill="#e3f6f5" font-family="Arial" font-size="15" font-weight="bold">DEF 18</text>
+<g transform="translate(265,450) rotate(-24) scale(1.5)"><use href="#corvette"/></g>
+<g transform="translate(309,493) rotate(-24) scale(1.5)"><use href="#corvette"/></g>
+<g transform="translate(357,466) rotate(-24) scale(1.4)"><use href="#corvette"/></g>
+<rect x="217" y="404" width="195" height="132" rx="5" fill="#69eaf2" fill-opacity=".07" stroke="#74edf0" stroke-width="2" stroke-dasharray="9 6"/>
+<g fill="none" stroke="#8dfaff" stroke-width="3"><circle cx="265" cy="450" r="43"/><circle cx="309" cy="493" r="43"/><circle cx="357" cy="466" r="40"/></g>
+<path d="M 361,469 Q 510,545 723,530" fill="none" stroke="#7fefec" stroke-width="3" stroke-dasharray="11 9"/>
+<path d="M 723,530 L 704,519 L 708,539 Z" fill="#8ceae7"/>
+<text x="615" y="482" fill="#acecf0" font-family="Arial" font-size="14">DEPLOY → MARS</text>
+<rect x="43" y="91" width="279" height="66" rx="8" fill="#081b2b" stroke="#365a65"/>
+<text x="59" y="117" fill="#98c6d1" font-family="Arial" font-size="14">SOL / STARDATE 2200.03</text>
+<text x="59" y="141" fill="#f1fcff" font-family="Arial" font-weight="bold" font-size="20">3 SHIPS SELECTED</text>
+<rect x="742" y="91" width="290" height="228" rx="11" fill="#081827" stroke="#47818e"/>
+<text x="762" y="119" fill="#92e0e8" font-family="Arial" font-size="17" font-weight="bold">FLEET COMMAND</text>
+<text x="762" y="145" fill="#dde8ee" font-family="Arial" font-size="14">3 × Corvette · 15 fleet power</text>
+<g font-family="Arial" font-size="15" text-anchor="middle" fill="#d5eff1">
+<rect x="760" y="160" width="121" height="36" rx="6" fill="#245b65"/><text x="821" y="184">ORBIT</text>
+<rect x="895" y="160" width="116" height="36" rx="6" fill="#245b65"/><text x="953" y="184">DOCK</text>
+<rect x="760" y="206" width="121" height="36" rx="6" fill="#245b65"/><text x="821" y="230">PATROL</text>
+<rect x="895" y="206" width="116" height="36" rx="6" fill="#245b65"/><text x="953" y="230">DEFEND</text>
+<rect x="760" y="252" width="251" height="37" rx="6" fill="#a67940"/><text x="885" y="277" fill="#fff">SPLIT / MERGE FLEET</text>
+</g>
+<text x="45" y="753" fill="#92b5c6" font-family="Arial" font-size="14">LEFT CLICK = SELECT · DRAG = BOX SELECT · SHIFT = ADD · RIGHT CLICK = ORDER · ALT + DRAG = ORBIT CAMERA</text>
+<rect x="1075" y="78" width="303" height="711" rx="15" fill="#071522" stroke="#365d72" stroke-width="2"/>
+<text x="1092" y="112" fill="#87dce7" font-family="Arial" font-size="18" font-weight="bold">MOBILE TREATMENT</text>
+<text x="1092" y="137" fill="#9aafc0" font-family="Arial" font-size="13">Tap ships to select</text>
+<rect x="1095" y="151" width="263" height="369" rx="8" fill="url(#bg)" stroke="#4e7883"/>
+<ellipse cx="1217" cy="312" rx="116" ry="53" fill="none" stroke="#4a7e8d"/>
+<circle cx="1217" cy="312" r="25" fill="url(#sun)"/>
+<g transform="translate(1170,367) scale(.85)"><use href="#corvette"/></g>
+<circle cx="1170" cy="367" r="31" stroke="#8ef5ee" stroke-width="2" fill="none"/>
+<g transform="translate(1246,245) scale(.4)"><use href="#station"/></g>
+<rect x="1103" y="456" width="245" height="49" rx="5" fill="#082534" stroke="#6bd7de"/>
+<text x="1117" y="477" fill="#b4f3ef" font-family="Arial" font-size="13">1 CORVETTE SELECTED</text>
+<text x="1117" y="493" fill="#85b8c7" font-family="Arial" font-size="11">TAP ORBIT / DOCK / DEPLOY</text>
+<g font-family="Arial" font-size="15" text-anchor="middle" fill="#e7f8f9">
+<rect x="1097" y="539" width="124" height="45" rx="6" fill="#205768"/><text x="1159" y="567">ORBIT</text>
+<rect x="1232" y="539" width="124" height="45" rx="6" fill="#205768"/><text x="1294" y="567">DOCK</text>
+<rect x="1097" y="595" width="259" height="46" rx="6" fill="#a67940"/><text x="1227" y="624">DEPLOY TO SELECTED PLANET</text>
+</g>
+<text x="1098" y="690" fill="#9abcc7" font-family="Arial" font-size="14">Touch: tap selection, buttons</text>
+<text x="1098" y="710" fill="#9abcc7" font-family="Arial" font-size="14">No browser right-click required</text>
+</svg>
