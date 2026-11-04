@@ -41,7 +41,7 @@ export function renderStrategicOutliner(game, selectedSystemId = null, selectedF
   }).join('');
   const cultureTitle = data.traditionName ? 'Tradition ready' : 'Culture';
   const cultureSub = data.traditionName ? 'Adopt ' + data.traditionName
-    : data.unity + ' / ' + data.unityCost + ' Unity · +' + data.unityPerTurn + '/turn';
+    : data.unity + ' / ' + data.unityCost + ' Unity · +' + data.unityPerTurn + '/month';
   return '<div class="outliner-heading"><span>' + icon('command-empire-overview') + ' STRATEGIC OUTLINER</span>' +
     '<small>LIVE EMPIRE STATE</small></div>' +
     '<div class="outliner-overviews">' +
