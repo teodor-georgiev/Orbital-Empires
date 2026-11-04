@@ -1,4 +1,4 @@
-/* Orbital Empires — deterministic, dependency-free turn-based 4X simulation. */
+/* Orbital Empires — deterministic fixed-month 4X simulation, offline-first. */
 import { TRADITIONS, POLICIES, traditionCost, unityIncome, civicBonuses, canAdoptTradition, canEnactPolicy } from './modules/strategy/civics.js';
 export { TRADITIONS, POLICIES, traditionCost, unityIncome };
 import { SAVE_SCHEMA_VERSION } from './version.js';
@@ -7,6 +7,7 @@ export {generateSpaceFeatures,canSurveySpaceSite,surveySpaceSite,hasScannedSite}
 import { GOVERNMENTS, CIVICS, COUNCIL_OFFICES, LEADERS, FACTIONS, politicalStability, factionLoyalty, factionTargets, canReformGovernment, canAdoptCivic, canAppointLeader, reformGovernment, adoptCivic, appointLeader, advancePolitics, stabilityProductionFactor, validGovernmentState } from './modules/strategy/government.js';
 export { GOVERNMENTS, CIVICS, COUNCIL_OFFICES, LEADERS, FACTIONS, politicalStability, factionLoyalty, factionTargets, canReformGovernment, canAdoptCivic, canAppointLeader, reformGovernment, adoptCivic, appointLeader };
 import { advancePopulation } from './modules/simulation/population.js';
+import { findHyperlaneRoute } from './modules/strategy/fleet-routes.js';
 import { BIOME_BUILDINGS, ORBITAL_BUILDINGS, biomeBuildingAllowed, buildingYield, orbitalYield } from './modules/strategy/planet-buildings.js';
 import { generateSystemBodies } from './system-model.js';
 export { BIOME_BUILDINGS, ORBITAL_BUILDINGS };
@@ -207,7 +208,66 @@ export function combat(g,attacker,target){const defending=g.fleets.filter(f=>f.o
 }
 function damageFleet(g,f,fraction){let remove=Math.floor((f.ships.corvette+f.ships.frigate+f.ships.cruiser)*fraction);if(fraction>0.15)remove=Math.max(1,remove);for(const id of ['corvette','frigate','cruiser']){const n=Math.min(remove,f.ships[id]);f.ships[id]-=n;remove-=n;}if(!Object.values(f.ships).some(Boolean))f.ships.corvette=1;}
 function cleanupFleets(g){g.fleets=g.fleets.filter(f=>Object.values(f.ships).some(Boolean));}
-export function canMove(g,fleetId,target){const f=g.fleets.find(f=>f.id===fleetId),s=g.systems[target];if(!f||f.owner!==0)return failure('Select one of your fleets first.');if(!s)return failure('Unknown destination.');if(f.movedTurn>=g.turn)return failure('This fleet has already moved this turn.');if(f.system===target)return failure('Fleet is already at this system.');if(!g.systems[f.system].neighbors.includes(target))return failure('Choose a directly connected system along a hyperlane.');if(s.owner!==null&&s.owner!==0&&!isWar(g.empires[0],g.empires[s.owner]))return failure('Declare war in Diplomacy before entering rival territory.');const rivals=g.fleets.filter(x=>x.system===target&&x.owner!==0);if(rivals.some(x=>!isWar(g.empires[0],g.empires[x.owner])))return failure('Neutral fleets are blocking the route.');return success('A navigable hyperlane is available.')}
+// Route orders survive saves and advance exactly one legal hyperlane per simulated month.
+// Legacy moveFleet remains available for older saves/tests, but the live UI queues routes.
+function canFleetEnter(g,f,target){
+ const from=g.systems[f.system],s=g.systems[target];
+ if(!from||!s||!from.neighbors.includes(target))return false;
+ if(s.owner!==null&&s.owner!==f.owner&&!isWar(g.empires[f.owner],g.empires[s.owner]))return false;
+ return !g.fleets.some(other=>other.id!==f.id&&other.system===target&&other.owner!==f.owner&&!isWar(g.empires[f.owner],g.empires[other.owner]));
+}
+export function canQueueFleetRoute(g,fleetId,target){
+ const f=g.fleets.find(x=>x.id===fleetId&&x.owner===0);
+ if(g.gameOver)return failure('The campaign has ended.');
+ if(!f)return failure('Select your fleet first.');
+ if(!Number.isInteger(target)||!g.systems[target])return failure('Select a valid destination.');
+ if(f.system===target)return failure('Fleet is already at this system.');
+ if(!hasSeen(g,target))return failure('Discover this star before plotting a route.');
+ const path=findHyperlaneRoute(g.systems,f.system,target,next=>hasSeen(g,next)&&canFleetEnterAt(g,f,next));
+ if(!path?.length)return failure('No accessible route. Explore a path or secure border access.');
+ return success('Hyperlane route available.',{route:path,months:path.length});
+}
+function canFleetEnterAt(g,f,target){
+ const s=g.systems[target];
+ if(!s)return false;
+ if(s.owner!==null&&s.owner!==f.owner&&!isWar(g.empires[f.owner],g.empires[s.owner]))return false;
+ return !g.fleets.some(other=>other.id!==f.id&&other.system===target&&other.owner!==f.owner&&!isWar(g.empires[f.owner],g.empires[other.owner]));
+}
+export function queueFleetRoute(g,fleetId,target){
+ const planned=canQueueFleetRoute(g,fleetId,target);
+ if(!planned.ok)return planned;
+ const f=g.fleets.find(x=>x.id===fleetId);
+ f.route=planned.route.slice();
+ log(g,`${f.name} ordered to ${g.systems[target].name}. ETA ${planned.months} month(s).`,'fleet');
+ return success(`Route assigned: ${planned.months} month(s).`,{months:planned.months});
+}
+export function cancelFleetRoute(g,fleetId){
+ const f=g.fleets.find(x=>x.id===fleetId&&x.owner===0);
+ if(!f)return failure('Select your fleet first.');
+ if(!f.route?.length)return failure('Fleet has no active route.');
+ f.route=[];
+ log(g,`${f.name} received a hold-position order.`,'fleet');
+ return success('Fleet will hold position.');
+}
+export function fleetRouteETA(f){return Array.isArray(f?.route)?f.route.length:0;}
+function advanceFleetRoutes(g){
+ for(const f of [...g.fleets]){
+  if(!Array.isArray(f.route)||!f.route.length)continue;
+  const target=f.route[0],s=g.systems[target];
+  if(!canFleetEnter(g,f,target)){
+   f.route=[];
+   if(f.owner===0)log(g,`${f.name} halted: hyperlane or border is blocked.`,'fleet');
+   continue;
+  }
+  const contested=g.fleets.some(x=>x.owner!==f.owner&&x.system===target)||(s.owner!==null&&s.owner!==f.owner);
+  if(contested&&!combat(g,f,target))continue;
+  f.system=target;
+  f.movedTurn=g.turn;
+  f.route.shift();
+  if(f.owner===0)log(g,`${f.name} arrived at ${s.name}.${f.route.length?' Continuing next month.':''}`,'fleet');
+ }
+}
+export function canMove(g,fleetId,target){const f=g.fleets.find(f=>f.id===fleetId),s=g.systems[target];if(!f||f.owner!==0)return failure('Select one of your fleets first.');if(!s)return failure('Unknown destination.');if(f.route?.length)return failure('Cancel the active fleet route first.');if(f.movedTurn>=g.turn)return failure('This fleet has already moved this month.');if(f.system===target)return failure('Fleet is already at this system.');if(!g.systems[f.system].neighbors.includes(target))return failure('Choose a directly connected system along a hyperlane.');if(s.owner!==null&&s.owner!==0&&!isWar(g.empires[0],g.empires[s.owner]))return failure('Declare war in Diplomacy before entering rival territory.');const rivals=g.fleets.filter(x=>x.system===target&&x.owner!==0);if(rivals.some(x=>!isWar(g.empires[0],g.empires[x.owner])))return failure('Neutral fleets are blocking the route.');return success('A navigable hyperlane is available.')}
 export function moveFleet(g,fleetId,target){const can=canMove(g,fleetId,target);if(!can.ok)return can;const f=g.fleets.find(x=>x.id===fleetId),s=g.systems[target];f.movedTurn=g.turn;const enemies=g.fleets.filter(x=>x.system===target&&x.owner!==f.owner);if(enemies.length||(s.owner!==null&&s.owner!==f.owner)){const win=combat(g,f,target);if(!win)return failure(`Fleet lost in combat at ${s.name}.`)}f.system=target;reveal(g);log(g,`${f.name} arrived at ${s.name}.`,'fleet');return success(`Fleet moved to ${s.name}.`)}
 export function declareWar(g,id){const player=g.empires[0],enemy=g.empires[id];if(!enemy||id===0||enemy.eliminated)return failure('Choose an active rival civilization.');if(player.wars[id])return failure('Already at war.');player.wars[id]=true;enemy.wars[0]=true;player.relations[id]=-100;enemy.relations[0]=-100;log(g,`WAR DECLARED: ${player.short} and ${enemy.short} are now at war.`,'war');return success(`War declared on ${enemy.name}.`)}
 export function sendEnvoy(g,id){const e=g.empires[0],r=g.empires[id];if(!r||id===0||r.eliminated)return failure('Choose a rival empire.');if(e.wars[id])return failure('Diplomacy is suspended during war.');if(e.lastEnvoy[id]===g.turn)return failure('An envoy has already visited this turn.');if(e.influence<12)return failure('Not enough influence to send an envoy.');e.influence-=12;e.relations[id]=clamp((e.relations[id]||0)+21,-100,100);r.relations[0]=clamp((r.relations[0]||0)+21,-100,100);e.lastEnvoy[id]=g.turn;log(g,`An envoy improved diplomatic ties with ${r.short}.`,'diplomacy');return success('Diplomatic relations improved by 21.')}
@@ -234,7 +294,8 @@ function aiTurn(g,emp){if(!ownedSystems(g,emp.id).length){emp.eliminated=true;re
    if(rand(g)<.18){const friendly=targets.filter(s=>s.owner===emp.id);if(friendly.length)f.system=pick(g,friendly).id;}
  }
 }
-export function endTurn(g){if(g.gameOver)return failure('This campaign has ended. Start a new galaxy to continue.');g.turn++;
+export function advanceMonth(g){if(g.gameOver)return failure('This campaign has ended. Start a new galaxy to continue.');g.turn++;
+ advanceFleetRoutes(g);
  for(const e of g.empires){const y=income(g,e.id);for(const k of ['credits','alloys','influence'])e[k]+=y[k];e.unity=(e.unity||0)+unityIncome(g,e.id);if(ownedSystems(g,e.id).length)empireResearch(g,e)}
  for(const e of g.empires){const politics=advancePolitics(e);if(e.id===0&&politics.unrest)log(g,'POLITICAL UNREST: Public confidence has collapsed. Production is disrupted until stability recovers.','culture');}
  for(const system of g.systems)if(system.owner!==null)advancePopulation(system);
@@ -244,8 +305,10 @@ export function endTurn(g){if(g.gameOver)return failure('This campaign has ended
  const mine=ownedSystems(g,0).length;if(mine===0){g.gameOver={won:false,title:'The last light fades',description:'The Directorate has lost its final colony.'};log(g,'The Terran Directorate has fallen.','war')}
  else if(mine>=Math.ceil(g.systems.length*.65)){g.gameOver={won:true,title:'Galactic Dominion',description:`The Directorate controls ${mine} of ${g.systems.length} star systems.`};log(g,'VICTORY: The Directorate dominates the galaxy!','victory')}
  else if(g.empires.slice(1).every(e=>e.eliminated)){g.gameOver={won:true,title:'Victory among the stars',description:'No competing empire remains.'};log(g,'VICTORY: All rival empires have fallen.','victory')}
- return success(`Turn ${g.turn} has begun.`,{income:income(g,0),newEvents:g.logs.filter(x=>x.turn===g.turn)});
+ return success(`Month ${getStardate(g)} has begun.`,{income:income(g,0),newEvents:g.logs.filter(x=>x.turn===g.turn)});
 }
+// Compatibility API: historical tests and old integrations can still advance one month.
+export const endTurn=advanceMonth;
 export function validateGame(data){
  if(!data||data.version!==VERSION||(data.startYear!==undefined&&(!Number.isInteger(data.startYear)||data.startYear<2000||data.startYear>3000))||(data.scenario!==undefined&&!['sol','procedural'].includes(data.scenario))||!Array.isArray(data.systems)||!Array.isArray(data.empires)||!Array.isArray(data.fleets)||data.systems.length<40||data.systems.length>180||data.empires.length<2||data.empires.length>7)return false;
  if(data.empires.some(e=>!e||!validGovernmentState(e))||!validSpaceScans(data.spaceScans))return false;

@@ -33,7 +33,7 @@ const command=(method,params={})=>new Promise((resolve,reject)=>{
 });
 async function evaluate(expression){
  const response=await command('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});
- if(response.exceptionDetails)throw Error('Browser JS exception: '+response.exceptionDetails.text);
+ if(response.exceptionDetails)throw Error('Browser JS exception: '+(response.exceptionDetails.exception?.description||response.exceptionDetails.text));
  return response.result?.value;
 }
 async function ready(expression,label){return polling(async()=>await evaluate(expression),label);}
@@ -64,7 +64,7 @@ try{
  assert.ok(await evaluate('!!document.querySelector("[data-nav=government]")&&!!document.querySelector(".progress-nav")'));
  assert.ok(await evaluate('!!document.querySelector("#progress-workspace")'));
  assert.ok(await evaluate('!!document.querySelector(".command-group-label")'));
- await evaluate('document.querySelector(".oe-home-continue").click();true');
+ await evaluate('document.querySelector(".oe-home-continue").click();document.querySelector("[data-action=clock-toggle]").click();true');
  await ready('document.getElementById("modal-root").hidden&&!!document.querySelector("[data-action=open-solar]")','galaxy after menu resume');
  // Regression: CSS display:flex must not override the Progress section's hidden attribute.
  assert.ok(await evaluate("document.getElementById('progress-workspace').hidden&&getComputedStyle(document.getElementById('progress-workspace')).display==='none'&&document.getElementById('progress-workspace').offsetHeight===0"),'hidden Progress section must not occupy the galaxy scene');
@@ -112,15 +112,15 @@ try{
  await ready('!document.body.classList.contains("oe-planet-focus")','return to orbits');
  await evaluate('document.getElementById("solar-focus-planet").click();true');
  await ready('document.body.classList.contains("oe-planet-focus")','return to planet focus');
- await evaluate('document.querySelector("[data-action=end-turn]").click();true');
- await ready('document.getElementById("top-turn").textContent.includes("02")','manual cycle advance');
+ await evaluate('document.querySelector("[data-action=step-month]").click();true');
+ await ready('document.getElementById("top-turn").textContent.includes("02")','manual month advance');
  const next=await evaluate('parseFloat(document.querySelector(".oe-population-head b").textContent)');
  assert.ok(next>prior&&next<30,'population must grow smoothly');
  await command('Page.reload',{ignoreCache:true});
  await ready('document.readyState==="complete"&&!!document.querySelector(".oe-home-menu")','saved game reload');
- await evaluate('document.querySelector(".oe-home-continue").click();true');
+ await evaluate('document.querySelector(".oe-home-continue").click();document.querySelector("[data-action=clock-toggle]").click();true');
  await ready('document.getElementById("modal-root").hidden','resume saved game');
- assert.ok(await evaluate('document.getElementById("top-turn").textContent.includes("02")'),'turn persists after reload');
+ assert.ok(await evaluate('document.getElementById("top-turn").textContent.includes("02")'),'month persists after reload');
  await command('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
  assert.ok(await evaluate('document.querySelectorAll(".game-nav .nav-link").length===7'));
  await evaluate('document.querySelector("[data-action=open-solar]").click();true');
