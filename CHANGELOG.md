@@ -2,6 +2,12 @@
 
 All published game builds use [Semantic Versioning](https://semver.org/). Version tags are created **only after** a reviewed integration and stable release, never on work-in-progress commits.
 
+## [Unreleased] — Rival strategic economic AI (integration candidate)
+
+- Rivals prioritize legal, high-value frontier colonies and preserve the credit/alloy/influence budget for the next claim instead of consuming it on shipbuilding.
+- When frontier expansion is blocked, rivals choose affordable, productive colony upgrades using a deterministic return heuristic.
+- No player autopilot, new UI, save-schema change or monthly-balance recalibration. This remains a feature-branch candidate until reviewed and integrated.
+
 ## [0.3.1] — 2026-11-03 · Seeded biome planets
 
 - **Orbital environment:** deterministic starfield in WebGL and Canvas 2D fallback, visible asteroid fields, orbital comets, anomalies, rare black-hole systems and hostile void leviathans (fictional beyond Sol).
