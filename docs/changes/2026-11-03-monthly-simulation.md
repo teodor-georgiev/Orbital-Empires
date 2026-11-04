@@ -25,3 +25,6 @@
 - The browser smoke flow pauses the monthly clock during deterministic planet-building assertions, then steps exactly one month. The branch's CI result remains authoritative; no green status is assumed until it completes.
 
 - Updated both Playwright browser suites to explicitly pause the default-running clock before asserting planetary selection, resource costs or saved state. Added a live clock smoke test that verifies automatic month progression, pause and single-month stepping.
+
+## 2026-11-04 integration merge
+- Reconciles active integration's mobile Progress/Command workspace CSS and updated headless Chromium layout checks with the monthly simulation PR. Browser smoke uses explicit pause and +1M stepping, and the offline cache includes both the latest integration assets and autonomous clock modules. No source features from either branch were discarded.
