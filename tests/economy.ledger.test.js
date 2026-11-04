@@ -54,7 +54,7 @@ test('resource shortfalls respect reserves without spending anything', () => {
   const cost = { credits: 30, alloys: 20, influence: 10 };
   const reserves = { credits: 80, alloys: 10 };
   const before = JSON.stringify([stockpile, cost, reserves]);
-  assert.deepEqual(resourceShortfalls(stockpile, cost, reserves), { credits: 10, influence: 0, alloys: 0 });
+  assert.deepEqual(resourceShortfalls(stockpile, cost, reserves), { credits: 10 });
   assert.equal(JSON.stringify([stockpile, cost, reserves]), before);
   assert.deepEqual(resourceShortfalls(stockpile, { credits: 20, alloys: 20 }), {});
   assert.deepEqual(resourceShortfalls(stockpile, { unity: 5 }), { unity: 5 });
