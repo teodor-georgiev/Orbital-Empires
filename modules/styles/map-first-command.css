@@ -305,3 +305,14 @@ body.oe-orbital-mode .strategic-outliner{display:none}
 @media(prefers-reduced-motion:reduce){
   .sidebar .nav-link,.map-controls button,.inspector button{transition:none!important}
 }
+
+/* Phones: logo, date and clock share one row, with resources below, so the map keeps its height. */
+@media(max-width:450px){
+  .topbar .brand-copy{display:none}
+  .topbar .brand{margin-right:0}
+  .topbar .header-actions{flex:1 1 0;min-width:0;flex-wrap:nowrap;justify-content:flex-end;gap:3px}
+  .topbar .header-actions .icon-button:not([data-action="menu"]){display:none}
+  .topbar .top-turn{font-size:11px;white-space:nowrap}
+  .topbar .oe-time-controls{width:auto;order:0;flex:0 1 auto}
+  .topbar .oe-time-controls button{flex:0 0 auto;height:34px}
+}
