@@ -88,6 +88,15 @@ try{
  await ready('!document.getElementById("solar-stage").hidden&&document.querySelectorAll("[data-action=solar-planet]").length>=4','3D or 2D solar scene');
  assert.ok(await evaluate('!!document.querySelector(".oe-population-card")'));
  assert.ok(await evaluate('document.body.classList.contains("oe-orbital-mode")&&!document.body.classList.contains("oe-planet-focus")'));
+
+ const orbitalNav=JSON.parse(await evaluate(`JSON.stringify((()=>{
+   const rail=document.querySelector('.sidebar');
+   return {railWidth:rail.getBoundingClientRect().width,
+     labels:[...rail.querySelectorAll('.nav-link')].map(el=>parseFloat(getComputedStyle(el).fontSize))};
+ })())`));
+ assert.ok(orbitalNav.railWidth<=76&&orbitalNav.labels.every(size=>size===0),
+   'compact orbital rail must show icons without clipped text labels: '+JSON.stringify(orbitalNav));
+
  assert.ok(await evaluate("getComputedStyle(document.getElementById('progress-workspace')).display==='none'"),'hidden Progress viewer cannot squeeze orbital system');
  await capture('02-orbital-system-desktop.png');
  const prior=await evaluate('parseFloat(document.querySelector(".oe-population-head b").textContent)');
@@ -135,6 +144,7 @@ try{
  await ready('document.getElementById("modal-root").hidden','resume saved game');
  assert.ok(await evaluate('document.getElementById("top-turn").textContent.includes("02")'),'turn persists after reload');
  await command('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+ assert.ok(await evaluate('document.querySelector(".topbar").getBoundingClientRect().height<=105'), 'phone header must fit brand, commands and resources in two compact rows');
  await capture('03-galaxy-mobile.png');
  assert.ok(await evaluate('document.querySelectorAll(".game-nav .nav-link").length===7'));
  await evaluate('document.querySelector("[data-action=open-solar]").click();true');
