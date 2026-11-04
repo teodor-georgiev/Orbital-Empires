@@ -76,6 +76,19 @@ try{
  assert.ok(await evaluate('!!document.querySelector(".oe-population-card")'));
  assert.ok(await evaluate('document.body.classList.contains("oe-orbital-mode")&&!document.body.classList.contains("oe-planet-focus")'));
  assert.ok(await evaluate("getComputedStyle(document.getElementById('progress-workspace')).display==='none'"),'hidden Progress viewer cannot squeeze orbital system');
+ // Screenshot-backed visual QA: prevent an empty desktop tactical overlay from
+ // consuming most of the solar system canvas. Mobile uses a separate scroll layout.
+ const orbitalVisual=JSON.parse(await evaluate(`JSON.stringify((()=>{
+  const stage=document.querySelector('#solar-stage').getBoundingClientRect();
+  const panel=document.querySelector('#solar-command-panel').getBoundingClientRect();
+  const chooser=document.querySelector('.solar-planet-panel').getBoundingClientRect();
+  return {stageHeight:Math.round(stage.height),panelHeight:Math.round(panel.height),
+   panelLeft:Math.round(panel.left),chooserRight:Math.round(chooser.right)};
+ })())`));
+ assert.ok(orbitalVisual.panelHeight>190&&orbitalVisual.panelHeight<orbitalVisual.stageHeight*.68,
+  'desktop tactical overlay must be usable but not occupy most of the solar scene: '+JSON.stringify(orbitalVisual));
+ assert.ok(orbitalVisual.panelLeft>=orbitalVisual.chooserRight-4,
+  'tactical overlay must not cover planet selection: '+JSON.stringify(orbitalVisual));
  await capture('02-orbital-system-desktop.png');
  const prior=await evaluate('parseFloat(document.querySelector(".oe-population-head b").textContent)');
  assert.ok(Number.isFinite(prior)&&prior>0);
