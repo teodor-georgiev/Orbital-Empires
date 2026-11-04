@@ -84,6 +84,16 @@ try{
    'desktop command navigation should have seven readable actions: '+JSON.stringify(shell));
 
  await capture('01-galaxy-desktop.png');
+ // A dedicated Progress workspace must replace the map without retaining hidden
+ // layout space, and return to the exact same playable map surface.
+ await evaluate('document.querySelector(".game-nav [data-nav=research]").click();true');
+ await ready('!document.getElementById("progress-workspace").hidden&&document.querySelector(".main-layout").classList.contains("progress-mode")','Progress workspace opens');
+ assert.equal(await evaluate("getComputedStyle(document.getElementById('map-viewport')).display"),'none','Progress mode removes inactive canvas from layout');
+ await evaluate('document.querySelector(".game-nav [data-nav=system]").click();true');
+ await ready('document.getElementById("progress-workspace").hidden&&!document.querySelector(".main-layout").classList.contains("progress-mode")','galaxy restored after Progress');
+ assert.ok(await evaluate("getComputedStyle(document.getElementById('progress-workspace')).display==='none'&&document.getElementById('map-viewport').getBoundingClientRect().height>450"),
+   'returning from Progress must restore a full-height galaxy map');
+
  await evaluate('document.querySelector("[data-action=open-solar]").click();true');
  await ready('!document.getElementById("solar-stage").hidden&&document.querySelectorAll("[data-action=solar-planet]").length>=4','3D or 2D solar scene');
  assert.ok(await evaluate('!!document.querySelector(".oe-population-card")'));
