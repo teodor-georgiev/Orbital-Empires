@@ -239,7 +239,8 @@ export function aiEconomicPlan(g,empireId){
  return {targetId:affordable?choices[0].id:null,frontierCount:choices.length,reserve};
 }
 function aiTurn(g,emp){
- if(!ownedSystems(g,emp.id).length){emp.eliminated=true;return;}
+ const colonies=ownedSystems(g,emp.id);
+ if(!colonies.length){emp.eliminated=true;return;}
  const plan=aiEconomicPlan(g,emp.id);
  if(plan.targetId!==null&&rand(g)<(g.difficulty==='hard'?.83:g.difficulty==='easy'?.42:.62))
   colonizeBy(g,plan.targetId,emp.id);
