@@ -242,6 +242,7 @@ export function queueFleetRoute(g,fleetId,target){
  if(!planned.ok)return planned;
  const f=g.fleets.find(x=>x.id===fleetId);
  f.route=planned.route.slice();
+ f.localOrder={kind:'hold'}; // Local planet orders do not carry into a new star system.
  log(g,`${f.name} ordered to ${g.systems[target].name}. ETA ${planned.months} month(s).`,'fleet');
  return success(`Route assigned: ${planned.months} month(s).`,{months:planned.months});
 }

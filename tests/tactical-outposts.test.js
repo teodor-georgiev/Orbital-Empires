@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {generateGame,validateGame,advanceMonth,canUpgradeOutpost,upgradeOutpost,colonize,combat,reconcileShipUnits,shipUnitRoster,orderSelectedShips,splitShipSelection,mergeShipSelection,getOutpost,outpostDefense} from '../core.js';
+import {generateGame,validateGame,advanceMonth,canUpgradeOutpost,upgradeOutpost,colonize,combat,queueFleetRoute,reconcileShipUnits,shipUnitRoster,orderSelectedShips,splitShipSelection,mergeShipSelection,getOutpost,outpostDefense} from '../core.js';
 import {makeOutpost,damageOutpost,getOutpost as directOutpost,restoreOutpost,OUTPOST_TIERS} from '../modules/strategy/outposts.js';
 
 function game(){return generateGame({scenario:'sol',seed:'OUTPOST-TEST-2200',size:60,opponents:2,startYear:2200});}
@@ -85,4 +85,19 @@ test('ship selection orders persist through save, splitting and merging without 
  assert.deepEqual(shipUnitRoster(g,home).find(u=>u.id===allIds[0]).localOrder.position,[2.3,-1.5]);
  assert.equal(orderSelectedShips(g,[allIds[0]],{kind:'orbit',planetId:99}).ok,false);
  assert.equal(orderSelectedShips(g,[allIds[0]],{kind:'move',position:[999,0]}).ok,false);
+});
+
+test('hyperlane travel clears a previous local orbit order and arrives at the next star',()=>{
+ const g=game(),home=g.empires[0].home,f=g.fleets.find(f=>f.owner===0);
+ const target=g.systems.find(s=>s.owner===null&&s.neighbors.includes(home));
+ assert.ok(target);
+ const ids=f.units.map(unit=>unit.id);
+ assert.equal(orderSelectedShips(g,ids,{kind:'orbit',planetId:2}).ok,true);
+ assert.equal(f.localOrder.kind,'orbit');
+ g.explored=g.systems.map(s=>s.id);
+ assert.equal(queueFleetRoute(g,f.id,target.id).ok,true);
+ assert.equal(f.localOrder.kind,'hold');
+ assert.equal(advanceMonth(g).ok,true);
+ assert.equal(f.system,target.id);
+ assert.equal(validateGame(g),true);
 });

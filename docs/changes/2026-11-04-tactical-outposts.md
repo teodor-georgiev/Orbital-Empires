@@ -23,3 +23,8 @@
 - Direct one-click destination choices in the Fleet Operations inspector display accurate ETA and create real saved route orders, rather than requiring a hidden two-stage galaxy selection.
 - Selected ships in the solar view can choose **Send via Hyperlane**, splitting a selected subset into its own fleet where necessary, then returning to Galaxy Command. Right-click a discovered system to order the selected fleet immediately.
 - Added Playwright coverage for selecting a fleet, issuing a route, stepping one month, persisting travel, and bridging selected ships from the system view.
+
+## Rapid-speed click stability and hyperlane semantics
+- Suspends monthly rerenders while clicking/dragging ship, map and menu controls; resumes the player's prior Play/Pause state after pointer release.
+- The final Progress/orbital browser suite explicitly pauses time during deterministic UI assertions.
+- Real hyperlane orders clear obsolete local planetary-orbit deployments. Dedicated regression test confirms one-hop arrival and a valid saved game.

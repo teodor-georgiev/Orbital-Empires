@@ -570,7 +570,20 @@ window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredIns
 window.addEventListener('appinstalled',()=>notice('Orbital Empires installed. Play offline!'));
 if('serviceWorker' in navigator&&window.location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 
-document.addEventListener('visibilitychange',syncSimClock);
+// Freeze monthly rerenders while the player clicks or drags, particularly at 8× speed.
+let pointerCommandActive=false;
+document.addEventListener('pointerdown',event=>{
+ if(!game||!simClock.state().running||!(event.target instanceof Element))return;
+ if(!event.target.closest('button,[data-action],[data-nav],#galaxy-canvas,#solar-canvas'))return;
+ pointerCommandActive=true;simClock.suspend();
+},true);
+function resumePointerClock(){
+ if(!pointerCommandActive)return;
+ pointerCommandActive=false;requestAnimationFrame(syncSimClock);
+}
+document.addEventListener('pointerup',resumePointerClock,true);
+document.addEventListener('pointercancel',resumePointerClock,true);
+document.addEventListener('visibilitychange',()=>{pointerCommandActive=false;syncSimClock();});
 // Boot. Keep game state isolated from the UI — all mechanics live in core.js.
 const existing=loadGame();if(existing){activateGame(existing,true);notice('Campaign restored from local save.');}else{activateGame(generateGame({seed:'SOL-2200',size:90,opponents:4,difficulty:'normal',scenario:'sol',startYear:2200,playerFaction:'human'}),true);}
 applySettings();requestAnimationFrame(draw);
