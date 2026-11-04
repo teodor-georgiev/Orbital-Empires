@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { generateGame, validateGame, getNeighbors, ownedSystems, income, availableTechs, chooseResearch, colonize, canColonize, build, canBuild, canMove, moveFleet, recruit, endTurn, getVisibility, sendEnvoy, declareWar, offerPeace, score } from '../core.js';
+import { generateGame, validateGame, getNeighbors, ownedSystems, income, availableTechs, chooseResearch, colonize, canColonize, build, canBuild, canMove, moveFleet, recruit, endTurn, getVisibility, sendEnvoy, declareWar, offerPeace, score, aiEconomicPlan, colonyCost } from '../core.js';
 
 test('same seed deterministically generates the same reachable galaxy',()=>{
  const a=generateGame({seed:'ANDROMEDA-42',size:90,opponents:4}),b=generateGame({seed:'ANDROMEDA-42',size:90,opponents:4});
@@ -38,4 +38,50 @@ test('diplomacy, saving structure and stable 30-turn simulation',()=>{
  assert.equal(offerPeace(g,1).ok,true);assert.equal(g.empires[1].wars[0],false);
  for(let i=0;i<30;i++){const r=endTurn(g);if(!r.ok)break;assert.ok(validateGame(g));assert.ok(g.fleets.every(f=>g.systems[f.system]));assert.ok(g.systems.every(s=>s.owner===null||g.empires[s.owner]));}
  assert.ok(score(g,0)>0);assert.ok(JSON.parse(JSON.stringify(g)).systems.length===90);
+});
+
+test('rival economic planning is deterministic, read-only and reserves frontier costs',()=>{
+  const g=generateGame({seed:'FRONTIER-BUDGET',size:60,opponents:2});
+
+  const empire=g.empires[1],snapshot=structuredClone(g);
+  const plan=aiEconomicPlan(g,1),cost=colonyCost(g,1);
+  assert.ok(plan.frontierCount>0);
+  assert.ok(Number.isInteger(plan.targetId));
+  assert.deepEqual(plan.reserve,cost);
+  assert.equal(g.systems[plan.targetId].owner,null);
+  assert.ok(g.systems[plan.targetId].neighbors.some(id=>g.systems[id].owner===1));
+  assert.deepEqual(g,snapshot,'planning must not mutate game state or RNG');
+  empire.influence=0;
+  const saving=aiEconomicPlan(g,1);
+  assert.equal(saving.targetId,null);
+  assert.deepEqual(saving.reserve,cost);
+});
+
+test('rivals do not consume the next colony budget on automatic shipbuilding',()=>{
+  const g=generateGame({seed:'PROTECT-COLONY-BUDGET',size:60,opponents:1});
+  const e=g.empires[1],cost=colonyCost(g,1);
+  assert.ok(aiEconomicPlan(g,1).frontierCount>0);
+  e.credits=cost.credits;
+  e.alloys=cost.alloys;
+  e.influence=0;
+  const before=g.fleets.filter(f=>f.owner===1).reduce((sum,f)=>sum+Object.values(f.ships).reduce((a,b)=>a+b,0),0);
+  endTurn(g);
+  const after=g.fleets.filter(f=>f.owner===1).reduce((sum,f)=>sum+Object.values(f.ships).reduce((a,b)=>a+b,0),0);
+  assert.equal(after,before,'ship purchases cannot drain protected frontier reserves');
+  assert.ok(e.alloys>=cost.alloys&&e.credits>=cost.credits);
+  assert.ok(validateGame(g));
+});
+
+test('landlocked rivals reinvest in economic buildings and the campaign stays valid',()=>{
+  const g=generateGame({seed:'INDUSTRY-INVESTMENT',size:60,opponents:1});
+  const e=g.empires[1],home=g.systems[e.home];
+  for(const id of home.neighbors)if(g.systems[id].owner===null)g.systems[id].owner=0;
+  assert.equal(aiEconomicPlan(g,1).frontierCount,0);
+  e.credits=500;e.alloys=500;
+  const before=home.buildings.foundry+home.buildings.exchange+home.buildings.laboratory;
+  for(let i=0;i<10;i++)endTurn(g);
+  const after=home.buildings.foundry+home.buildings.exchange+home.buildings.laboratory;
+  assert.ok(after>before,'a boxed-in rival should develop productive infrastructure');
+  assert.ok(e.credits>=0&&e.alloys>=0);
+  assert.ok(validateGame(g));
 });
