@@ -71,6 +71,14 @@ try{
  await ready('!!document.querySelector(".oe-investment-opportunity")','colony upgrade advice');
  assert.ok(await evaluate('document.querySelector(".oe-investment-opportunity").textContent.includes("CREDITS")&&document.querySelector(".oe-investment-opportunity").textContent.includes("ALLOYS")'),'upgrade advice must show exact costs');
  assert.ok(await evaluate('document.querySelector(".oe-investment-opportunity").textContent.includes("PRODUCTION")'),'upgrade must explain the expected output');
+ const adviceGeometry=JSON.parse(await evaluate(`JSON.stringify((()=>{
+   const card=document.querySelector('.oe-investment-opportunity'),heading=card?.querySelector('.oe-investment-head'),
+     action=card?.querySelector('[data-action=inspect-colony]');
+   return {width:card?.getBoundingClientRect().width,headWidth:heading?.getBoundingClientRect().width,
+     cardOverflow:card?.scrollWidth-card?.clientWidth,hasAction:!!action};
+ })())`));
+ assert.ok(adviceGeometry.headWidth>220&&adviceGeometry.cardOverflow<=2&&adviceGeometry.hasAction,
+   'investment advice needs a readable full-width layout: '+JSON.stringify(adviceGeometry));
  await evaluate('document.querySelector(".oe-investment-opportunity").scrollIntoView({block:"center"});true');
  await capture('00-colony-economy-desktop.png');
  const targetColony=await evaluate('document.querySelector(".oe-investment-opportunity").dataset.systemId');
