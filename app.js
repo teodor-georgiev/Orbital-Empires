@@ -1,4 +1,6 @@
 import { VERSION, WORLD, BUILDINGS, BIOME_BUILDINGS, ORBITAL_BUILDINGS, SHIPS, TECHS, TRADITIONS, POLICIES, generateSpaceFeatures, canSurveySpaceSite, surveySpaceSite, hasScannedSite, GOVERNMENTS, CIVICS, COUNCIL_OFFICES, LEADERS, FACTIONS, politicalStability, factionLoyalty, factionTargets, canReformGovernment, canAdoptCivic, canAppointLeader, reformGovernment, adoptCivic, appointLeader, traditionCost, unityIncome, adoptTradition, enactPolicy, generateGame, getEmpire, ownedSystems, getVisibility, hasSeen, getNeighbors, income, systemYield, score, fleetPower, availableTechs, colonyCost, canColonize, colonize, canBuild, build, canBuildOrbital, buildOrbital, canRecruit, recruit, canMove, moveFleet, chooseResearch, declareWar, sendEnvoy, offerPeace, endTurn, validateGame, getStardate } from './core.js';
+import { economyLedger } from './modules/economy/ledger.js';
+import { recommendColonyInvestments } from './modules/economy/upgrade-preview.js';
 import { generateSystemBodies, selectSystemPlanet } from './system-model.js';
 import { SITE_KINDS } from './modules/space/environment.js';
 import { createSolarView } from './solar-view.js';
@@ -229,7 +231,30 @@ function renderSystem(){const s=game.systems[selectedId],seen=hasSeen(game,s.id)
  const f=game.fleets.find(f=>f.id===selectedFleetId&&f.owner===0);if(f){const movable=canMove(game,f.id,s.id);const origin=game.systems[f.system];html+=section('FLEET ORDERS',`<div class="alert">Active fleet: <b style="color:#c2eeee">${escapeHTML(f.name)}</b><div class="small-muted">Currently at ${escapeHTML(origin.name)} · ${fleetPower(game,f)} power</div></div>${btn('move-fleet',`⌁ MOVE FLEET TO ${escapeHTML(s.name.toUpperCase())}`,'action-secondary',!movable.ok?'disabled':'')}${!movable.ok?`<div class="small-muted">${movable.message}</div>`:''}`)}
  html+='</div>';return html;
 }
-function renderColonies(){const colonies=ownedSystems(game),total=income(game),html=colonies.map(s=>{const y=systemYield(game,s);return `<div class="colony-row ${selectedId===s.id?'active':''}"><div class="colony-symbol">${s.capital?'✧':'◈'}</div><div class="row-main"><strong>${escapeHTML(s.name)} ${s.capital?'· CAPITAL':''}</strong><small>${s.biome} · ${Number(s.population).toFixed(2)} B citizens</small><small style="color:#88c2cb">+${y.credits} ¤ · +${y.alloys} ◈ · +${y.science} ✦</small></div><button data-action="inspect-colony" data-id="${s.id}" class="row-arrow" aria-label="Inspect ${escapeHTML(s.name)} planet">VIEW PLANET ↗</button></div>`}).join('');return header('CIVIL ADMINISTRATION','Colonies & Economy',`${colonies.length} settled worlds under Directorate administration.`,'GOVERNANCE')+`<div class="inspector-body">${section('TOTAL PRODUCTION',`<div class="stat-grid">${stat('CREDITS / CYCLE','+'+total.credits,'gold')}${stat('ALLOYS / CYCLE','+'+total.alloys,'cyan')}${stat('SCIENCE / CYCLE','+'+total.science)}${stat('INFLUENCE / CYCLE','+'+total.influence)}</div>`)}${section('YOUR COLONIES',html)}</div>`;}
+function renderColonies(){const colonies=ownedSystems(game),total=economyLedger(game,0,systemYield).production,html=colonies.map(s=>{const y=systemYield(game,s);return `<div class="colony-row ${selectedId===s.id?'active':''}"><div class="colony-symbol">${s.capital?'✧':'◈'}</div><div class="row-main"><strong>${escapeHTML(s.name)} ${s.capital?'· CAPITAL':''}</strong><small>${s.biome} · ${Number(s.population).toFixed(2)} B citizens</small><small style="color:#88c2cb">+${y.credits} ¤ · +${y.alloys} ◈ · +${y.science} ✦</small></div><button data-action="inspect-colony" data-id="${s.id}" class="row-arrow" aria-label="Inspect ${escapeHTML(s.name)} planet">VIEW PLANET ↗</button></div>`}).join('');
+const investmentChoices = recommendColonyInvestments(game,[...BUILDINGS,...BIOME_BUILDINGS],systemYield,{
+  reserves:{credits:40,alloys:20},limit:3
+});
+const investmentRows=investmentChoices.map(option=>{
+  const colony=game.systems[option.systemId];
+  const output=Object.entries(option.gain).filter(([,value])=>value>0)
+    .map(([key,value])=>`+${fmt(value)} ${escapeHTML(key)} / cycle`).join(' · ');
+  const status=option.preservesReserves?'RESERVE SAFE':
+    option.affordable?'USES RESERVES':'INSUFFICIENT RESOURCES';
+  const statusClass=option.preservesReserves?'safe':option.affordable?'caution':'shortage';
+  return `<article class="oe-investment-opportunity" data-system-id="${option.systemId}">
+    <div class="oe-investment-head"><strong>${escapeHTML(option.buildingName)} · Level ${option.nextLevel}</strong>
+      <small>${escapeHTML(colony.name)} colony</small></div>
+    <div class="oe-investment-cost">COST: <b>${fmt(option.cost.credits)} CREDITS</b> · <b>${fmt(option.cost.alloys)} ALLOYS</b></div>
+    <div class="oe-investment-gain">PRODUCTION GAIN: ${output}</div>
+    <div class="oe-investment-actions"><span class="oe-budget-status ${statusClass}">${status}</span>
+      <button type="button" data-action="inspect-colony" data-id="${option.systemId}"
+        aria-label="Manage ${escapeHTML(colony.name)} building upgrades">MANAGE COLONY →</button></div>
+  </article>`;
+}).join('');
+const investmentInfo=(investmentRows||'<p class="oe-section-hint">No production upgrades available for your colonies.</p>')+
+  '<p class="oe-section-hint">Forecast only. Suggested reserves: 40 credits + 20 alloys. Actual purchases remain manual.</p>';
+return header('CIVIL ADMINISTRATION','Colonies & Economy',`${colonies.length} settled worlds under Directorate administration.`,'GOVERNANCE')+`<div class="inspector-body">${section('TOTAL PRODUCTION',`<div class="stat-grid">${stat('CREDITS / CYCLE','+'+total.credits,'gold')}${stat('ALLOYS / CYCLE','+'+total.alloys,'cyan')}${stat('SCIENCE / CYCLE','+'+total.science)}${stat('INFLUENCE / CYCLE','+'+total.influence)}</div>`)}${section('YOUR COLONIES',html)}${section('NEXT INVESTMENTS',investmentInfo)}</div>`;}
 function renderResearch(){const e=game.empires[0],current=TECHS.find(t=>t.id===e.research),branches=[...new Set(TECHS.map(t=>t.branch))];
  const cards=branches.map(branch=>`<div class="tech-branch"><h3>✦ ${escapeHTML(branch.toUpperCase())}</h3>${TECHS.filter(t=>t.branch===branch).map(t=>{const done=e.techs.includes(t.id),available=t.prereqs.every(p=>e.techs.includes(p)),selected=e.research===t.id;return `<button class="tech-choice ${done?'complete':selected?'active':!available?'locked':''}" data-action="research" data-id="${t.id}" ${done||!available?'disabled':''}><span class="tech-symbol">✧</span><span class="tech-text"><strong>${escapeHTML(t.name)}</strong><small>${escapeHTML(t.description)}</small><small class="prereq">${t.prereqs.length?'← '+t.prereqs.map(id=>escapeHTML(TECHS.find(x=>x.id===id)?.name||id)).join(' + '):'ROOT TECHNOLOGY'}</small><small style="color:${t.color}">${escapeHTML(t.bonus)}</small></span><span class="tech-price">${done?'✓':selected?'◉':t.cost+' ✦'}</span></button>`}).join('')}</div>`).join('');
  return header('RESEARCH DIRECTORATE','Technology Tree','Research linked prerequisites across six disciplines. Completed discoveries grant permanent empire effects.','R&D ONLINE')+`<div class="inspector-body">${section('ACTIVE PROJECT',current?`<div class="alert"><strong>${escapeHTML(current.name)}</strong><div class="research-progress"><i style="width:${researchPct(e)}%"></i></div><div class="inline-pair"><span>${fmt(e.progress)} / ${current.cost} science</span><b>+${income(game).science} / cycle</b></div></div>`:'<div class="alert">All technologies completed.</div>')}${section(`TECHNOLOGIES · ${e.techs.length} / ${TECHS.length}`,`<div class="tech-branches">${cards}</div>`)}</div>`;

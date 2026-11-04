@@ -137,3 +137,27 @@
  }
  body.oe-planet-focus .oe-focused-planet-art{top:34%}
 }
+
+/* Small read-only income advisor inside the existing Colonies inspector. */
+.oe-investment-opportunity{
+  display:flex;flex-direction:column;gap:10px;min-width:0;box-sizing:border-box;
+  margin:8px 0 0;padding:13px 12px;
+  border:1px solid #34566b;border-radius:8px;background:#102336;
+}
+.oe-investment-head{display:flex;flex-direction:column;gap:3px;min-width:0}
+.oe-investment-head strong{color:#eef6f8;font:700 14px/1.3 var(--head);overflow-wrap:anywhere}
+.oe-investment-head small{font:500 11px/1.4 var(--head);color:#8eafc1}
+.oe-investment-cost,.oe-investment-gain{font:500 11px/1.5 var(--head);color:#b8cedb;overflow-wrap:anywhere}
+.oe-investment-cost b{color:#e5ecf4;font-weight:700}
+.oe-investment-gain{color:#a1e5c7}
+.oe-investment-actions{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:9px;min-width:0}
+.oe-budget-status{font:700 10px/1.4 var(--head);letter-spacing:.5px;color:#97c9b6}
+.oe-budget-status.caution{color:#efc893}
+.oe-budget-status.shortage{color:#efac9d}
+.oe-investment-actions button{
+  flex:0 0 auto;min-height:33px;border:1px solid #4786a1;border-radius:5px;
+  padding:7px 10px;background:#17374b;color:#d8f7fd;
+  font:700 10px/1.35 var(--head);letter-spacing:.2px;cursor:pointer;
+}
+.oe-investment-actions button:hover{background:#23516c;border-color:#74b7ca}
+.oe-investment-actions button:focus-visible{outline:2px solid #94e4ed;outline-offset:2px}
