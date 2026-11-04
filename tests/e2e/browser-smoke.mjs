@@ -70,6 +70,19 @@ try{
  assert.ok(await evaluate("document.getElementById('progress-workspace').hidden&&getComputedStyle(document.getElementById('progress-workspace')).display==='none'&&document.getElementById('progress-workspace').offsetHeight===0"),'hidden Progress section must not occupy the galaxy scene');
  const galaxyGeometry=JSON.parse(await evaluate("JSON.stringify(({top:document.getElementById('map-viewport').getBoundingClientRect().top,height:document.getElementById('map-viewport').getBoundingClientRect().height}))"));
  assert.ok(galaxyGeometry.top<310&&galaxyGeometry.height>450,'galaxy canvas must fill command surface, not be pushed below an invisible panel: '+JSON.stringify(galaxyGeometry));
+
+ const shell=JSON.parse(await evaluate(`JSON.stringify((()=>{
+   const layout=document.querySelector('.main-layout'),map=document.getElementById('map-viewport'),
+     inspector=document.getElementById('inspector'),header=document.querySelector('.topbar');
+   return {layoutWidth:layout.getBoundingClientRect().width,mapWidth:map.getBoundingClientRect().width,
+     inspectorWidth:inspector.getBoundingClientRect().width,headerHeight:header.getBoundingClientRect().height,
+     nav:[...document.querySelectorAll('.game-nav .nav-link')].map(b=>({name:b.textContent.trim(),size:parseFloat(getComputedStyle(b).fontSize),height:b.getBoundingClientRect().height}))};
+ })())`));
+ assert.ok(shell.mapWidth/shell.layoutWidth>.62&&shell.inspectorWidth>=275,
+   'map must dominate while keeping inspector reachable: '+JSON.stringify(shell));
+ assert.ok(shell.headerHeight<=70&&shell.nav.length===7&&shell.nav.every(n=>n.size>=11&&n.height>=40),
+   'desktop command navigation should have seven readable actions: '+JSON.stringify(shell));
+
  await capture('01-galaxy-desktop.png');
  await evaluate('document.querySelector("[data-action=open-solar]").click();true');
  await ready('!document.getElementById("solar-stage").hidden&&document.querySelectorAll("[data-action=solar-planet]").length>=4','3D or 2D solar scene');
@@ -122,6 +135,7 @@ try{
  await ready('document.getElementById("modal-root").hidden','resume saved game');
  assert.ok(await evaluate('document.getElementById("top-turn").textContent.includes("02")'),'turn persists after reload');
  await command('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+ await capture('03-galaxy-mobile.png');
  assert.ok(await evaluate('document.querySelectorAll(".game-nav .nav-link").length===7'));
  await evaluate('document.querySelector("[data-action=open-solar]").click();true');
  await ready('!document.getElementById("solar-stage").hidden','mobile orbital scene');
