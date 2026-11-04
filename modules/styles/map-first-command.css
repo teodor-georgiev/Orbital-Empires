@@ -1,0 +1,274 @@
+/* Orbital Empires — map-first command shell, approved 2026-11-04.
+ * Layout only: action bindings, renderers and save schema stay in the game.
+ * Kept as a single, final-loaded layer while older UI modules are reconciled.
+ */
+:root{
+  --oe-surface:#071421;
+  --oe-surface-raised:#0e2235;
+  --oe-edge:#29495e;
+  --oe-command:#9edbe6;
+  --oe-command-active:#78e0e8;
+  --oe-command-gold:#f4c982;
+  --oe-command-muted:#9eb7c7;
+}
+#progress-workspace[hidden]{display:none!important}
+.app-shell{background:#050d18}
+.topbar{
+  height:64px;min-height:64px;padding:0 15px;gap:11px;
+  background:linear-gradient(100deg,#07121f,#0c2236 55%,#071321);
+  border-bottom:1px solid #34506a;box-shadow:0 2px 18px #0006;
+}
+.brand{width:224px;min-width:204px;gap:8px}
+.brand-mark{width:37px;height:37px;flex:0 0 37px;border:1px solid #5b94a9}
+.brand-mark svg{width:31px;height:31px}
+.brand strong{font-size:21px;letter-spacing:1px}
+.brand small{font-size:8px;letter-spacing:1.1px}
+.resource-bar{min-width:0;justify-content:space-evenly;gap:0}
+.resource{flex:0 1 132px;min-width:0;padding:5px 7px;gap:6px}
+.resource-icon{width:24px}
+.resource-info small{font-size:9px;letter-spacing:.6px}
+.resource-info strong{font-size:18px}
+.resource-info strong i{font-size:10px}
+.header-actions{gap:6px}
+.top-turn{font-size:12px;letter-spacing:.8px}
+.icon-button{width:35px;min-width:35px;height:35px;background:#0e2334;border-color:#31536b}
+.turn-btn{
+  padding:8px 13px;min-height:40px;border-radius:6px;
+  background:linear-gradient(145deg,#f9dda8,#c79b60);
+  border-color:#dfb572;color:#122032;letter-spacing:.6px;
+  box-shadow:0 3px 17px #d8a45c27;
+}
+.turn-btn span{font-size:20px;margin-left:8px}
+.turn-btn:hover{background:#ffe2a6}
+.main-layout{grid-template-columns:156px minmax(0,1fr) 306px;min-height:0;background:#061321}
+.sidebar{
+  position:relative;min-width:0;background:#071421;border-right:1px solid var(--oe-edge);
+  overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:#375770 transparent;
+}
+.sidebar .commander-profile{
+  padding:12px 8px 10px;min-height:84px;background:linear-gradient(180deg,#102a3b,#081724);
+  border-bottom:1px solid #284258;
+}
+.sidebar .profile-overline,.sidebar .profile-metrics,.sidebar .profile-sub{display:none!important}
+.sidebar .empire-emblem{height:44px}
+.sidebar .empire-emblem img,.sidebar .empire-emblem svg{width:40px;height:40px}
+.sidebar .profile-name{font-size:12px;letter-spacing:.65px}
+.sidebar .nav-head{margin:13px 10px 7px;font-size:9px;letter-spacing:1px}
+.sidebar .game-nav{display:flex;flex-direction:column;gap:3px;padding:0 7px;margin:0}
+.sidebar .command-group-label{display:none}
+.sidebar .nav-link{
+  display:flex;align-items:center;justify-content:flex-start;flex:0 0 auto;
+  width:100%;min-height:44px;height:44px;padding:0 8px!important;
+  gap:8px;color:#b8ccda;background:transparent;border:1px solid transparent;
+  border-left:2px solid transparent;border-radius:6px;
+  text-align:left;white-space:normal;font-size:12px!important;line-height:1.2;
+}
+.sidebar .nav-icon{display:grid;place-items:center;flex:0 0 25px;width:25px;height:27px}
+.sidebar .nav-icon .ui-icon{width:21px;height:21px}
+.sidebar .nav-link:hover{background:#163449;border-color:#355a70;color:#effaff}
+.sidebar .nav-link.active{
+  background:linear-gradient(90deg,#123a51,#0c2436);
+  color:#e0fcff;border-color:#387890;border-left-color:var(--oe-command-active);
+  box-shadow:inset 0 0 15px #62d8ec12;
+}
+.sidebar .nav-link.active .nav-icon{color:var(--oe-command-active)}
+.sidebar .nav-indicator{margin-left:auto}
+.sidebar .sidebar-bottom{display:block;padding:8px 7px 12px;margin-top:auto}
+.sidebar .sidebar-tools,.sidebar .sidebar-install,.sidebar .sidebar-distribution{display:none!important}
+.sidebar .mission-card{
+  padding:10px 8px;background:#102334;border-color:#31546a;border-radius:7px;
+}
+.sidebar .mission-header{font-size:9px;letter-spacing:.45px}
+.sidebar .mission-card strong{margin-top:6px;font-size:13px;line-height:1.2}
+.sidebar .mission-card p{font-size:10px;line-height:1.35;margin:5px 0 7px}
+.sidebar .mission-progress{height:3px}
+.strategic-outliner{
+  flex:0 1 202px;min-height:142px;max-height:240px;
+  margin:12px 7px 0;padding:7px 5px;
+  background:#0b2031;border-color:#305269;
+}
+.strategic-outliner .outliner-overview{padding:7px 4px}
+.strategic-outliner .outliner-heading small{display:none}
+.galaxy-wrapper{position:relative;min-width:0;min-height:0;padding:0;overflow:hidden;background:#08192d}
+.map-top{
+  position:absolute;z-index:3;top:14px;left:15px;right:auto;
+  height:auto;min-height:0;max-width:min(330px,calc(100% - 30px));
+  padding:10px 14px;background:#071a2dbd;border:1px solid #31536a;
+  border-radius:8px;backdrop-filter:blur(6px);pointer-events:none;
+  box-shadow:0 12px 32px #0004;
+}
+.map-top h1{font-size:24px;margin:3px 0 0}
+.map-top h1 span{color:#a2c3d2}
+.map-top .eyebrow{letter-spacing:1px;font-size:9px}
+.map-top p{display:none}
+.map-mode{display:none}
+.map-viewport{
+  flex:1;min-height:0;min-width:0;position:relative;
+  border:0;border-radius:0;background:radial-gradient(ellipse at 50% 40%,#153352,#081426 67%,#040b17);
+}
+.map-viewport canvas{display:block;width:100%;height:100%}
+.map-corner-label{display:none}
+.map-bottom-left{bottom:15px;left:14px}
+.map-legend{border-color:#31556c;background:#051421c7;border-radius:7px;padding:7px 10px}
+.map-tip{color:#8da9bd;margin-top:7px;letter-spacing:.35px}
+.map-controls{right:14px;bottom:15px}
+.map-controls button{border-radius:6px;background:#092237e8;border-color:#3b6980}
+.map-footer{
+  height:30px;min-height:30px;padding:0 13px;
+  border-top:1px solid #1d3c55;background:#081726;
+}
+.map-footer .footer-intel{letter-spacing:.55px;font-size:9px}
+.map-footer>button{font-size:9px}
+.inspector{
+  min-width:0;min-height:0;overflow-y:auto;
+  background:linear-gradient(180deg,#0d2538,#071421 45%);
+  border-left:1px solid #365c74;scrollbar-width:thin;scrollbar-color:#43667c transparent;
+}
+.inspector-head{
+  padding:16px 16px 14px;background:linear-gradient(145deg,#15344a,#0b2032);
+  border-bottom:1px solid #36536a;
+}
+.inspector-headline{font-size:10px;color:#98b8cb;letter-spacing:1px}
+.inspector-head h2,.inspector h2{font-size:27px;color:#eff7fc;margin-top:8px}
+.inspector-desc{font-size:12px;line-height:1.48;color:#b1c8d4}
+.inspector-body{padding:15px 13px 22px;gap:13px}
+.inspector .section-label{font-size:10px;letter-spacing:1px;color:#9ebdce}
+.inspector .action-primary{
+  background:linear-gradient(120deg,#f9dc9d,#c7995b);
+  border-color:#e1b675;color:#132230;
+}
+.inspector .action-primary:hover{background:#ffe3ae;color:#122032}
+.inspector button:focus-visible,.sidebar button:focus-visible{
+  outline:2px solid var(--oe-command-active);outline-offset:2px;
+}
+.eventbar{
+  height:42px;min-height:42px;padding:0 17px;gap:15px;
+  background:#071521;border-top:1px solid #32546e;
+}
+.event-label{color:#99dce4;font-size:10px;letter-spacing:.65px}
+.event-text{font-size:11px;color:#d0dce7}
+.event-version{color:#7994aa}
+.main-layout.progress-mode{grid-template-columns:156px minmax(0,1fr)}
+.main-layout.progress-mode .map-top,.main-layout.progress-mode .map-viewport,
+.main-layout.progress-mode .map-footer,.main-layout.progress-mode .inspector{display:none!important}
+.main-layout.progress-mode .galaxy-wrapper{overflow:hidden;padding:0 15px}
+.main-layout.progress-mode .progress-workspace{min-width:0;min-height:0;overflow:auto}
+body.oe-orbital-mode .map-top{display:none}
+body.oe-orbital-mode .strategic-outliner{display:none}
+@media(max-width:1250px){
+  .main-layout{grid-template-columns:142px minmax(0,1fr) 286px}
+  .main-layout.progress-mode{grid-template-columns:142px minmax(0,1fr)}
+  .brand{width:194px;min-width:190px}
+  .brand strong{font-size:19px}
+  .resource{padding:4px}
+  .resource-info strong{font-size:16px}
+  .sidebar .nav-link{font-size:11px!important;gap:6px}
+}
+@media(max-width:1020px){
+  .main-layout{grid-template-columns:72px minmax(0,1fr) 270px}
+  .main-layout.progress-mode{grid-template-columns:72px minmax(0,1fr)}
+  .sidebar{overflow-y:auto}
+  .sidebar .commander-profile,.sidebar .nav-head,.sidebar .sidebar-bottom{display:none!important}
+  .sidebar .game-nav{padding:9px 5px;gap:4px;margin:0}
+  .sidebar .nav-link{
+    height:50px;min-height:50px;justify-content:center;
+    padding:5px!important;font-size:0!important;gap:0;
+  }
+  .sidebar .nav-icon{flex-basis:28px;width:28px;height:30px}
+  .sidebar .nav-indicator{display:none}
+  .strategic-outliner{display:none!important}
+  .brand{width:185px;min-width:185px}
+  .header-help{display:none}
+  .resource{flex:1 1 90px}
+  .resource-info strong{font-size:15px}
+  .map-top{top:12px;left:12px}
+  .inspector-head{padding:14px 12px}
+  .inspector-body{padding:12px}
+}
+@media(max-width:750px){
+  body{overflow-x:hidden;overflow-y:auto}
+  .app-shell{height:auto;min-height:100dvh}
+  .topbar{
+    height:auto;min-height:62px;flex-wrap:wrap;
+    padding:8px 10px 9px;gap:7px;justify-content:space-between;
+  }
+  .brand{width:auto;min-width:0;gap:6px}
+  .brand-mark{width:33px;height:33px;flex-basis:33px}
+  .brand strong{font-size:18px}
+  .brand small{font-size:8px}
+  .header-actions{gap:4px}
+  .icon-button{width:32px;min-width:32px;height:32px}
+  .turn-btn{padding:6px 9px;min-height:34px;font-size:12px}
+  .turn-btn span{font-size:16px;margin-left:4px}
+  .resource-bar{order:3;flex:0 0 100%;width:100%;gap:2px;justify-content:space-between}
+  .resource{flex:1 1 0;min-width:0;max-width:none;padding:3px 2px}
+  .resource-info small{font-size:9px}
+  .resource-info strong{font-size:15px}
+  .resource-icon{width:18px;font-size:18px}
+  .resource:nth-child(4){display:flex}
+  .main-layout,.main-layout.progress-mode{display:flex;flex-direction:column;min-width:0}
+  .main-layout .sidebar{
+    order:0;position:relative;z-index:12;
+    display:block;flex:0 0 66px;width:100%;height:66px;
+    min-height:66px;max-height:66px;
+    overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;
+    background:#081b2d;border:0;border-bottom:1px solid #33526b;
+    scrollbar-width:thin;
+  }
+  .main-layout .sidebar .commander-profile,.main-layout .sidebar .nav-head,
+  .main-layout .sidebar .command-group-label,.main-layout .sidebar .sidebar-bottom,
+  .main-layout .sidebar .strategic-outliner{display:none!important}
+  .main-layout .sidebar .game-nav{
+    display:flex;flex-direction:row;justify-content:flex-start;align-items:center;
+    width:max-content;min-width:100%;height:65px;
+    gap:4px;margin:0;padding:6px 7px;
+    overflow:visible;
+  }
+  .main-layout .sidebar .nav-link{
+    flex:0 0 auto;display:flex;flex-direction:row;justify-content:flex-start;
+    min-width:118px;max-width:172px;width:auto;height:47px;min-height:47px;
+    padding:5px 8px!important;gap:6px;text-align:left;
+    font-size:12px!important;line-height:1.2;white-space:normal;
+  }
+  .main-layout .sidebar .nav-icon{flex:0 0 23px;width:23px;height:26px}
+  .main-layout .galaxy-wrapper{
+    order:1;height:57dvh;min-height:418px;flex:0 0 auto;
+    min-width:0;padding:0;overflow:hidden;
+  }
+  .main-layout .inspector{
+    order:2;min-height:320px;max-height:none;width:100%;
+    overflow:visible;border-left:0;border-top:1px solid #3b6079;
+  }
+  .map-top{top:10px;left:9px;max-width:calc(100% - 18px);padding:7px 10px}
+  .map-top h1{font-size:19px}
+  .map-top .eyebrow{font-size:8px}
+  .map-viewport{min-height:320px}
+  .map-legend{gap:5px;padding:5px 8px}
+  .map-legend span{font-size:8px}
+  .map-bottom-left{left:9px;bottom:10px}
+  .map-controls{right:9px;bottom:10px}
+  .map-footer{height:28px;min-height:28px;padding:0 8px}
+  .inspector-head{padding:13px 12px}
+  .inspector-body{display:flex;flex-direction:column;padding:12px;gap:12px}
+  .eventbar{height:42px;min-height:42px;padding:0 10px;gap:8px}
+  .event-label{font-size:9px}
+  .event-text{min-width:0}
+  .main-layout.progress-mode .galaxy-wrapper{
+    height:auto;min-height:410px;flex:1 1 auto;padding:0 9px;
+  }
+  .main-layout.progress-mode .progress-workspace{overflow:auto}
+}
+@media(max-width:450px){
+  .brand strong{font-size:16px}
+  .brand small{display:none}
+  .brand-mark{width:30px;height:30px;flex-basis:30px}
+  .header-menu{width:30px;min-width:30px}
+  .resource-icon{width:16px}
+  .resource-info strong{font-size:14px}
+  .resource-info small{font-size:8px}
+  .map-tip{display:none}
+  .inspector-body{display:flex}
+}
+@media(prefers-reduced-motion:reduce){
+  .sidebar .nav-link,.map-controls button,.inspector button{transition:none!important}
+}
