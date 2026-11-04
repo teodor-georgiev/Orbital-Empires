@@ -66,3 +66,13 @@ body.oe-orbital-mode .oe-tactical-caption{flex:0 0 auto}
  body.oe-orbital-mode .oe-solar-command-panel{top:74px;bottom:9px;height:auto;max-height:none}
  body.oe-orbital-mode .oe-unit-list{min-height:50px;max-height:83px}
 }
+
+/* Visual QA: keep the desktop tactical panel content-sized. The mobile
+   bottom-anchored scroll region remains necessary for touch commands. */
+@media(min-width:951px){
+ body.oe-orbital-mode .oe-solar-command-panel{
+  bottom:auto;
+  height:auto;
+  max-height:calc(100% - 110px);
+ }
+}
