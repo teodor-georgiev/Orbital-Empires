@@ -46,3 +46,23 @@
  body.oe-orbital-mode .oe-solar-command-panel{left:10px;right:auto;top:76px;width:min(198px,37%);}
 }
 body.oe-planet-focus .oe-solar-command-panel{display:none;}
+
+/* Browser QA fix: short mobile orbital stages must never produce an 8px panel.
+   Anchored top/bottom bounds give controls their own scrollable hit area. */
+body.oe-orbital-mode .oe-solar-command-panel{
+ top:79px;bottom:26px;height:auto;min-height:0;max-height:none;overflow-y:auto;
+}
+body.oe-orbital-mode .oe-unit-list{
+ flex:0 0 auto;min-height:52px;max-height:116px;overflow-y:auto;overscroll-behavior:contain;
+}
+body.oe-orbital-mode .oe-tactical-actions,
+body.oe-orbital-mode .oe-station-summary,
+body.oe-orbital-mode .oe-unit-tip,
+body.oe-orbital-mode .oe-tactical-caption{flex:0 0 auto}
+@media(max-width:950px){
+ body.oe-orbital-mode .oe-solar-command-panel{top:76px;bottom:12px;max-height:none}
+}
+@media(max-width:480px){
+ body.oe-orbital-mode .oe-solar-command-panel{top:74px;bottom:9px;height:auto;max-height:none}
+ body.oe-orbital-mode .oe-unit-list{min-height:50px;max-height:83px}
+}
