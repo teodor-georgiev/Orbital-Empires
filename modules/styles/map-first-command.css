@@ -107,6 +107,18 @@
   border:0;border-radius:0;background:radial-gradient(ellipse at 50% 40%,#153352,#081426 67%,#040b17);
 }
 .map-viewport canvas{display:block;width:100%;height:100%}
+/* Original atmospheric nebula wash, above the 2D star chart but never over
+ * interactive controls or the WebGL solar scene. No external artwork. */
+#map-viewport:not(.system-mode)::before{
+  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:
+    radial-gradient(ellipse at 4% 87%,rgba(117,56,146,.26),transparent 36%),
+    radial-gradient(ellipse at 25% 18%,rgba(33,110,169,.20),transparent 37%),
+    radial-gradient(ellipse at 88% 16%,rgba(102,63,134,.20),transparent 33%),
+    radial-gradient(ellipse at 63% 72%,rgba(24,97,131,.13),transparent 40%);
+  mix-blend-mode:screen;
+}
+
 .map-corner-label{display:none}
 .map-bottom-left{bottom:15px;left:14px}
 .map-legend{border-color:#31556c;background:#051421c7;border-radius:7px;padding:7px 10px}
