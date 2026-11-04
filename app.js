@@ -238,16 +238,19 @@ const investmentChoices = recommendColonyInvestments(game,[...BUILDINGS,...BIOME
 const investmentRows=investmentChoices.map(option=>{
   const colony=game.systems[option.systemId];
   const output=Object.entries(option.gain).filter(([,value])=>value>0)
-    .map(([key,value])=>`+${fmt(value)} ${escapeHTML(key.toUpperCase())} PRODUCTION / CYCLE`).join(' · ');
-  const status=option.preservesReserves?'WITHIN RESERVES':
-    option.affordable?'AFFORDABLE · WILL USE RESERVES':'INSUFFICIENT RESOURCES';
-  return `<div class="colony-row oe-investment-opportunity" data-system-id="${option.systemId}">
-    <div class="colony-symbol">✦</div><div class="row-main">
-      <strong>${escapeHTML(colony.name)} · ${escapeHTML(option.buildingName)} L${option.nextLevel}</strong>
-      <small>COST: ${fmt(option.cost.credits)} CREDITS · ${fmt(option.cost.alloys)} ALLOYS</small>
-      <small>${output}</small><small>${status}</small>
-    </div><button data-action="inspect-colony" data-id="${option.systemId}" class="row-arrow"
-      aria-label="Manage ${escapeHTML(colony.name)} upgrades">MANAGE →</button></div>`;
+    .map(([key,value])=>`+${fmt(value)} ${escapeHTML(key)} / cycle`).join(' · ');
+  const status=option.preservesReserves?'RESERVE SAFE':
+    option.affordable?'USES RESERVES':'INSUFFICIENT RESOURCES';
+  const statusClass=option.preservesReserves?'safe':option.affordable?'caution':'shortage';
+  return `<article class="oe-investment-opportunity" data-system-id="${option.systemId}">
+    <div class="oe-investment-head"><strong>${escapeHTML(option.buildingName)} · Level ${option.nextLevel}</strong>
+      <small>${escapeHTML(colony.name)} colony</small></div>
+    <div class="oe-investment-cost">COST: <b>${fmt(option.cost.credits)} CREDITS</b> · <b>${fmt(option.cost.alloys)} ALLOYS</b></div>
+    <div class="oe-investment-gain">PRODUCTION GAIN: ${output}</div>
+    <div class="oe-investment-actions"><span class="oe-budget-status ${statusClass}">${status}</span>
+      <button type="button" data-action="inspect-colony" data-id="${option.systemId}"
+        aria-label="Manage ${escapeHTML(colony.name)} building upgrades">MANAGE COLONY →</button></div>
+  </article>`;
 }).join('');
 const investmentInfo=(investmentRows||'<p class="oe-section-hint">No production upgrades available for your colonies.</p>')+
   '<p class="oe-section-hint">Forecast only. Suggested reserves: 40 credits + 20 alloys. Actual purchases remain manual.</p>';
