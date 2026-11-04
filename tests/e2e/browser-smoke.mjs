@@ -79,7 +79,7 @@ try{
  })())`));
  assert.ok(adviceGeometry.headWidth>220&&adviceGeometry.cardOverflow<=2&&adviceGeometry.hasAction,
    'investment advice needs a readable full-width layout: '+JSON.stringify(adviceGeometry));
- await evaluate('document.querySelector(".oe-investment-opportunity").scrollIntoView({block:"center"});true');
+ await evaluate('document.getElementById("inspector").scrollTop=0;true');
  await capture('00-colony-economy-desktop.png');
  const targetColony=await evaluate('document.querySelector(".oe-investment-opportunity").dataset.systemId');
  await evaluate('document.querySelector(".oe-investment-opportunity [data-action=inspect-colony]").click();true');
