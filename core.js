@@ -8,9 +8,9 @@ import { GOVERNMENTS, CIVICS, COUNCIL_OFFICES, LEADERS, FACTIONS, politicalStabi
 export { GOVERNMENTS, CIVICS, COUNCIL_OFFICES, LEADERS, FACTIONS, politicalStability, factionLoyalty, factionTargets, canReformGovernment, canAdoptCivic, canAppointLeader, reformGovernment, adoptCivic, appointLeader };
 import { advancePopulation } from './modules/simulation/population.js';
 import { findHyperlaneRoute } from './modules/strategy/fleet-routes.js';
-import { OUTPOST_TIERS, makeOutpost, getOutpost, outpostDefense, outpostUpgradeCost, raiseOutpost, damageOutpost, restoreOutpost, validOutpost } from './modules/strategy/outposts.js';
+import { OUTPOST_TIERS, MODULE_SLOTS, PLATFORM_LIMITS, PLATFORM_COST, PLATFORM_POWER, PLATFORM_HP, STATION_MODULES, makeOutpost, getOutpost, stationModules, stationPlatforms, stationMaxHp, stationIncome, outpostDefense, canAddModule, addModule, canAddPlatform, addPlatform, outpostUpgradeCost, raiseOutpost, damageOutpost, restoreOutpost, validOutpost } from './modules/strategy/outposts.js';
 import { reconcileShipUnits, shipUnitRoster, issueShipOrder, splitShipSelection, mergeShipSelection, validShipState } from './modules/strategy/ship-units.js';
-export { OUTPOST_TIERS, getOutpost, outpostDefense, shipUnitRoster, reconcileShipUnits, splitShipSelection, mergeShipSelection };
+export { OUTPOST_TIERS, MODULE_SLOTS, PLATFORM_LIMITS, PLATFORM_COST, PLATFORM_POWER, PLATFORM_HP, STATION_MODULES, getOutpost, stationModules, stationPlatforms, stationMaxHp, stationIncome, outpostDefense, canAddModule, addModule, canAddPlatform, addPlatform, shipUnitRoster, reconcileShipUnits, splitShipSelection, mergeShipSelection };
 import { BIOME_BUILDINGS, ORBITAL_BUILDINGS, biomeBuildingAllowed, buildingYield, orbitalYield } from './modules/strategy/planet-buildings.js';
 import { generateSystemBodies } from './system-model.js';
 export { BIOME_BUILDINGS, ORBITAL_BUILDINGS };
@@ -155,7 +155,7 @@ export function systemYield(g,s){if(s.owner===null)return {credits:0,alloys:0,sc
  const emp=g.empires[s.owner],quality=.72+s.habitability*.18,rich=.7+s.richness*.17,pop=s.population||2;
   const surface=buildingYield(s),orbital=orbitalYield(s),extra=Object.fromEntries(Object.keys(surface).map(k=>[k,surface[k]+orbital[k]]));
  return {
-  credits:Math.round((3+pop*.52+s.buildings.exchange*5+(s.capital?5:0))*quality*modifier(emp,'credits'))+extra.credits,
+  credits:Math.round((3+pop*.52+s.buildings.exchange*5+(s.capital?5:0))*quality*modifier(emp,'credits'))+extra.credits+stationIncome(s),
   alloys:Math.round((1.8+rich*1.6+s.buildings.foundry*3+(s.capital?3:0))*modifier(emp,'alloys'))+extra.alloys,
   science:Math.round((1.5+s.buildings.laboratory*3+(s.capital?3:0))*quality*modifier(emp,'science'))+extra.science,
   influence:Math.round((s.capital?5:1)*modifier(emp,'influence'))+extra.influence
@@ -204,11 +204,36 @@ export function combat(g,attacker,target){const defending=g.fleets.filter(f=>f.o
  const won=attack>=defense;
  if(won){for(const f of defending)g.fleets=g.fleets.filter(a=>a.id!==f.id);
    const casualties=clamp(defense/(attack+1)*.53,0,.72);damageFleet(g,attacker,casualties);
-   if(s.owner!==null&&s.owner!==attacker.owner){const prev=s.owner;s.owner=attacker.owner;s.outpost=makeOutpost(0);s.capital=false;s.population=Math.max(1,Math.floor(s.population*.65));
-     log(g,`${g.empires[attacker.owner].short} seized ${s.name} from ${g.empires[prev].short}.`,'war');}
+   if(s.owner!==null&&s.owner!==attacker.owner){
+    damageOutpost(s,Math.max(8,Math.round(attack*.9)));
+    const post=getOutpost(s);
+    // A system is only seized once its station is a wreck; before that the fleet besieges it.
+    if(!post||post.level===0||post.hp<=0){const prev=s.owner;s.owner=attacker.owner;s.outpost=makeOutpost(0);s.capital=false;s.population=Math.max(1,Math.floor(s.population*.65));
+      log(g,`${g.empires[attacker.owner].short} seized ${s.name} from ${g.empires[prev].short}.`,'war');}
+    else log(g,`${g.empires[attacker.owner].short} is besieging ${s.name}.`,'war');
+   }
    else log(g,`${g.empires[attacker.owner].short} prevailed in the battle at ${s.name}.`,'war');
  }else{if(defenderOwner!==null&&defenderOwner!==attacker.owner)damageOutpost(s,Math.max(8,Math.round(attack*.68)));for(const f of defending)damageFleet(g,f,clamp(attack/(defense+1)*.4,0,.58));g.fleets=g.fleets.filter(f=>f.id!==attacker.id);log(g,`${g.empires[attacker.owner].short}'s fleet was lost at ${s.name}.`,'war');}
  cleanupFleets(g);reconcileShipUnits(g);return won;
+}
+/** True while a belligerent fleet is standing in an owned system, which suspends station repairs. */
+export function stationUnderSiege(g,systemId){
+ const s=g?.systems?.[systemId],owner=g?.empires?.[s?.owner];
+ if(!s||s.owner===null||!owner)return false;
+ return g.fleets.some(f=>f.system===systemId&&f.owner!==s.owner&&g.empires[f.owner]&&isWar(owner,g.empires[f.owner]));
+}
+function besiegingFleet(g,f){
+ const s=f&&g.systems[f.system],post=s&&getOutpost(s);
+ return Boolean(f&&s&&s.owner!==null&&s.owner!==f.owner&&g.empires[f.owner]&&isWar(g.empires[f.owner],g.empires[s.owner])&&post&&post.level>0&&post.hp>0);
+}
+function advanceSieges(g){
+ // Snapshot first: combat removes fleets and can change ownership mid-loop.
+ const besiegers=g.fleets.filter(f=>besiegingFleet(g,f));
+ for(const fleet of besiegers){
+  const live=g.fleets.find(f=>f.id===fleet.id);
+  if(!besiegingFleet(g,live))continue;
+  combat(g,live,live.system);
+ }
 }
 function damageFleet(g,f,fraction){let remove=Math.floor((f.ships.corvette+f.ships.frigate+f.ships.cruiser)*fraction);if(fraction>0.15)remove=Math.max(1,remove);for(const id of ['corvette','frigate','cruiser']){const n=Math.min(remove,f.ships[id]);f.ships[id]-=n;remove-=n;}if(!Object.values(f.ships).some(Boolean))f.ships.corvette=1;}
 function cleanupFleets(g){g.fleets=g.fleets.filter(f=>Object.values(f.ships).some(Boolean));}
@@ -288,6 +313,42 @@ export function upgradeOutpost(g,systemId){
  log(g,`${g.systems[systemId].name}: ${OUTPOST_TIERS[upgraded.level].name} established.`,'military');
  return success('Outpost upgraded to '+OUTPOST_TIERS[upgraded.level].name+'.');
 }
+export function canInstallStationModule(g,systemId,moduleId){
+ const s=g?.systems?.[systemId],emp=g?.empires?.[0];
+ if(!s||s.owner!==0)return failure('Select a system you control.');
+ if(!Object.hasOwn(STATION_MODULES,moduleId))return failure('Unknown station module.');
+ const slot=canAddModule(s,moduleId);
+ if(!slot.ok)return failure(slot.message);
+ const mod=STATION_MODULES[moduleId];
+ if(emp.credits<mod.credits||emp.alloys<mod.alloys)return failure('Not enough credits or alloys to install the '+mod.name+'.');
+ return success(mod.name+' refit ready.',{cost:{credits:mod.credits,alloys:mod.alloys}});
+}
+export function installStationModule(g,systemId,moduleId){
+ const allowed=canInstallStationModule(g,systemId,moduleId);
+ if(!allowed.ok)return allowed;
+ const emp=g.empires[0],s=g.systems[systemId],mod=STATION_MODULES[moduleId];
+ emp.credits-=allowed.cost.credits;emp.alloys-=allowed.cost.alloys;
+ addModule(s,moduleId);
+ log(g,`${s.name}: ${mod.name} installed on the station.`,'military');
+ return success(mod.name+' installed on the station.');
+}
+export function canBuildStationPlatform(g,systemId){
+ const s=g?.systems?.[systemId],emp=g?.empires?.[0];
+ if(!s||s.owner!==0)return failure('Select a system you control.');
+ const berth=canAddPlatform(s);
+ if(!berth.ok)return failure(berth.message);
+ if(emp.credits<PLATFORM_COST.credits||emp.alloys<PLATFORM_COST.alloys)return failure('Not enough credits or alloys to build a defense platform.');
+ return success('Platform berth ready.',{cost:{credits:PLATFORM_COST.credits,alloys:PLATFORM_COST.alloys}});
+}
+export function buildStationPlatform(g,systemId){
+ const allowed=canBuildStationPlatform(g,systemId);
+ if(!allowed.ok)return allowed;
+ const emp=g.empires[0],s=g.systems[systemId];
+ emp.credits-=allowed.cost.credits;emp.alloys-=allowed.cost.alloys;
+ addPlatform(s);
+ log(g,`${s.name}: defense platform commissioned.`,'military');
+ return success('Defense platform commissioned.');
+}
 export function orderSelectedShips(g,ids,order){
  if(!Array.isArray(ids)||!ids.length)return failure('Select friendly ships first.');
  if(g.gameOver)return failure('The campaign has ended.');
@@ -330,7 +391,7 @@ export function aiEconomicPlan(g,empireId){
  const affordable=choices.length&&Object.keys(reserve).every(key=>emp[key]>=reserve[key]);
  return {targetId:affordable?choices[0].id:null,frontierCount:choices.length,reserve};
 }
-function aiTurn(g,emp){
+export function aiTurn(g,emp){
  const colonies=ownedSystems(g,emp.id);
  if(!colonies.length){emp.eliminated=true;return;}
  const plan=aiEconomicPlan(g,emp.id);
@@ -355,6 +416,9 @@ function aiTurn(g,emp){
  // Even when expansion did not trigger this turn, the next colony's
  // treasury budget is protected from automatic shipbuilding.
  if(rand(g)<.75)aiRecruit(g,emp,aiEconomicPlan(g,emp.id).reserve);
+ // Station refits are free of the random stream so seeded campaigns stay reproducible.
+ const upgradable=colonies.filter(s=>getOutpost(s)&&outpostUpgradeCost(s)).sort((a,b)=>getOutpost(a).level-getOutpost(b).level||a.id-b.id);
+ if(upgradable.length){const cost=outpostUpgradeCost(upgradable[0]);if(cost&&emp.credits>=cost.credits*2&&emp.alloys>=cost.alloys*2){emp.credits-=cost.credits;emp.alloys-=cost.alloys;raiseOutpost(upgradable[0]);}}
  // Opportunistic but conservative AI: threats emerge after initial expansion.
  if(g.turn>12){for(const rival of g.empires){if(rival.id===emp.id||rival.eliminated||emp.wars[rival.id])continue;
    const touching=colonies.some(s=>s.neighbors.some(n=>g.systems[n].owner===rival.id));
@@ -369,9 +433,11 @@ function aiTurn(g,emp){
 }
 export function advanceMonth(g){if(g.gameOver)return failure('This campaign has ended. Start a new galaxy to continue.');g.turn++;
  advanceFleetRoutes(g);
+ advanceSieges(g);
  for(const e of g.empires){const y=income(g,e.id);for(const k of ['credits','alloys','influence'])e[k]+=y[k];e.unity=(e.unity||0)+unityIncome(g,e.id);if(ownedSystems(g,e.id).length)empireResearch(g,e)}
  for(const e of g.empires){const politics=advancePolitics(e);if(e.id===0&&politics.unrest)log(g,'POLITICAL UNREST: Public confidence has collapsed. Production is disrupted until stability recovers.','culture');}
- for(const system of g.systems)if(system.owner!==null){advancePopulation(system);restoreOutpost(system);}
+ // Hostile fleets in orbit stop damage control; a station under siege cannot repair.
+ for(const system of g.systems)if(system.owner!==null){advancePopulation(system);if(!stationUnderSiege(g,system.id))restoreOutpost(system);}
  for(const e of g.empires.slice(1)){aiTurn(g,e)}
  reconcileShipUnits(g);
  reveal(g);

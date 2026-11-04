@@ -76,3 +76,29 @@ body.oe-orbital-mode .oe-tactical-caption{flex:0 0 auto}
   max-height:calc(100% - 110px);
  }
 }
+
+/* Central star station: module slots and defensive platforms. */
+.oe-siege-flag{
+ display:inline-flex;align-items:center;gap:4px;align-self:flex-start;
+ font:700 14px Rajdhani,'Arial Narrow',sans-serif;letter-spacing:1px;
+ color:#ffd9d9;background:#5b1d24;border:1px solid #d9717b;border-radius:4px;padding:4px 8px;
+}
+.oe-station-modules{display:flex;flex-direction:column;gap:3px;font:400 14px/1.4 'DM Sans',sans-serif;color:#d5ebee}
+.oe-station-modules small,.oe-station-platforms small{
+ font:700 14px Rajdhani,'Arial Narrow',sans-serif;letter-spacing:.6px;color:#a9e6ea;
+}
+.oe-station-refits{display:flex;flex-direction:column;gap:4px}
+.oe-station-refit{
+ display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:44px;width:100%;
+ font:700 14px Rajdhani,'Arial Narrow',sans-serif!important;text-align:left;
+}
+.oe-station-refit small{font:600 14px Rajdhani,'Arial Narrow',sans-serif;color:#a9d7de}
+.oe-station-platforms{display:flex;flex-direction:column;gap:4px}
+.oe-solar-command-panel .oe-station-refit{min-height:44px;padding:6px 7px;font-size:14px}
+.subsection .oe-station-refit{
+ min-height:44px;border:1px solid #3f7080;background:#183646;color:#d9f4f3;border-radius:5px;
+ padding:7px 9px;cursor:pointer;
+}
+.subsection .oe-station-refit small{color:#a9d7de}
+.subsection .oe-station-refit:hover,.subsection .oe-station-refit:focus-visible{border-color:#8ce7f0;background:#285464}
+.subsection .oe-station-refit:disabled{opacity:.5;cursor:not-allowed}
