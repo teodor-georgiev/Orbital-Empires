@@ -1,4 +1,6 @@
-import { VERSION, WORLD, BUILDINGS, BIOME_BUILDINGS, ORBITAL_BUILDINGS, SHIPS, TECHS, TRADITIONS, POLICIES, generateSpaceFeatures, canSurveySpaceSite, surveySpaceSite, hasScannedSite, GOVERNMENTS, CIVICS, COUNCIL_OFFICES, LEADERS, FACTIONS, politicalStability, factionLoyalty, factionTargets, canReformGovernment, canAdoptCivic, canAppointLeader, reformGovernment, adoptCivic, appointLeader, traditionCost, unityIncome, adoptTradition, enactPolicy, generateGame, getEmpire, ownedSystems, getVisibility, hasSeen, getNeighbors, income, systemYield, score, fleetPower, availableTechs, colonyCost, canColonize, colonize, canBuild, build, canBuildOrbital, buildOrbital, canRecruit, recruit, canMove, moveFleet, chooseResearch, declareWar, sendEnvoy, offerPeace, endTurn, validateGame, getStardate } from './core.js';
+import { VERSION, WORLD, BUILDINGS, BIOME_BUILDINGS, ORBITAL_BUILDINGS, SHIPS, TECHS, TRADITIONS, POLICIES, generateSpaceFeatures, canSurveySpaceSite, surveySpaceSite, hasScannedSite, GOVERNMENTS, CIVICS, COUNCIL_OFFICES, LEADERS, FACTIONS, politicalStability, factionLoyalty, factionTargets, canReformGovernment, canAdoptCivic, canAppointLeader, reformGovernment, adoptCivic, appointLeader, traditionCost, unityIncome, adoptTradition, enactPolicy, generateGame, getEmpire, ownedSystems, getVisibility, hasSeen, getNeighbors, income, systemYield, score, fleetPower, availableTechs, colonyCost, canColonize, colonize, canBuild, build, canBuildOrbital, buildOrbital, canRecruit, recruit, canMove, moveFleet, canQueueFleetRoute, queueFleetRoute, cancelFleetRoute, fleetRouteETA, advanceMonth, chooseResearch, declareWar, sendEnvoy, offerPeace, endTurn, validateGame, getStardate, OUTPOST_TIERS, STATION_MODULES, MODULE_SLOTS, PLATFORM_LIMITS, PLATFORM_COST, getOutpost, stationModules, stationPlatforms, stationMaxHp, stationIncome, outpostDefense, stationUnderSiege, canUpgradeOutpost, upgradeOutpost, canInstallStationModule, installStationModule, canBuildStationPlatform, buildStationPlatform, reconcileShipUnits, shipUnitRoster, splitShipSelection, mergeShipSelection, orderSelectedShips } from './core.js';
+import { economyLedger } from './modules/economy/ledger.js';
+import { recommendColonyInvestments } from './modules/economy/upgrade-preview.js';
 import { generateSystemBodies, selectSystemPlanet } from './system-model.js';
 import { SITE_KINDS } from './modules/space/environment.js';
 import { createSolarView } from './solar-view.js';
@@ -6,8 +8,10 @@ import { APP_VERSION } from './version.js';
 import { populationForecast } from './modules/simulation/population.js';
 import { planetArtStyle } from './modules/visuals/planet-visual.js';
 import { configuredDonationUrl } from './support-config.js';
-import { isDevelopmentPage, renderDevelopment } from './modules/ui/development-workspace.js';
+import { createMonthlyClock } from './modules/simulation/monthly-clock.js';
+import { isDevelopmentPage, renderDevelopment, monthLabel } from './modules/ui/development-workspace.js';
 import { renderStrategicOutliner } from './modules/ui/strategic-outliner.js';
+import { fitKnownGalaxy } from './modules/ui/galaxy-camera.js';
 
 const SAVE_KEY = 'orbital-empires-save-v1';
 const PLANET_CLASSES=new Set(['terran','oceanic','desert','jungle','arctic','barren','volcanic','gas-giant']);
@@ -38,6 +42,7 @@ const escapeHTML = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 const fmt = n => Math.round(n).toLocaleString('en-US');
 const fragment = (markup)=>markup;
 let game, activePage='system', selectedId=0, selectedFleetId=null, modalType=null, deferredInstallPrompt=null;
+let playRequested=true;
 let selectedDevelopmentId=null,developmentFilter='all';
 const SETTINGS_KEY='orbital-empires-settings-v1';
 const QUALITY={performance:{scale:1,maxPixels:1920*1080,delay:65,stars:100},balanced:{scale:2,maxPixels:2560*1440,delay:36,stars:270},ultra4k:{scale:3,maxPixels:3840*2160,delay:32,stars:470}};
@@ -50,11 +55,34 @@ const viewport=$('#map-viewport'), canvas=$('#galaxy-canvas'), ctx=canvas.getCon
 const view={cx:WORLD.width/2,cy:WORLD.height/2,zoom:.7,auto:true,width:0,height:0};
 let stars=[],pulse=0,drag=null,hovered=null,toastTimer=null,lastRenderTick=0;
 let solarOpen=false,solarBodies=null,selectedPlanet=0,selectedSpaceSite=null,planetFocus=false;
-const solar=createSolarView($('#solar-canvas'),{onSelect: id => {selectedSpaceSite=null;selectedPlanet=id;planetFocus=true;activePage='system';render();$('#inspector').scrollTop=0;},onSelectSite:id=>{selectedSpaceSite=id;planetFocus=false;activePage='system';render();$('#inspector').scrollTop=0;},quality:()=>QUALITY[settings.quality],shouldAnimate:()=>settings.motion!=='reduced'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches});
+let selectedShipIds=[],moveShipTargetMode=false;
+const solar=createSolarView($('#solar-canvas'),{onSelect: id => {selectedSpaceSite=null;selectedPlanet=id;planetFocus=true;activePage='system';render();$('#inspector').scrollTop=0;},onSelectSite:id=>{selectedSpaceSite=id;planetFocus=false;activePage='system';render();$('#inspector').scrollTop=0;},onSelectShips:ids=>{selectedShipIds=ids;moveShipTargetMode=false;render();},onSelectOutpost:()=>{$('#solar-command-panel')?.scrollIntoView({block:'nearest'});},onMoveShips:position=>{moveShipTargetMode=false;solar.setMoveMode(false);act(orderSelectedShips(game,selectedShipIds,{kind:'move',position}));},quality:()=>QUALITY[settings.quality],shouldAnimate:()=>settings.motion!=='reduced'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches});
 
+const simClock=createMonthlyClock({
+ getGame:()=>game,
+ advanceMonth:g=>document.visibilityState==='visible'&&!modalType?advanceMonth(g):{ok:false,message:'Simulation is suspended.'},
+ onAdvance:()=>{persist();render();if(game.gameOver)openModal('victory');}
+});
+function updateClockUI(){
+ const toggle=$('#oe-clock-toggle');if(!toggle)return;
+ const state=simClock.state();
+ toggle.textContent=state.running?'Ⅱ PAUSE':'▶ PLAY';
+ toggle.setAttribute('aria-pressed',String(state.running));
+ for(const button of document.querySelectorAll('[data-action="clock-speed"]')){
+  const selected=button.dataset.speed===state.speed;
+  button.classList.toggle('selected',selected);
+  button.setAttribute('aria-pressed',String(selected));
+ }
+ const step=$('[data-action="step-month"]');if(step)step.disabled=state.running||!!game?.gameOver||!!modalType;
+}
+function syncSimClock(){
+ if(playRequested&&game&&!game.gameOver&&!modalType&&document.visibilityState==='visible')simClock.resume();
+ else simClock.suspend();
+ updateClockUI();
+}
 function loadGame(){try{const obj=JSON.parse(localStorage.getItem(SAVE_KEY));if(validateGame(obj))return obj;}catch(e){}return null;}
 function persist(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(game));return true;}catch(e){notice('Saving is unavailable in this browser. Try a normal tab.','error');return false;}}
-function activateGame(g,withWelcome=false){closeSolarSystem();game=g;selectedId=g.empires[0].home;selectedFleetId=g.fleets.find(f=>f.owner===0)?.id??null;activePage='system';view.auto=true;rebuildStarfield();persist();render();if(withWelcome)openModal('welcome');}
+function activateGame(g,withWelcome=false){simClock.suspend();closeSolarSystem();game=g;reconcileShipUnits(game);selectedShipIds=[];selectedId=g.empires[0].home;selectedFleetId=g.fleets.find(f=>f.owner===0)?.id??null;activePage='system';view.auto=true;rebuildStarfield();persist();render();if(withWelcome)openModal('welcome');else syncSimClock();}
 function notice(message,type='ok'){const node=$('#toast');node.textContent=message;node.className='toast show'+(type==='error'?' error':'');clearTimeout(toastTimer);toastTimer=setTimeout(()=>node.className='toast',3200);}
 function act(result){if(!result)return;if(!result.ok){notice(result.message,'error');render();return;}persist();render();notice(result.message);}
 function palette(owner){return owner===null?'#91a9ba':game.empires[owner]?.color||'#aabbcc';}
@@ -73,7 +101,7 @@ function openSolarSystem(id=selectedId){
   solarBodies=generateSystemBodies(game.seed,system);
   selectedPlanet=solarBodies.planets.find(p=>p.isColonyWorld)?.id??0;
   selectedSpaceSite=null;
-  solarOpen=true;planetFocus=false;
+  solarOpen=true;planetFocus=false;selectedShipIds=[];moveShipTargetMode=false;
   const stage=$('#solar-stage');stage.hidden=false;viewport.classList.add('system-mode');
   $('#map-tooltip').hidden=true;
   solar.open(system,solarBodies);
@@ -82,17 +110,26 @@ function openSolarSystem(id=selectedId){
 }
 function closeSolarSystem(){
   if(!solarOpen)return;
-  solarOpen=false;solarBodies=null;selectedPlanet=0;selectedSpaceSite=null;planetFocus=false;solar.close();
+  solarOpen=false;solarBodies=null;selectedPlanet=0;selectedSpaceSite=null;planetFocus=false;selectedShipIds=[];moveShipTargetMode=false;solar.close();
   $('#solar-stage').hidden=true;viewport.classList.remove('system-mode');
   if(game)render();
 }
 function renderSolarHud(){
   if(!solarOpen||!solarBodies)return;
   const system=game.systems[selectedId],planet=selectSystemPlanet(solarBodies,selectedPlanet)||solarBodies.planets[0];
+ const roster=shipUnitRoster(game,system.id).filter(u=>u.owner===0||getVisibility(game).has(system.id)),post=getOutpost(system),friendly=roster.filter(u=>u.owner===0);
+ selectedShipIds=selectedShipIds.filter(id=>friendly.some(u=>u.id===id));
+ solar.setTacticalState(roster,post);solar.setSelectedShips(selectedShipIds);
   $('#solar-system-name').textContent=system.name.toUpperCase()+' SYSTEM';
   $('#solar-renderer').textContent=solar.is3D()?'WEBGL 3D':'2D COMPATIBILITY MODE';
   $('#solar-planet-list').innerHTML=solarBodies.planets.map(p=>`<button class="solar-planet-option ${p.id===planet.id?'selected':''}" data-action="solar-planet" data-id="${p.id}" aria-pressed="${p.id===planet.id}"><span class="planet-thumbnail planet-${artworkBiome(p.biome)} oe-seeded-planet" style="${planetArtStyle(p)}" aria-hidden="true"></span><span class="planet-label-main">${escapeHTML(p.name)}<small>${escapeHTML(p.biome)}${p.isColonyWorld?' · PRIMARY WORLD':' · SURVEY ONLY'}</small></span><span aria-hidden="true">›</span></button>`).join('');
   $('#solar-site-count').textContent=String(solarBodies.sites?.length||0);
+ const selected=roster.filter(u=>selectedShipIds.includes(u.id)),cost=system.owner===0?canUpgradeOutpost(game,system.id):null;
+ const station=post?`<div class="oe-station-summary"><b>${escapeHTML(OUTPOST_TIERS[post.level].name)}</b><small>DEF ${outpostDefense(system)} · HP ${post.hp}/${stationMaxHp(system)}</small>${stationUnderSiege(game,system.id)?'<span class="oe-siege-flag">UNDER SIEGE</span>':''}${system.owner===0?`<button data-action="outpost-upgrade" ${cost?.ok?'':'disabled'}>${post.level===4?'MAX LEVEL':'UPGRADE OUTPOST'}</button>`:''}${stationRefit(system)}</div>`:'<p class="oe-unit-tip">No outpost in unclaimed territory.</p>';
+ const rosterButtons=friendly.slice(0,65).map(u=>`<button data-action="solar-select-ship" data-id="${u.id}" class="oe-unit-button ${selectedShipIds.includes(u.id)?'selected':''}" aria-pressed="${selectedShipIds.includes(u.id)}">${u.type.toUpperCase()} #${u.id}<small>${u.localOrder?.kind||'hold'}</small></button>`).join('');
+ const commands=selected.length?`<div class="oe-tactical-actions"><button data-action="ship-orbit">ORBIT PLANET</button><button data-action="ship-guard">DEFEND PLANET</button><button data-action="ship-dock" ${system.owner===0&&post?.level>0?'':'disabled'}>DOCK</button><button data-action="ship-patrol">PATROL</button><button data-action="ship-hold">HOLD</button><button data-action="ship-move-target">MOVE TO POINT</button><button data-action="ship-hyperlane">SEND VIA HYPERLANE</button><button data-action="ship-split">SPLIT</button><button data-action="ship-merge">MERGE</button></div>`:'<p class="oe-unit-tip">Click or tap a ship. Drag to box-select, Shift-click to add, Alt-drag to orbit the camera.</p>';
+ $('#solar-command-panel').innerHTML=`<div class="oe-tactical-caption">STARBASE DEFENSE</div>${station}<div class="oe-tactical-caption">SHIP COMMAND · ${selected.length} SELECTED</div><div class="oe-unit-list">${rosterButtons||'No friendly ships'}${friendly.length>65?'<small>Showing first 65 ships</small>':''}</div>${commands}${moveShipTargetMode?'<p class="oe-unit-tip">Tap a destination in the scene.</p>':''}`;
+
   $('#solar-site-list').innerHTML=(solarBodies.sites||[]).map(site=>{
     const kind=SITE_KINDS[site.kind],done=hasScannedSite(game,selectedId,site.id),chosen=selectedSpaceSite===site.id;
     return `<button class="solar-site-option ${chosen?'selected':''}" data-action="solar-site" data-id="${escapeHTML(site.id)}" aria-pressed="${chosen}" title="${escapeHTML(site.description)}" style="--site-color:${kind.color}"><span class="solar-site-symbol" aria-hidden="true">${kind.icon}</span><span class="solar-site-copy"><strong>${escapeHTML(site.name)}</strong><small>${done?'✓ EXPLORED':escapeHTML(kind.label)}</small></span></button>`;
@@ -112,7 +149,7 @@ function renderSolarHud(){
     focus.innerHTML=`<div class="oe-focused-planet-art planet-${artworkBiome(planet.biome)} oe-seeded-planet" style="${planetArtStyle(planet)}" role="img" aria-label="${escapeHTML(planet.biome)} planet illustration"></div>
      <div class="oe-focus-caption"><span class="eyebrow cyan">${planet.isColonyWorld?'PRIMARY WORLD':'SURVEY-ONLY PLANET'}</span>
        <h2>${escapeHTML(planet.name)}</h2><p>${escapeHTML(planet.biome)} · ${escapeHTML(system.name)} System</p>
-       ${growth?`<div class="oe-focus-pop"><strong>${growth.population.toFixed(2)} <small>/ ${growth.capacity} B</small></strong><span>+${growth.growth.toFixed(2)} B / cycle</span><div class="oe-focus-progress"><i style="width:${growth.percent}%"></i></div></div>`:''}
+       ${growth?`<div class="oe-focus-pop"><strong>${growth.population.toFixed(2)} <small>/ ${growth.capacity} B</small></strong><span>+${growth.growth.toFixed(2)} B / month</span><div class="oe-focus-progress"><i style="width:${growth.percent}%"></i></div></div>`:''}
        ${production?`<div class="oe-focus-income"><span>¤ +${production.credits} credits</span><span>◈ +${production.alloys} alloys</span><span>✧ +${production.science} science</span></div>`:''}
        <div class="oe-focus-actions"><button data-action="solar-show-orbit" class="oe-button-quiet">← VIEW ORBITS</button>${planet.isColonyWorld&&system.owner===0?'<button data-action="planet-upgrades" class="oe-button-gold">MANAGE COLONY →</button>':''}</div>
      </div>`;
@@ -125,10 +162,10 @@ function render(){
   document.body.classList.toggle('oe-planet-focus',solarOpen&&planetFocus);
   const player=game.empires[0],yieldNow=income(game),territory=ownedSystems(game),systems=game.systems;
   const resources=[['credits','CREDITS','credits'],['alloys','ALLOYS','alloys'],['science','SCIENCE','science'],['influence','INFLUENCE','influence'],['unity','UNITY','unity']];
-  $('#resource-bar').innerHTML=resources.map(([icon,label,key])=>`<div class="resource"><span class="resource-icon">${gameIcon(icon)}</span><div class="resource-info"><small>${label}</small><strong>${key==='science'?fmt(yieldNow.science):fmt(player[key]||0)}<i>${key==='science'?'/ TURN':key==='unity'?`+${unityIncome(game)}`:`+${fmt(yieldNow[key])}`}</i></strong></div></div>`).join('');
+  $('#resource-bar').innerHTML=resources.map(([icon,label,key])=>`<div class="resource"><span class="resource-icon">${gameIcon(icon)}</span><div class="resource-info"><small>${label}</small><strong>${key==='science'?fmt(yieldNow.science):fmt(player[key]||0)}<i>${key==='science'?'/ MONTH':key==='unity'?`+${unityIncome(game)}`:`+${fmt(yieldNow[key])}`}</i></strong></div></div>`).join('');
   $('#profile-metrics').innerHTML=`<div class="profile-metric"><strong>${territory.length}</strong><small>COLONIES</small></div><div class="profile-metric"><strong>${totalFleets().length}</strong><small>FLEETS</small></div><div class="profile-metric"><strong>${player.techs.length}</strong><small>TECHS</small></div>`;
   $('#strategic-outliner').innerHTML=renderStrategicOutliner(game,selectedId,selectedFleetId);
-  $('#top-turn').textContent=`YEAR ${getStardate(game)}`;
+  $('#top-turn').textContent=`STARDATE ${getStardate(game)}`;
   $('.profile-name').textContent=player.name.toUpperCase();
   $('.profile-sub').textContent=player.motto.toUpperCase();
   const emblem=$('.empire-emblem img');if(emblem){const art={Human:'terran',Auralian:'auralis',Vexari:'vex',Solari:'solari'};emblem.src=art[player.species]?'./assets/original/emblems/'+art[player.species]+'.svg':'./assets/icon.svg';emblem.alt=player.name+' emblem';}
@@ -152,7 +189,9 @@ function render(){
   if(isProgress){
     workspace.innerHTML=renderDevelopment(game,activePage,selectedDevelopmentId,developmentFilter);
     const board=workspace.querySelector('.progress-board');
-    if(board){board.scrollLeft=previousScroll[0];board.scrollTop=previousScroll[1];}
+    if(board){board.scrollLeft=previousScroll[0];board.scrollTop=previousScroll[1];
+      const focus=!previousBoard&&board.querySelector('.tech-node.selected');
+      if(focus)board.scrollTop=Math.max(0,focus.offsetTop-(board.clientHeight-focus.offsetHeight)/2);}
     $('#inspector').innerHTML='';
   }else{
     workspace.innerHTML='';
@@ -161,7 +200,7 @@ function render(){
   for(const btn of document.querySelectorAll('[data-nav]')){
     btn.classList.toggle('active',btn.dataset.nav===activePage||(btn.classList.contains('progress-nav')&&isProgress));
   }
-  const turnBtn=$('[data-action="end-turn"]');turnBtn.disabled=!!game.gameOver;
+  updateClockUI();
   if(solarOpen)renderSolarHud();
 }
 function header(kicker,title,description,meta='SYSTEM ONLINE'){
@@ -170,6 +209,22 @@ function header(kicker,title,description,meta='SYSTEM ONLINE'){
 function section(title,body){return `<section class="subsection"><div class="section-label">${title}</div>${body}</section>`;}
 function stat(label,val,cls=''){return `<div class="stat-cell"><small>${label}</small><strong class="${cls}">${val}</strong></div>`;}
 function btn(action,label,cls='action-primary',attrs=''){return `<button class="${cls}" data-action="${action}" ${attrs}>${label}</button>`;}
+/** Station refit controls shared by the orbital panel and the STARBASE DEFENSE inspector section. */
+function stationRefit(system){
+ const post=getOutpost(system);
+ if(!post)return '';
+ const mods=stationModules(system),slots=MODULE_SLOTS[post.level]??0;
+ const platforms=stationPlatforms(system),limit=PLATFORM_LIMITS[post.level]??0,own=system.owner===0;
+ const installed=mods.length?mods.map(id=>escapeHTML(STATION_MODULES[id]?.name||id)).join(' · '):'No modules installed';
+ const refits=own?Object.keys(STATION_MODULES).filter(id=>!mods.includes(id)).map(id=>{
+  const mod=STATION_MODULES[id],allowed=canInstallStationModule(game,system.id,id);
+  return `<button class="oe-station-refit" data-action="station-module" data-id="${id}" ${allowed.ok?'':'disabled'} title="${escapeHTML(allowed.message)}">${escapeHTML(mod.name)}<small>${mod.credits} ¤ · ${mod.alloys} ◈</small></button>`;
+ }).join(''):'';
+ const platformCheck=own?canBuildStationPlatform(game,system.id):null;
+ return `<div class="oe-station-modules"><small>MODULES ${mods.length}/${slots} · ${Math.max(0,slots-mods.length)} FREE</small><span>${installed}</span></div>
+  ${refits?`<div class="oe-station-refits">${refits}</div>`:''}
+  <div class="oe-station-platforms"><small>PLATFORMS ${platforms}/${limit}</small>${platformCheck?`<button class="oe-station-refit" data-action="station-platform" ${platformCheck.ok?'':'disabled'} title="${escapeHTML(platformCheck.message)}">BUILD PLATFORM<small>${PLATFORM_COST.credits} ¤ · ${PLATFORM_COST.alloys} ◈</small></button>`:''}</div>`;
+}
 function renderInspector(){if(solarOpen&&activePage==='system')return selectedSpaceSite?renderSpaceSite():renderPlanetInspector();switch(activePage){case 'colonies':return renderColonies();case 'research':return renderResearch();case 'military':return renderMilitary();case 'diplomacy':return renderDiplomacy();case 'intel':return renderIntel();case 'traditions':return renderTraditions();case 'policies':return renderPolicies();case 'government':return renderGovernment();default:return renderSystem();}}
 
 function biomeBuildingCard(s,b){
@@ -182,7 +237,7 @@ function orbitalBuildingCard(s,planet,b){
 }
 function biomeChoices(s){
  const available=BIOME_BUILDINGS.filter(b=>b.allowed.includes(s.biome)),locked=BIOME_BUILDINGS.filter(b=>!b.allowed.includes(s.biome));
- return `<p class="oe-section-hint">Special structures for ${escapeHTML(s.biome)} planets add resources or housing every cycle.</p>${available.map(b=>biomeBuildingCard(s,b)).join('')}<details class="oe-locked-blueprints"><summary>${locked.length} other biome blueprints locked</summary><ul>${locked.map(b=>`<li><strong>${escapeHTML(b.name)}</strong><small>Requires ${escapeHTML(b.allowed.join(', '))}</small></li>`).join('')}</ul></details>`;
+ return `<p class="oe-section-hint">Special structures for ${escapeHTML(s.biome)} planets add resources or housing every month.</p>${available.map(b=>biomeBuildingCard(s,b)).join('')}<details class="oe-locked-blueprints"><summary>${locked.length} other biome blueprints locked</summary><ul>${locked.map(b=>`<li><strong>${escapeHTML(b.name)}</strong><small>Requires ${escapeHTML(b.allowed.join(', '))}</small></li>`).join('')}</ul></details>`;
 }
 function renderSpaceSite(){
   const system=game.systems[selectedId],site=solarBodies?.sites?.find(s=>s.id===selectedSpaceSite);
@@ -205,12 +260,12 @@ function renderPlanetInspector(){
  if(primary){
   if(settled){
    const p=populationForecast(s),growth=p.growth.toFixed(2);
-   const populationDetails=`<div class="oe-population-card"><div class="oe-population-head"><span>POPULATION</span><b>${p.population.toFixed(2)} <small>/ ${p.capacity} B</small></b></div><div class="oe-capacity-meter" role="progressbar" aria-label="Population relative to colony capacity" aria-valuenow="${p.percent}" aria-valuemin="0" aria-valuemax="100"><span style="width:${p.percent}%"></span></div><div class="oe-population-foot"><span>+${growth} B / cycle</span><span>${p.percent}% of carrying capacity</span></div><p>Population growth slows naturally as available space and resources become scarce.</p></div>`;
+   const populationDetails=`<div class="oe-population-card"><div class="oe-population-head"><span>POPULATION</span><b>${p.population.toFixed(2)} <small>/ ${p.capacity} B</small></b></div><div class="oe-capacity-meter" role="progressbar" aria-label="Population relative to colony capacity" aria-valuenow="${p.percent}" aria-valuemin="0" aria-valuemax="100"><span style="width:${p.percent}%"></span></div><div class="oe-population-foot"><span>+${growth} B / month</span><span>${p.percent}% of carrying capacity</span></div><p>Population growth slows naturally as available space and resources become scarce.</p></div>`;
    body+=section('POPULATION & HOUSING',populationDetails);
    if(owned){
     const y=systemYield(game,s);
     body+=section('COLONY PRODUCTION',`<div class="oe-yield-grid">${stat('CREDITS','+'+y.credits,'gold')}${stat('ALLOYS','+'+y.alloys,'cyan')}${stat('SCIENCE','+'+y.science)}${stat('INFLUENCE','+'+y.influence)}</div>`);
-    body+=section('COLONY INFRASTRUCTURE',`<p class="oe-section-hint">Choose an upgrade. Costs are charged immediately; you can review the result after each cycle.</p>${BUILDINGS.map(b=>{const level=s.buildings[b.id]||0,valid=canBuild(game,s.id,b.id),cost=level<3?`${b.credit[level]} credits · ${b.cost[level]} alloys`:'MAXIMUM';return `<div class="oe-build-card"><div class="oe-build-icon">${buildingArt(b.id)}</div><div><strong>${escapeHTML(b.name)}</strong><small>Level ${level}/3 · ${escapeHTML(b.effect)}</small><small>${cost}</small></div><button type="button" data-action="build" data-type="${b.id}" ${!valid.ok?'disabled':''} aria-label="Upgrade ${escapeHTML(b.name)}">${level===3?'MAX':'UPGRADE'}</button></div>`}).join('')}`);
+    body+=section('COLONY INFRASTRUCTURE',`<p class="oe-section-hint">Choose an upgrade. Costs are charged immediately; you can review the result after each month.</p>${BUILDINGS.map(b=>{const level=s.buildings[b.id]||0,valid=canBuild(game,s.id,b.id),cost=level<3?`${b.credit[level]} credits · ${b.cost[level]} alloys`:'MAXIMUM';return `<div class="oe-build-card"><div class="oe-build-icon">${buildingArt(b.id)}</div><div><strong>${escapeHTML(b.name)}</strong><small>Level ${level}/3 · ${escapeHTML(b.effect)}</small><small>${cost}</small></div><button type="button" data-action="build" data-type="${b.id}" ${!valid.ok?'disabled':''} aria-label="Upgrade ${escapeHTML(b.name)}">${level===3?'MAX':'UPGRADE'}</button></div>`}).join('')}`);
     body+=section('BIOME-SPECIALIZED BUILDINGS',biomeChoices(s));
    }else{
     body+=section('FOREIGN ADMINISTRATION',`<div class="oe-info-box">Controlled by ${escapeHTML(game.empires[s.owner].name)}. You can inspect the world, but not manage its buildings.</div>${btn('diplomacy-panel','OPEN DIPLOMACY','action-secondary')}`);
@@ -234,24 +289,51 @@ function renderSystem(){const s=game.systems[selectedId],seen=hasSeen(game,s.id)
  html+='<div class="inspector-body">';
  html+=section('ORBITAL OBSERVATORY',`<div class="orbital-entry"><span class="orbital-entry-icon">${gameIcon('orbit')}</span><div><strong>Explore the star system</strong><small>Visit planets, moons and orbital lanes in interactive ${solar.is3D()?'3D':'2D'}.</small></div></div>${btn(solarOpen?'close-solar':'open-solar',solarOpen?'← RETURN TO GALAXY':'✦ ENTER SOLAR SYSTEM','action-primary orbital-action')}`);
  html+=section('PLANETARY OVERVIEW',`<div class="planet-hero ${s.biome.toLowerCase().replaceAll(' ','-')}"><div class="planet-orbit"></div><div class="planet-art planet-${artworkBiome(s.biome)} oe-seeded-planet" style="${planetArtStyle(generateSystemBodies(game.seed,s).planets.find(p=>p.isColonyWorld)||generateSystemBodies(game.seed,s).planets[0])}" role="img" aria-label="${escapeHTML(s.biome)} planet artwork"></div><span class="planet-symbol">${escapeHTML(s.biome.toUpperCase())} PLANET</span><span class="planet-feature">${escapeHTML(s.feature.toUpperCase())}</span></div>`);
+ if(s.owner!==null){
+  const post=getOutpost(s),upgrade=s.owner===0?canUpgradeOutpost(game,s.id):null;
+  html+=section('STARBASE DEFENSE',`<div class="stat-grid">${stat('OUTPOST',escapeHTML(OUTPOST_TIERS[post.level].name))}${stat('DEFENSE',outpostDefense(s),'cyan')}${stat('HULL HP',post.hp+'/'+stationMaxHp(s))}${stat('INCOME','+'+stationIncome(s)+' ¤','gold')}</div>${stationUnderSiege(game,s.id)?'<div class="oe-siege-flag">UNDER SIEGE</div>':''}${s.owner===0?btn('outpost-upgrade',post.level===4?'MAX STARBASE':'UPGRADE STARBASE','action-secondary',upgrade?.ok?'':'disabled'):''}${stationRefit(s)}`);
+ }
  html+=section('SYSTEM ANALYSIS',`<div class="stat-grid">${stat('HABITABILITY','★'.repeat(s.habitability)+'<span style="opacity:.28">'+'★'.repeat(3-s.habitability)+'</span>','gold')}${stat('MINERAL RICHNESS',`${s.richness}/4`,'cyan')}${stat('POPULATION',s.owner===null?'—':`${Number(s.population).toFixed(2)} B`)}${stat('OWNERSHIP',s.owner===null?'Neutral':s.owner===0?'Terran':game.empires[s.owner].short)}</div>`);
- if(s.owner===0){html+=section('COLONY PRODUCTION',`<div class="stat-grid">${stat('CREDITS / CYCLE','+'+y.credits,'gold')}${stat('ALLOYS / CYCLE','+'+y.alloys,'cyan')}${stat('SCIENCE / CYCLE','+'+y.science)}${stat('INFLUENCE / CYCLE','+'+y.influence)}</div>`);
+ if(s.owner===0){html+=section('COLONY PRODUCTION',`<div class="stat-grid">${stat('CREDITS / MONTH','+'+y.credits,'gold')}${stat('ALLOYS / MONTH','+'+y.alloys,'cyan')}${stat('SCIENCE / MONTH','+'+y.science)}${stat('INFLUENCE / MONTH','+'+y.influence)}</div>`);
   html+=section('PLANETARY DEVELOPMENT',BUILDINGS.map(b=>{const lv=s.buildings[b.id],next=lv<3?`${b.cost[lv]} ◈ alloys · ${b.credit[lv]} credits`:'MAX LEVEL';const valid=canBuild(game,s.id,b.id);return `<div class="build-row"><div class="build-symbol">${b.icon}</div><div class="row-main"><strong>${b.name}</strong><span class="upgrade-level">LEVEL ${lv} / 3 · ${b.effect}</span><small>${next}</small></div><button data-action="build" data-type="${b.id}" ${!valid.ok?'disabled':''}>${lv===3?'MAX':'UPGRADE'}</button></div>`}).join(''));
    html+=section('BIOME-SPECIALIZED BUILDINGS',biomeChoices(s));
  }else if(s.owner===null){const c=canColonize(game,s.id),cost=colonyCost(game);html+=section('EXPANSION PROTOCOL',`<div class="alert">This system is unclaimed. Frontier colonies must connect to your existing territory.</div><div class="inline-pair"><span>COLONIZATION COST</span><b>${cost.credits} ¤ · ${cost.alloys} ◈ · ${cost.influence} ◇</b></div>${btn('colonize','◈ ESTABLISH COLONY','action-primary',!c.ok?'disabled':'')}${!c.ok?`<div class="small-muted">${c.message}</div>`:''}`);
  }else{const e=game.empires[s.owner];html+=section('FOREIGN PRESENCE',`<div class="alert"><strong style="color:${e.color}">${escapeHTML(e.name)}</strong><div class="small-muted">${escapeHTML(e.trait)} civilization. ${game.empires[0].wars[e.id]?'At war with the Directorate.':'Diplomatic channels open.'}</div></div>${btn('diplomacy-panel','OPEN DIPLOMATIC CHANNELS','action-secondary')}`)}
  const fleets=fleetHere(s).filter(f=>visible||f.owner===0);if(fleets.length)html+=section('ORBITAL FLEETS',fleets.map(f=>`<div class="fleet-row"><div class="fleet-symbol" style="color:${empireFleet(f).color}">⌁</div><div class="row-main"><strong>${escapeHTML(f.name)}</strong><small>${escapeHTML(empireFleet(f).short)} · ${fleetPower(game,f)} POWER · ${fleetLabel(f)}</small></div>${f.owner===0?`<button class="fleet-pick ${selectedFleetId===f.id?'active':''}" data-action="select-fleet" data-id="${f.id}">SELECT</button>`:''}</div>`).join(''));
- const f=game.fleets.find(f=>f.id===selectedFleetId&&f.owner===0);if(f){const movable=canMove(game,f.id,s.id);const origin=game.systems[f.system];html+=section('FLEET ORDERS',`<div class="alert">Active fleet: <b style="color:#c2eeee">${escapeHTML(f.name)}</b><div class="small-muted">Currently at ${escapeHTML(origin.name)} · ${fleetPower(game,f)} power</div></div>${btn('move-fleet',`⌁ MOVE FLEET TO ${escapeHTML(s.name.toUpperCase())}`,'action-secondary',!movable.ok?'disabled':'')}${!movable.ok?`<div class="small-muted">${movable.message}</div>`:''}`)}
+ const f=game.fleets.find(f=>f.id===selectedFleetId&&f.owner===0);if(f){const plan=canQueueFleetRoute(game,f.id,s.id),eta=fleetRouteETA(f),origin=game.systems[f.system];html+=section('FLEET ORDERS',`<div class="alert">Active fleet: <b style="color:#c2eeee">${escapeHTML(f.name)}</b><div class="small-muted">At ${escapeHTML(origin.name)} · ${fleetPower(game,f)} power · ${eta?`EN ROUTE · ${monthLabel(eta,true)} LEFT`:'IDLE'}</div></div>${btn('queue-fleet-route',plan.ok?`⌁ SET ROUTE TO ${escapeHTML(s.name.toUpperCase())} · ${monthLabel(plan.months,true)}`:'⌁ PLOT HYPERLANE ROUTE','action-secondary',!plan.ok?'disabled':'')}${!plan.ok?`<div class="small-muted">${escapeHTML(plan.message)}</div>`:''}${eta?btn('cancel-fleet-route','HOLD POSITION / CANCEL ROUTE','action-secondary'):''}`)}
  html+='</div>';return html;
 }
-function renderColonies(){const colonies=ownedSystems(game),total=income(game),html=colonies.map(s=>{const y=systemYield(game,s);return `<div class="colony-row ${selectedId===s.id?'active':''}"><div class="colony-symbol">${s.capital?'✧':'◈'}</div><div class="row-main"><strong>${escapeHTML(s.name)} ${s.capital?'· CAPITAL':''}</strong><small>${s.biome} · ${Number(s.population).toFixed(2)} B citizens</small><small style="color:#88c2cb">+${y.credits} ¤ · +${y.alloys} ◈ · +${y.science} ✦</small></div><button data-action="inspect-colony" data-id="${s.id}" class="row-arrow" aria-label="Inspect ${escapeHTML(s.name)} planet">VIEW PLANET ↗</button></div>`}).join('');return header('CIVIL ADMINISTRATION','Colonies & Economy',`${colonies.length} settled worlds under Directorate administration.`,'GOVERNANCE')+`<div class="inspector-body">${section('TOTAL PRODUCTION',`<div class="stat-grid">${stat('CREDITS / CYCLE','+'+total.credits,'gold')}${stat('ALLOYS / CYCLE','+'+total.alloys,'cyan')}${stat('SCIENCE / CYCLE','+'+total.science)}${stat('INFLUENCE / CYCLE','+'+total.influence)}</div>`)}${section('YOUR COLONIES',html)}</div>`;}
+function renderColonies(){const colonies=ownedSystems(game),total=economyLedger(game,0,systemYield).production,html=colonies.map(s=>{const y=systemYield(game,s);return `<div class="colony-row ${selectedId===s.id?'active':''}"><div class="colony-symbol">${s.capital?'✧':'◈'}</div><div class="row-main"><strong>${escapeHTML(s.name)} ${s.capital?'· CAPITAL':''}</strong><small>${s.biome} · ${Number(s.population).toFixed(2)} B citizens</small><small style="color:#88c2cb">+${y.credits} ¤ · +${y.alloys} ◈ · +${y.science} ✦</small></div><button data-action="inspect-colony" data-id="${s.id}" class="row-arrow" aria-label="Inspect ${escapeHTML(s.name)} planet">VIEW PLANET ↗</button></div>`}).join('');
+const investmentChoices = recommendColonyInvestments(game,[...BUILDINGS,...BIOME_BUILDINGS],systemYield,{
+  reserves:{credits:40,alloys:20},limit:3
+});
+const investmentRows=investmentChoices.map(option=>{
+  const colony=game.systems[option.systemId];
+  const output=Object.entries(option.gain).filter(([,value])=>value>0)
+    .map(([key,value])=>`+${fmt(value)} ${escapeHTML(key)} / month`).join(' · ');
+  const status=option.preservesReserves?'RESERVE SAFE':
+    option.affordable?'USES RESERVES':'INSUFFICIENT RESOURCES';
+  const statusClass=option.preservesReserves?'safe':option.affordable?'caution':'shortage';
+  return `<article class="oe-investment-opportunity" data-system-id="${option.systemId}">
+    <div class="oe-investment-head"><strong>${escapeHTML(option.buildingName)} · Level ${option.nextLevel}</strong>
+      <small>${escapeHTML(colony.name)} colony</small></div>
+    <div class="oe-investment-cost">COST: <b>${fmt(option.cost.credits)} CREDITS</b> · <b>${fmt(option.cost.alloys)} ALLOYS</b></div>
+    <div class="oe-investment-gain">PRODUCTION GAIN: ${output}</div>
+    <div class="oe-investment-actions"><span class="oe-budget-status ${statusClass}">${status}</span>
+      <button type="button" data-action="inspect-colony" data-id="${option.systemId}"
+        aria-label="Manage ${escapeHTML(colony.name)} building upgrades">MANAGE COLONY →</button></div>
+  </article>`;
+}).join('');
+const investmentInfo=(investmentRows||'<p class="oe-section-hint">No production upgrades available for your colonies.</p>')+
+  '<p class="oe-section-hint">Forecast only. Suggested reserves: 40 credits + 20 alloys. Actual purchases remain manual.</p>';
+return header('CIVIL ADMINISTRATION','Colonies & Economy',`${colonies.length} settled worlds under Directorate administration.`,'GOVERNANCE')+`<div class="inspector-body">${section('TOTAL PRODUCTION',`<div class="stat-grid">${stat('CREDITS / MONTH','+'+total.credits,'gold')}${stat('ALLOYS / MONTH','+'+total.alloys,'cyan')}${stat('SCIENCE / MONTH','+'+total.science)}${stat('INFLUENCE / MONTH','+'+total.influence)}</div>`)}${section('YOUR COLONIES',html)}${section('NEXT INVESTMENTS',investmentInfo)}</div>`;}
 function renderResearch(){const e=game.empires[0],current=TECHS.find(t=>t.id===e.research),branches=[...new Set(TECHS.map(t=>t.branch))];
  const cards=branches.map(branch=>`<div class="tech-branch"><h3>✦ ${escapeHTML(branch.toUpperCase())}</h3>${TECHS.filter(t=>t.branch===branch).map(t=>{const done=e.techs.includes(t.id),available=t.prereqs.every(p=>e.techs.includes(p)),selected=e.research===t.id;return `<button class="tech-choice ${done?'complete':selected?'active':!available?'locked':''}" data-action="research" data-id="${t.id}" ${done||!available?'disabled':''}><span class="tech-symbol">✧</span><span class="tech-text"><strong>${escapeHTML(t.name)}</strong><small>${escapeHTML(t.description)}</small><small class="prereq">${t.prereqs.length?'← '+t.prereqs.map(id=>escapeHTML(TECHS.find(x=>x.id===id)?.name||id)).join(' + '):'ROOT TECHNOLOGY'}</small><small style="color:${t.color}">${escapeHTML(t.bonus)}</small></span><span class="tech-price">${done?'✓':selected?'◉':t.cost+' ✦'}</span></button>`}).join('')}</div>`).join('');
- return header('RESEARCH DIRECTORATE','Technology Tree','Research linked prerequisites across six disciplines. Completed discoveries grant permanent empire effects.','R&D ONLINE')+`<div class="inspector-body">${section('ACTIVE PROJECT',current?`<div class="alert"><strong>${escapeHTML(current.name)}</strong><div class="research-progress"><i style="width:${researchPct(e)}%"></i></div><div class="inline-pair"><span>${fmt(e.progress)} / ${current.cost} science</span><b>+${income(game).science} / cycle</b></div></div>`:'<div class="alert">All technologies completed.</div>')}${section(`TECHNOLOGIES · ${e.techs.length} / ${TECHS.length}`,`<div class="tech-branches">${cards}</div>`)}</div>`;
+ return header('RESEARCH DIRECTORATE','Technology Tree','Research linked prerequisites across six disciplines. Completed discoveries grant permanent empire effects.','R&D ONLINE')+`<div class="inspector-body">${section('ACTIVE PROJECT',current?`<div class="alert"><strong>${escapeHTML(current.name)}</strong><div class="research-progress"><i style="width:${researchPct(e)}%"></i></div><div class="inline-pair"><span>${fmt(e.progress)} / ${current.cost} science</span><b>+${income(game).science} / month</b></div></div>`:'<div class="alert">All technologies completed.</div>')}${section(`TECHNOLOGIES · ${e.techs.length} / ${TECHS.length}`,`<div class="tech-branches">${cards}</div>`)}</div>`;
 }
 function renderTraditions(){const e=game.empires[0],adopted=e.traditions||[],cost=traditionCost(e),tracks=[...new Set(TRADITIONS.map(t=>t.track))];
  const groups=tracks.map(track=>`<div class="civic-group"><h3>✥ ${track.toUpperCase()}</h3>${TRADITIONS.filter(t=>t.track===track).map(t=>{const done=adopted.includes(t.id),unlocked=t.prereqs.every(id=>adopted.includes(id)),affordable=(e.unity||0)>=cost;return `<button class="civic-tile ${done?'done':''}" data-action="adopt-tradition" data-id="${t.id}" ${done||!unlocked||!affordable?'disabled':''}><strong>${done?'✓ ':unlocked?'◇ ':'🔒 '}${escapeHTML(t.name)}</strong><small>${escapeHTML(t.bonus)}</small><span class="status">${done?'ADOPTED':unlocked?cost+' UNITY':'REQUIRES '+t.prereqs.map(id=>escapeHTML(TRADITIONS.find(x=>x.id===id)?.name)).join(', ')}</span></button>`}).join('')}</div>`).join('');
- return header('CULTURAL EVOLUTION','Traditions','Unity is earned by your colonies every cycle. Spend it to unlock lasting empire-wide bonuses.','CULTURAL ARCHIVES')+`<div class="inspector-body">${section('CULTURAL CAPITAL',`<div class="civic-stats"><div class="civic-stat"><small>UNITY RESERVE</small><strong>${fmt(e.unity||0)} ✥</strong></div><div class="civic-stat"><small>UNITY PER CYCLE</small><strong>+${unityIncome(game)}</strong></div><div class="civic-stat"><small>NEXT TRADITION</small><strong>${cost} ✥</strong></div><div class="civic-stat"><small>ADOPTED</small><strong>${adopted.length} / ${TRADITIONS.length}</strong></div></div>`)}${section('TRADITION PATHS',`<div class="civic-path">${groups}</div>`)}</div>`;
+ return header('CULTURAL EVOLUTION','Traditions','Unity is earned by your colonies every month. Spend it to unlock lasting empire-wide bonuses.','CULTURAL ARCHIVES')+`<div class="inspector-body">${section('CULTURAL CAPITAL',`<div class="civic-stats"><div class="civic-stat"><small>UNITY RESERVE</small><strong>${fmt(e.unity||0)} ✥</strong></div><div class="civic-stat"><small>UNITY PER MONTH</small><strong>+${unityIncome(game)}</strong></div><div class="civic-stat"><small>NEXT TRADITION</small><strong>${cost} ✥</strong></div><div class="civic-stat"><small>ADOPTED</small><strong>${adopted.length} / ${TRADITIONS.length}</strong></div></div>`)}${section('TRADITION PATHS',`<div class="civic-path">${groups}</div>`)}</div>`;
 }
 function renderPolicies(){const e=game.empires[0],active=e.policies||[],slots=['Economy','Society','Defense'];
  const groups=slots.map(slot=>`<div class="civic-group"><h3>◈ ${slot.toUpperCase()} POLICY SLOT</h3>${POLICIES.filter(p=>p.slot===slot).map(p=>{const done=active.includes(p.id);return `<button class="civic-tile ${done?'done':''}" data-action="enact-policy" data-id="${p.id}" ${done||e.influence<20?'disabled':''}><strong>${done?'✓ ':'◇ '}${escapeHTML(p.name)}</strong><small>${escapeHTML(p.description)}</small><span class="status">${done?'ACTIVE POLICY':escapeHTML(p.bonus)+' · 20 INFLUENCE TO ENACT'}</span></button>`}).join('')}</div>`).join('');
@@ -286,25 +368,30 @@ function renderGovernment(){
   const production=stability<30?'−25%':stability<45?'−10%':stability>=75?'+7%':'No penalty';
   return header('DOMESTIC GOVERNANCE','Government & Council','Reform the constitution, appoint officials and balance political factions. Your decisions change production and stability.','CIVIL AFFAIRS')
     +`<div class="inspector-body government-panel">
-    ${section('LEGITIMACY & FACTION LOYALTY',`<div class="government-stats"><div><small>STABILITY</small><strong>${stability} / 100</strong></div><div><small>POLITICAL STATE</small><strong>${state}</strong></div><div><small>PRODUCTION</small><strong>${production}</strong></div><div><small>INFLUENCE</small><strong>${fmt(empire.influence)} ◇</strong></div></div><p class="government-note">Factions shift toward your laws and civics each cycle. Below 45 stability, unrest reduces economic output; high stability rewards production.</p>${factions}`)}
-    ${section('FORM OF GOVERNMENT',`<p class="government-note">Reforming costs 40 influence and requires five cycles between changes. Reform disrupts faction loyalty.</p><div class="government-card-stack">${governmentCards}</div>`)}
+    ${section('LEGITIMACY & FACTION LOYALTY',`<div class="government-stats"><div><small>STABILITY</small><strong>${stability} / 100</strong></div><div><small>POLITICAL STATE</small><strong>${state}</strong></div><div><small>PRODUCTION</small><strong>${production}</strong></div><div><small>INFLUENCE</small><strong>${fmt(empire.influence)} ◇</strong></div></div><p class="government-note">Factions shift toward your laws and civics each month. Below 45 stability, unrest reduces economic output; high stability rewards production.</p>${factions}`)}
+    ${section('FORM OF GOVERNMENT',`<p class="government-note">Reforming costs 40 influence and requires five months between changes. Reform disrupts faction loyalty.</p><div class="government-card-stack">${governmentCards}</div>`)}
     ${section('CIVIC PRINCIPLES · 2 SLOTS',`<p class="government-note">One Constitution civic and one Development civic. You can replace them for 20 influence.</p><div class="government-card-stack">${civicGroups}</div>`)}
-    ${section('HIGH COUNCIL · 3 OFFICES',`<p class="government-note">Choose one leader per office. Appointments cost 12 influence and are locked for two cycles.</p><div class="government-card-stack">${council}</div>`)}
+    ${section('HIGH COUNCIL · 3 OFFICES',`<p class="government-note">Choose one leader per office. Appointments cost 12 influence and are locked for two months.</p><div class="government-card-stack">${council}</div>`)}
     </div>`;
 }
 
 function renderMilitary(){const fleets=totalFleets(),power=fleets.reduce((sum,f)=>sum+fleetPower(game,f),0),s=game.systems[selectedId],shipyard=s.owner===0?s:game.systems[game.empires[0].home];
- const fleetList=fleets.map(f=>`<div class="fleet-row ${selectedFleetId===f.id?'active':''}"><div class="fleet-symbol">⌁</div><div class="row-main"><strong>${escapeHTML(f.name)}</strong><small>${escapeHTML(game.systems[f.system].name)} · ${fleetPower(game,f)} POWER</small><small>${fleetLabel(f)} ${f.movedTurn>=game.turn?'· MOVED':''}</small></div><button data-action="select-fleet" data-id="${f.id}" class="fleet-pick ${selectedFleetId===f.id?'active':''}">SELECT</button></div>`).join('');
- const ships=SHIPS.map(x=>`<div class="build-row"><div class="build-symbol">${x.icon}</div><div class="row-main"><strong>${escapeHTML(x.name)}</strong><span class="upgrade-level">${x.power} COMBAT POWER</span><small>${x.alloy} ◈ alloys · ${x.credits} credits${x.tech?' · '+(game.empires[0].techs.includes(x.tech)?'UNLOCKED':'TECH LOCKED'):''}</small></div><button data-action="recruit" data-type="${x.id}" data-system="${shipyard.id}" ${!canRecruit(game,shipyard.id,x.id).ok?'disabled':''}>BUILD</button></div>`).join('');
- return header('NAVAL HIGH COMMAND','Fleet Operations','Deploy ships, project power, and secure critical hyperlanes.','DEFENSE READY')+`<div class="inspector-body">${section('NAVAL READINESS',`<div class="stat-grid">${stat('FLEETS',fleets.length)}${stat('TOTAL POWER',power,'cyan')}</div><div class="alert">Select a fleet, click an adjacent star on the map, then issue a movement order from Galaxy Command. Each fleet moves once per cycle.</div>`)}${section('ACTIVE FLEETS',fleetList||'<div class="empty-message">No fleets commissioned.</div>')}${section(`SHIPYARD · ${escapeHTML(shipyard.name.toUpperCase())}`,ships)}</div>`;
+  const fleetList=fleets.map(f=>{const eta=fleetRouteETA(f),destination=eta?game.systems[f.route.at(-1)]?.name:null;return `<div class="fleet-row ${selectedFleetId===f.id?'active':''}"><div class="fleet-symbol">⌁</div><div class="row-main"><strong>${escapeHTML(f.name)}</strong><small>${escapeHTML(game.systems[f.system].name)} · ${fleetPower(game,f)} POWER · ${fleetLabel(f)}</small><small>${eta?`EN ROUTE → ${escapeHTML(destination||'?')} · ETA ${monthLabel(eta,true)}`:'IDLE · AWAITING ORDERS'}</small></div><button data-action="select-fleet" data-id="${f.id}" class="fleet-pick ${selectedFleetId===f.id?'active':''}">SELECT</button></div>`}).join('');
+  const fleet=game.fleets.find(f=>f.id===selectedFleetId&&f.owner===0);
+  const routes=fleet?game.systems.map(target=>({target,plan:canQueueFleetRoute(game,fleet.id,target.id)}))
+    .filter(x=>x.plan.ok).sort((a,b)=>a.plan.months-b.plan.months||a.target.name.localeCompare(b.target.name)):[];
+  const routePanel=fleet?`<div class="alert">SELECTED: <b>${escapeHTML(fleet.name)}</b> · ${escapeHTML(game.systems[fleet.system].name)} · ${fleetRouteETA(fleet)?'TRAVELING, '+monthLabel(fleetRouteETA(fleet),true)+' REMAINING':'READY TO MOVE'}<div class="small-muted">Click a destination below to issue a persistent route. Or right-click any discovered accessible star on the galaxy map.</div></div>
+    <div class="oe-fleet-destinations">${routes.slice(0,12).map(x=>`<button data-action="fleet-destination" data-id="${x.target.id}"><strong>${escapeHTML(x.target.name)}</strong><small>ETA ${monthLabel(x.plan.months)}</small></button>`).join('')||'<div class="small-muted">No discovered accessible destinations. Explore nearby hyperlanes first.</div>'}</div>`:'<div class="empty-message">Select a fleet above to plot its hyperlane route.</div>';
+  const ships=SHIPS.map(x=>`<div class="build-row"><div class="build-symbol">${x.icon}</div><div class="row-main"><strong>${escapeHTML(x.name)}</strong><span class="upgrade-level">${x.power} COMBAT POWER</span><small>${x.alloy} ◈ alloys · ${x.credits} credits${x.tech?' · '+(game.empires[0].techs.includes(x.tech)?'UNLOCKED':'TECH LOCKED'):''}</small></div><button data-action="recruit" data-type="${x.id}" data-system="${shipyard.id}" ${!canRecruit(game,shipyard.id,x.id).ok?'disabled':''}>BUILD</button></div>`).join('');
+ return header('NAVAL HIGH COMMAND','Fleet Operations','Deploy ships, project power, and secure critical hyperlanes.','DEFENSE READY')+`<div class="inspector-body">${section('NAVAL READINESS',`<div class="stat-grid">${stat('FLEETS',fleets.length)}${stat('TOTAL POWER',power,'cyan')}</div><div class="alert">Select a fleet, then select any discovered accessible star in Galaxy Command to plot a route. Fleets travel one hyperlane per month, and you can cancel orders anytime.</div>`)}${section('ACTIVE FLEETS',fleetList||'<div class="empty-message">No fleets commissioned.</div>')}${section('MOVEMENT ORDERS',routePanel)}${selectedFleetId&&fleetRouteETA(game.fleets.find(f=>f.id===selectedFleetId))?section('ACTIVE ORDER',btn('cancel-fleet-route','HOLD POSITION / CANCEL ROUTE','action-secondary')):''}${section(`SHIPYARD · ${escapeHTML(shipyard.name.toUpperCase())}`,ships)}</div>`;
 }
 function renderDiplomacy(){const player=game.empires[0],rivals=game.empires.slice(1);
  return header('INTERSTELLAR COUNCIL','Diplomatic Corps','Form rivalries, improve relations, or take your place among the great powers.','FOREIGN AFFAIRS')+`<div class="inspector-body">${section('KNOWN CIVILIZATIONS',rivals.map(e=>{const w=!!player.wars[e.id],relation=player.relations[e.id]||0,owned=ownedSystems(game,e.id).length,known=game.systems.some(s=>s.owner===e.id&&hasSeen(game,s.id));return `<div class="rival-card"><div class="rival-emblem" style="--faction:${e.color}">${e.short.slice(0,1)}</div><div class="row-main"><strong>${escapeHTML(e.name)}</strong><small>${e.trait} · ${e.eliminated?'DEFEATED':known?'CONTACT ESTABLISHED':'UNCONFIRMED LOCATION'}</small><small>${owned} colonies · Relations: <span style="color:${relation>=0?'#8dd6ac':'#ec9ba9'}">${relation>0?'+':''}${relation}</span></small><div class="rival-actions">${e.eliminated?'<span class="small-muted">Empire eliminated</span>':w?`<span class="badge enemy">AT WAR</span><button data-action="peace" data-id="${e.id}">OFFER PEACE</button>`:`<button data-action="envoy" data-id="${e.id}" ${player.lastEnvoy[e.id]===game.turn?'disabled':''}>ENVOY −12 ◇</button><button data-action="war" data-id="${e.id}" class="danger">DECLARE WAR</button>`}</div></div></div>`}).join(''))}</div>`;}
 function renderIntel(){const ranked=game.empires.slice().sort((a,b)=>score(game,b.id)-score(game,a.id)),mine=ownedSystems(game).length,control=100*mine/game.systems.length,entries=game.logs.slice(0,26);
- return header('COMMAND & INTELLIGENCE','Empire Overview','Situation reports, rankings, and a record of galactic events.','SECTOR INTEL')+`<div class="inspector-body">${section('STRATEGIC CONTROL',`<div class="stat-grid">${stat('SECTOR CONTROL',control.toFixed(1)+'%','cyan')}${stat('VICTORY TARGET','65%','gold')}${stat('CURRENT CYCLE',game.turn)}${stat('EMPIRE SCORE',Math.round(score(game)))}</div><div class="research-progress"><i style="width:${Math.min(100,control/65*100)}%"></i></div>`)}${section('GALACTIC POWER RANKING',ranked.map((e,i)=>`<div class="inline-pair" style="padding:7px 0;border-bottom:1px solid #243b4a"><span>${i+1}. <i class="legend-dot" style="background:${e.color}"></i> ${escapeHTML(e.short)}</span><b>${Math.round(score(game,e.id))} pts</b></div>`).join(''))}${section('MISSION LOG',entries.map(entry=>`<div class="log-entry ${entry.type}"><span>CY ${String(entry.turn).padStart(2,'0')}</span><p>${escapeHTML(entry.message)}</p></div>`).join(''))}</div>`;}
+ return header('COMMAND & INTELLIGENCE','Empire Overview','Situation reports, rankings, and a record of galactic events.','SECTOR INTEL')+`<div class="inspector-body">${section('STRATEGIC CONTROL',`<div class="stat-grid">${stat('SECTOR CONTROL',control.toFixed(1)+'%','cyan')}${stat('VICTORY TARGET','65%','gold')}${stat('MONTH',getStardate(game))}${stat('EMPIRE SCORE',Math.round(score(game)))}</div><div class="research-progress"><i style="width:${Math.min(100,control/65*100)}%"></i></div>`)}${section('GALACTIC POWER RANKING',ranked.map((e,i)=>`<div class="inline-pair" style="padding:7px 0;border-bottom:1px solid #243b4a"><span>${i+1}. <i class="legend-dot" style="background:${e.color}"></i> ${escapeHTML(e.short)}</span><b>${Math.round(score(game,e.id))} pts</b></div>`).join(''))}${section('MISSION LOG',entries.map(entry=>`<div class="log-entry ${entry.type}"><span>MONTH ${String(entry.turn).padStart(2,'0')}</span><p>${escapeHTML(entry.message)}</p></div>`).join(''))}</div>`;}
 
 function rebuildStarfield(){const seed=game?.rng||43;let z=(seed+123456)>>>0;const rand=()=>{z^=z<<13;z^=z>>>17;z^=z<<5;return(z>>>0)/4294967296};stars=Array.from({length:QUALITY[settings.quality].stars},()=>({x:rand(),y:rand(),r:rand()*1.1+.15,a:.18+rand()*.57}));}
-function resizeCanvas(){const rect=canvas.getBoundingClientRect(),preset=QUALITY[settings.quality];if(!rect.width||!rect.height)return;const dpr=Math.min(preset.scale,Math.sqrt(preset.maxPixels/(rect.width*rect.height)));const w=Math.max(1,Math.round(rect.width*dpr)),h=Math.max(1,Math.round(rect.height*dpr));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}view.width=rect.width;view.height=rect.height;ctx.setTransform(dpr,0,0,dpr,0,0);if(view.auto){view.cx=WORLD.width/2;view.cy=WORLD.height/2;view.zoom=Math.min(rect.width/(WORLD.width+75),rect.height/(WORLD.height+60))*1.03;}}
+function resizeCanvas(){const rect=canvas.getBoundingClientRect(),preset=QUALITY[settings.quality];if(!rect.width||!rect.height)return;const dpr=Math.min(preset.scale,Math.sqrt(preset.maxPixels/(rect.width*rect.height)));const w=Math.max(1,Math.round(rect.width*dpr)),h=Math.max(1,Math.round(rect.height*dpr));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}view.width=rect.width;view.height=rect.height;ctx.setTransform(dpr,0,0,dpr,0,0);if(view.auto){const frame=fitKnownGalaxy({systems:game?.systems||[],visibleIds:game?new Set([...game.explored,...getVisibility(game)]):new Set(),width:rect.width,height:rect.height,world:WORLD});view.cx=frame.cx;view.cy=frame.cy;view.zoom=frame.zoom;}}
 function screenPos(s){return {x:(s.x-view.cx)*view.zoom+view.width/2,y:(s.y-view.cy)*view.zoom+view.height/2};}
 function fromScreen(x,y){return{x:view.cx+(x-view.width/2)/view.zoom,y:view.cy+(y-view.height/2)/view.zoom};}
 function colorAlpha(color,a){if(color[0]==='#'){const n=parseInt(color.slice(1),16);return`rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;}return color;}
@@ -328,14 +415,14 @@ function draw(now){requestAnimationFrame(draw);if(solarOpen)return;if(!game||!vi
  for(const s of game.systems){if(!seen.has(s.id))continue;const p=screenPos(s);if(p.x< -65||p.x>w+65||p.y< -65||p.y>h+65)continue;const chosen=selectedId===s.id,active=visible.has(s.id),own=s.owner!==null;
   const radius=own?4.4:3.3;let aura=ctx.createRadialGradient(p.x,p.y,1,p.x,p.y,15);aura.addColorStop(0,colorAlpha(s.color,active?.28:.12));aura.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=aura;ctx.beginPath();ctx.arc(p.x,p.y,15,0,Math.PI*2);ctx.fill();
   ctx.fillStyle=active?s.color:'#6d8299';ctx.globalAlpha=active?1:.5;ctx.beginPath();ctx.arc(p.x,p.y,radius,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
-  if(own){ctx.strokeStyle=palette(s.owner);ctx.lineWidth=1.3;ctx.beginPath();ctx.arc(p.x,p.y,9,0,Math.PI*2);ctx.stroke()}
+  if(own){ctx.strokeStyle=palette(s.owner);ctx.lineWidth=1.3;ctx.beginPath();ctx.arc(p.x,p.y,9,0,Math.PI*2);ctx.stroke();if(view.zoom>.55||chosen){ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillStyle='#8ee0e4';ctx.font='700 9px Rajdhani,sans-serif';ctx.fillText('DEF '+outpostDefense(s),p.x+13,p.y+8);}}
   if(chosen){ctx.strokeStyle='#e6efee';ctx.lineWidth=1.3;ctx.beginPath();ctx.arc(p.x,p.y,15+Math.sin(pulse*3)*1.3,0,Math.PI*2);ctx.stroke();ctx.strokeStyle='rgba(130,224,230,.65)';ctx.beginPath();ctx.moveTo(p.x-23,p.y);ctx.lineTo(p.x-17,p.y);ctx.moveTo(p.x+17,p.y);ctx.lineTo(p.x+23,p.y);ctx.moveTo(p.x,p.y-23);ctx.lineTo(p.x,p.y-17);ctx.moveTo(p.x,p.y+17);ctx.lineTo(p.x,p.y+23);ctx.stroke()}
   if(view.zoom>.42||own||chosen){ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillStyle=chosen?'#f2faf8':own?'#b8e3e5':'#90a6b6';ctx.font=(chosen?'700 ':'500 ')+'11px Rajdhani, sans-serif';ctx.fillText(s.name,p.x+13,p.y-7)}
   const ships=game.fleets.filter(f=>f.system===s.id&&(f.owner===0||active));if(ships.length){const group=ships.reduce((acc,f)=>(acc+Object.values(f.ships).reduce((a,b)=>a+b,0)),0),hue=palette(ships[0].owner);ctx.fillStyle='#0b2633';ctx.strokeStyle=hue;ctx.lineWidth=1;ctx.fillRect(p.x+9,p.y+4,19,14);ctx.strokeRect(p.x+9,p.y+4,19,14);ctx.textAlign='center';ctx.font='700 10px Rajdhani';ctx.fillStyle=hue;ctx.fillText(String(group),p.x+18.5,p.y+11)}
  }
  // Fleet route helper line from selected fleet to current target.
  const selectedFleet=game.fleets.find(f=>f.id===selectedFleetId&&f.owner===0);
- if(selectedFleet&&selectedFleet.system!==selectedId){const a=screenPos(game.systems[selectedFleet.system]),b=screenPos(game.systems[selectedId]);if(game.systems[selectedFleet.system].neighbors.includes(selectedId)){ctx.setLineDash([5,5]);ctx.strokeStyle='rgba(111,234,231,.8)';ctx.lineWidth=1.1;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();ctx.setLineDash([])}}
+ if(selectedFleet){const planned=selectedFleet.route?.length?selectedFleet.route:[];const preview=!planned.length&&selectedFleet.system!==selectedId&&game.systems[selectedFleet.system].neighbors.includes(selectedId)?[selectedId]:[];const nodes=[selectedFleet.system,...(planned.length?planned:preview)];if(nodes.length>1){ctx.setLineDash([6,5]);ctx.lineDashOffset=-pulse*8;ctx.strokeStyle=planned.length?'rgba(111,234,231,.92)':'rgba(111,234,231,.5)';ctx.lineWidth=planned.length?2:1.1;ctx.beginPath();const start=screenPos(game.systems[nodes[0]]);ctx.moveTo(start.x,start.y);for(const node of nodes.slice(1)){const pos=screenPos(game.systems[node]);ctx.lineTo(pos.x,pos.y)}ctx.stroke();ctx.setLineDash([]);ctx.lineDashOffset=0}}
 }
 function recenter(){view.auto=true;resizeCanvas();}
 function zoomAt(factor,x=view.width/2,y=view.height/2){const before=fromScreen(x,y);view.auto=false;view.zoom=Math.max(.23,Math.min(3.5,view.zoom*factor));view.cx=before.x-(x-view.width/2)/view.zoom;view.cy=before.y-(y-view.height/2)/view.zoom;}
@@ -345,13 +432,23 @@ viewport.addEventListener('pointerdown',e=>{if(e.target!==canvas||!game)return;c
 canvas.addEventListener('pointermove',e=>{if(!game)return;const p=posEvent(e);if(drag&&drag.pointer===e.pointerId){const dx=p.x-drag.prevX,dy=p.y-drag.prevY;if(Math.abs(p.x-drag.x)+Math.abs(p.y-drag.y)>6)drag.moved=true;if(drag.moved){view.auto=false;view.cx-=dx/view.zoom;view.cy-=dy/view.zoom;}drag.prevX=p.x;drag.prevY=p.y;$('#map-tooltip').hidden=true;return;}
  const s=findStar(p.x,p.y),tip=$('#map-tooltip');if(s){hovered=s.id;tip.hidden=false;tip.innerHTML=`<strong>${escapeHTML(s.name)}</strong><small>${escapeHTML(labelOwner(s))} · ${escapeHTML(s.star)}</small>`;tip.style.left=Math.min(Math.max(p.x+17,12),view.width-165)+'px';tip.style.top=Math.max(7,Math.min(p.y-37,view.height-65))+'px';canvas.style.cursor='pointer';}else{tip.hidden=true;canvas.style.cursor='grab';}});
 canvas.addEventListener('pointerup',e=>{if(!drag||drag.pointer!==e.pointerId)return;const p=posEvent(e);if(!drag.moved){const s=findStar(p.x,p.y);if(s){if(s.id===selectedId&&activePage==='system')openSolarSystem(s.id);else{selectedId=s.id;activePage='system';render();}}}drag=null;});
+canvas.addEventListener('contextmenu',e=>{
+ if(!game||solarOpen||isDevelopmentPage(activePage))return;
+ e.preventDefault();
+ const p=posEvent(e),target=findStar(p.x,p.y);
+ if(!target)return;
+ const fleet=game.fleets.find(f=>f.id===selectedFleetId&&f.owner===0);
+ selectedId=target.id;activePage='system';
+ if(!fleet){render();notice('Select one of your fleets in Fleet Operations first.','error');return;}
+ act(queueFleetRoute(game,fleet.id,target.id));
+});
 canvas.addEventListener('pointercancel',()=>drag=null);
 canvas.addEventListener('pointerleave',()=>{$('#map-tooltip').hidden=true});
 viewport.addEventListener('wheel',e=>{if(!game)return;e.preventDefault();const r=canvas.getBoundingClientRect();zoomAt(e.deltaY<0?1.13:.885,e.clientX-r.left,e.clientY-r.top);},{passive:false});
 window.addEventListener('resize',resizeCanvas);
 
 function modalLayout(kicker,title,body,buttons=''){return `<div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><button class="modal-close" data-action="close-modal" aria-label="Close dialog">×</button><div class="eyebrow">${kicker}</div><h2 id="modal-title">${title}</h2>${body}${buttons?`<div class="modal-actions">${buttons}</div>`:''}</div>`}
-function openModal(type){modalType=type;const root=$('#modal-root');let html='';
+function openModal(type){modalType=type;syncSimClock();const root=$('#modal-root');let html='';
  if(type==='welcome'){
   const empire=game.empires[0];
   const body=`<div class="oe-home-menu">
@@ -365,7 +462,7 @@ function openModal(type){modalType=type;const root=$('#modal-root');let html='';
     <div class="oe-home-sidebar">
       <div class="oe-home-save"><div class="eyebrow">CURRENT CAMPAIGN</div>
         <strong>${escapeHTML(empire.name)}</strong>
-        <div class="oe-home-stats"><span><b>${game.turn}</b> cycle</span><span><b>${ownedSystems(game).length}</b> colonies</span><span><b>${game.systems.length}</b> stars</span></div>
+        <div class="oe-home-stats"><span><b>${getStardate(game)}</b> stardate</span><span><b>${ownedSystems(game).length}</b> colonies</span><span><b>${game.systems.length}</b> stars</span></div>
       </div>
       <div class="oe-home-heading">YOUR NEXT ACTION</div>
       ${menuAction('new','Create a galaxy','Choose seed, size and rivals','new',true)}
@@ -385,11 +482,11 @@ function openModal(type){modalType=type;const root=$('#modal-root');let html='';
  else if(type==='donate'){const donation=configuredDonationUrl();const link=donation?`<a class="action-primary donation-action" href="${escapeHTML(donation)}" target="_blank" rel="noopener noreferrer">${gameIcon('heart')} OPEN EXTERNAL DONATION PAGE</a>`:'<div class="donation-pending">Donations are not enabled yet. There is no payment account or checkout connected to this game.</div>';html=modalLayout('SUPPORT THE PROJECT','Help build Orbital Empires',`<div class="donation-panel"><div class="donation-emblem">${gameIcon('heart')}</div><p>The game is free to play. If you enjoy it, you can support development or share it with others. Donating is always optional.</p>${link}<p class="small-muted">Payments, if enabled later, will be handled by an external provider. Orbital Empires does not collect or store payment details.</p><a class="project-link" href="https://github.com/teodor-georgiev/Orbital-Empires" target="_blank" rel="noopener noreferrer">${gameIcon('galaxy')} View project on GitHub</a></div>`,btn('close-modal','BACK TO GAME','action-secondary'))}
  else if(type==='new'){html=modalLayout('NEW CAMPAIGN','Create your galaxy.',`<div class="campaign-preview"><p>YOUR NEXT FRONTIER<br><strong>Eight worlds. Thousands of possibilities.</strong><br>Choose the seed, size, and rival empires.</p><div class="preview-orbs"><span class="planet-thumbnail planet-terran" aria-hidden="true"></span><span class="planet-thumbnail planet-desert" aria-hidden="true"></span><span class="planet-thumbnail planet-gas-giant" aria-hidden="true"></span></div></div><p>Generate a fresh, deterministic star map. Starting a new campaign replaces the current local save.</p><div class="form-grid"><div class="form-field full"><label for="new-scenario">STARTING SCENARIO</label><select id="new-scenario"><option value="sol" ${game.scenario==='sol'?'selected':''}>Humanity · Earth / Sol / nearby real stars</option><option value="procedural" ${game.scenario!=='sol'?'selected':''}>Procedural galaxy · original star systems</option></select><small>The Solar Frontier scenario always starts as Humans; hyperlanes and resources are fictional.</small></div><div class="form-field"><label for="new-faction">PLAYABLE SPECIES</label><select id="new-faction">${[['human','Human'],['auralian','Auralian'],['vexari','Vexari'],['solari','Solari'],['keth','Keth'],['umbral','Umbral'],['orionic','Orionic']].map(([id,name])=>`<option value="${id}" ${(game.playerFaction||'human')===id?'selected':''}>${name}</option>`).join('')}</select></div><div class="form-field"><label for="new-start-year">STARTING YEAR</label><input id="new-start-year" type="number" min="2000" max="3000" step="1" value="${game.startYear??2200}" required></div><div class="form-field full"><label for="new-seed">GALAXY SEED</label><input id="new-seed" value="${escapeHTML(game.seed)}" maxlength="40" autocomplete="off"></div><div class="form-field"><label for="new-size">STAR SYSTEMS</label><select id="new-size"><option value="60" ${game.systems.length===60?'selected':''}>60 · Compact</option><option value="90" ${game.systems.length===90?'selected':''}>90 · Standard</option><option value="140" ${game.systems.length===140?'selected':''}>140 · Vast</option><option value="180" ${game.systems.length===180?'selected':''}>180 · Epic</option></select></div><div class="form-field"><label for="new-opponents">RIVAL EMPIRES</label><select id="new-opponents">${[2,3,4,5,6].map(n=>`<option value="${n}" ${game.empires.length===n+1?'selected':''}>${n} civilizations</option>`).join('')}</select></div><div class="form-field full"><label for="new-difficulty">AI DIFFICULTY</label><select id="new-difficulty"><option value="easy">Cadet · Relaxed expansion</option><option value="normal" ${game.difficulty==='normal'?'selected':''}>Commander · Balanced</option><option value="hard" ${game.difficulty==='hard'?'selected':''}>Admiral · Aggressive expansion</option></select></div></div>`,btn('start','GENERATE GALAXY')+btn('close-modal','CANCEL','action-secondary'))}
  else if(type==='settings'){html=modalLayout('COMMAND OPTIONS','Display & Interface',`<div class="settings-hero"><strong>CHOOSE YOUR COMMAND DECK</strong><p>4K Ultra increases internal Canvas resolution up to 3840 × 2160 pixels. It does not change your monitor resolution; performance depends on your device.</p></div><div class="form-grid"><div class="form-field full"><label for="gfx-quality">GRAPHICS QUALITY</label><select id="gfx-quality"><option value="performance" ${settings.quality==='performance'?'selected':''}>Performance · 1080p cap</option><option value="balanced" ${settings.quality==='balanced'?'selected':''}>Balanced · 1440p cap</option><option value="ultra4k" ${settings.quality==='ultra4k'?'selected':''}>4K Ultra · 3840 × 2160 cap</option></select></div><div class="form-field"><label for="ui-theme">INTERFACE STYLE</label><select id="ui-theme"><option value="command" ${settings.theme==='command'?'selected':''}>Command · Teal</option><option value="nebula" ${settings.theme==='nebula'?'selected':''}>Nebula · Violet</option><option value="imperial" ${settings.theme==='imperial'?'selected':''}>Imperial · Gold</option></select></div><div class="form-field"><label for="motion-mode">ANIMATION</label><select id="motion-mode"><option value="full" ${settings.motion==='full'?'selected':''}>Full motion</option><option value="reduced" ${settings.motion==='reduced'?'selected':''}>Reduced motion</option></select></div></div>`,btn('save-settings','APPLY SETTINGS')+btn('close-modal','CANCEL','action-secondary'))}
- else if(type==='guide'){html=modalLayout('COMMAND HANDBOOK','How to rule the stars',`<div class="guide-steps"><div><strong>◎ EXPLORE</strong><p>Star systems are connected by glowing hyperlanes. Select a fleet in <b>Fleets & Shipyard</b>, click an adjacent star, and press Move in Galaxy Command. Each fleet can move once per turn.</p></div><div><strong>◈ EXPAND</strong><p>Claim an unowned system beside your colonies. Colony ships are abstracted into the colonization cost of credits, alloys, and influence.</p></div><div><strong>⬡ DEVELOP</strong><p>Build foundries, labs, markets, and defensive grids at your colonies. End Turn collects their production and advances technology.</p></div><div><strong>✧ RESEARCH</strong><p>Choose any unlocked technology in Research. Science generated each turn advances its progress; technology prerequisites open deeper branches.</p></div><div><strong>⌁ CONQUER</strong><p>Build ships at an owned colony. Declare war before entering rival territory. Battles resolve automatically based on fleet strength, defenses, and chance.</p></div><div><strong>♜ DIPLOMACY</strong><p>Send envoys to improve relations or negotiate peace after wars. AI empires colonize, research, build fleets, and sometimes declare war.</p></div></div><p><b>Victory:</b> control 65% of systems, or eliminate all competing civilizations. Your game saves automatically in this browser.</p>`,btn('close-modal','RETURN TO GALAXY'))}
- else if(type==='turn'){const y=income(game),recent=game.logs.filter(l=>l.turn===game.turn).slice(0,5);html=modalLayout('CYCLE COMPLETE',`Stardate ${getStardate(game)}`,`<p>Production, research, and AI civilizations have advanced. Your command is ready for another cycle.</p><div class="stat-grid">${stat('CREDIT INCOME','+'+y.credits,'gold')}${stat('ALLOY INCOME','+'+y.alloys,'cyan')}${stat('SCIENCE GENERATED','+'+y.science)}${stat('INFLUENCE GAIN','+'+y.influence)}</div>${recent.length?`<div style="margin-top:18px">${recent.map(x=>`<div class="log-entry ${x.type}"><span>◉</span><p>${escapeHTML(x.message)}</p></div>`).join('')}</div>`:'<p>No major incidents reported this cycle.</p>'}`,btn('close-modal','CONTINUE COMMAND'))}
- else if(type==='victory'){const won=game.gameOver?.won;html=modalLayout(won?'VICTORY ACHIEVED':'EMPIRE FALLEN',escapeHTML(game.gameOver?.title||'Campaign complete'),`<div class="modal-hero"><div class="giant-planet"></div></div><p>${escapeHTML(game.gameOver?.description||'The campaign has ended.')}</p><p>Your empire survived <b>${game.turn}</b> cycles and secured <b>${ownedSystems(game).length}</b> colonies.</p>`,btn('new','BEGIN NEW CAMPAIGN')+btn('close-modal','VIEW FINAL GALAXY','action-secondary'))}
+ else if(type==='guide'){html=modalLayout('COMMAND HANDBOOK','How to rule the stars',`<div class="guide-steps"><div><strong>◎ EXPLORE</strong><p>Star systems are connected by glowing hyperlanes. Select a fleet in <b>Fleet Operations</b>, select a discovered destination, and plot its route. Fleets travel one hyperlane per month.</p></div><div><strong>◈ EXPAND</strong><p>Claim an unowned system beside your colonies. Colony ships are abstracted into the colonization cost of credits, alloys, and influence.</p></div><div><strong>⬡ DEVELOP</strong><p>Build foundries, labs, markets, and defensive grids at your colonies. Their production arrives every month.</p></div><div><strong>✧ RESEARCH</strong><p>Choose any unlocked technology in Research. Science generated each month advances its progress; technology prerequisites open deeper branches.</p></div><div><strong>⌁ CONQUER</strong><p>Build ships at an owned colony. Declare war before entering rival territory. Battles resolve automatically based on fleet strength, defenses, and chance.</p></div><div><strong>♜ DIPLOMACY</strong><p>Send envoys to improve relations or negotiate peace after wars. AI empires colonize, research, build fleets, and sometimes declare war.</p></div><div><strong>◷ TIME</strong><p>Months pass automatically. Use <b>Pause</b> and the <b>1× / 3× / 8×</b> speed buttons in the header to control the clock; <b>+1M</b> advances exactly one month while paused.</p></div></div><p><b>Victory:</b> control 65% of systems, or eliminate all competing civilizations. Your game saves automatically in this browser.</p>`,btn('close-modal','RETURN TO GALAXY'))}
+ else if(type==='turn'){const y=income(game),recent=game.logs.filter(l=>l.turn===game.turn).slice(0,5);html=modalLayout('MONTH COMPLETE',`Stardate ${getStardate(game)}`,`<p>Production, research, and AI civilizations have advanced. Your command is ready for another month.</p><div class="stat-grid">${stat('CREDIT INCOME','+'+y.credits,'gold')}${stat('ALLOY INCOME','+'+y.alloys,'cyan')}${stat('SCIENCE GENERATED','+'+y.science)}${stat('INFLUENCE GAIN','+'+y.influence)}</div>${recent.length?`<div style="margin-top:18px">${recent.map(x=>`<div class="log-entry ${x.type}"><span>◉</span><p>${escapeHTML(x.message)}</p></div>`).join('')}</div>`:'<p>No major incidents reported this month.</p>'}`,btn('close-modal','CONTINUE COMMAND'))}
+ else if(type==='victory'){const won=game.gameOver?.won;html=modalLayout(won?'VICTORY ACHIEVED':'EMPIRE FALLEN',escapeHTML(game.gameOver?.title||'Campaign complete'),`<div class="modal-hero"><div class="giant-planet"></div></div><p>${escapeHTML(game.gameOver?.description||'The campaign has ended.')}</p><p>Your empire survived <b>${monthLabel(game.turn-1)}</b> and secured <b>${ownedSystems(game).length}</b> colonies.</p>`,btn('new','BEGIN NEW CAMPAIGN')+btn('close-modal','VIEW FINAL GALAXY','action-secondary'))}
  root.innerHTML=html;root.hidden=false;root.querySelector('.modal-close')?.focus();}
-function closeModal(){modalType=null;$('#modal-root').hidden=true;$('#modal-root').innerHTML='';}
+function closeModal(){modalType=null;$('#modal-root').hidden=true;$('#modal-root').innerHTML='';syncSimClock();}
 $('#modal-root').addEventListener('click',e=>{if(e.target.id==='modal-root'&&modalType!=='welcome')closeModal()});
 document.addEventListener('keydown',e=>{
  const tab=e.target instanceof Element?e.target.closest('.progress-tab'):null;
@@ -400,12 +497,13 @@ document.addEventListener('keydown',e=>{
    document.querySelector('.progress-tab[data-nav="'+activePage+'"]')?.focus({preventScroll:true});return;
  }
  if(e.key==='Escape'){
+   if(moveShipTargetMode){moveShipTargetMode=false;solar.setMoveMode(false);render();return;}
    if(modalType)closeModal();else if(solarOpen)closeSolarSystem();
    else if(isDevelopmentPage(activePage)){activePage='system';selectedDevelopmentId=null;developmentFilter='all';render();requestAnimationFrame(resizeCanvas);}
    return;
  }
  if(e.target instanceof HTMLInputElement||e.target instanceof HTMLSelectElement)return;
- if(e.key==='Enter'&&modalType===null&&game&&!game.gameOver&&e.ctrlKey){e.preventDefault();handleAction('end-turn',{})}
+ if(e.key==='Enter'&&modalType===null&&game&&!game.gameOver&&e.ctrlKey){e.preventDefault();handleAction('step-month',{})}
  if(e.key==='?'&&modalType===null)openModal('guide');
 });
 
@@ -422,12 +520,14 @@ document.addEventListener('click',event=>{
    return;
  }
  const action=event.target.closest('[data-action]');if(!action||action.disabled)return;
- handleAction(action.dataset.action,action.dataset);
+ handleAction(action.dataset.action,{...action.dataset,shift:event.shiftKey});
 });
 function handleAction(action,data){
  const id=Number(data.id),systemId=Number(data.system);
  switch(action){
-  case 'end-turn':{const result=endTurn(game);if(!result.ok){notice(result.message,'error');break;}persist();render();openModal(game.gameOver?'victory':'turn');break;}
+  case 'clock-toggle':playRequested=!playRequested;syncSimClock();break;
+       case 'clock-speed':simClock.setSpeed(data.speed);syncSimClock();break;
+       case 'step-month':{playRequested=false;syncSimClock();const result=simClock.step();if(!result.ok)notice(result.message,'error');break;}
   case 'menu':openModal('welcome');break;
   case 'new':openModal('new');break;
   case 'start':{const seed=$('#new-seed')?.value?.trim()||'ORION-47',size=Number($('#new-size').value),opponents=Number($('#new-opponents').value),difficulty=$('#new-difficulty').value,scenario=$('#new-scenario').value,playerFaction=$('#new-faction').value,startYear=Number($('#new-start-year').value);if(!Number.isInteger(startYear)||startYear<2000||startYear>3000){notice('Choose a starting year between 2000 and 3000.','error');break;}closeModal();activateGame(generateGame({seed,size,opponents,difficulty,scenario,playerFaction,startYear}),false);notice('Fresh galaxy generated.');break;}
@@ -460,20 +560,54 @@ function handleAction(action,data){
   case 'solar-show-orbit':planetFocus=false;activePage='system';render();break;
   case 'planet-upgrades':{planetFocus=true;activePage='system';render();const target=[...$('#inspector').querySelectorAll('.subsection')].find(el=>el.textContent.includes('COLONY INFRASTRUCTURE'));if(target)target.scrollIntoView({behavior:settings.motion==='reduced'?'instant':'smooth',block:'nearest'});break;}
   case 'solar-planet':{if(!solarOpen||!selectSystemPlanet(solarBodies,id))break;selectedSpaceSite=null;selectedPlanet=id;planetFocus=true;solar.selectPlanet(id);activePage='system';render();$('#inspector').scrollTop=0;break;}
-  case 'solar-site':{if(!solarOpen||!solarBodies.sites.some(s=>s.id===data.id))break;selectedSpaceSite=data.id;planetFocus=false;activePage='system';render();$('#inspector').scrollTop=0;break;}
+  case 'outpost-upgrade':act(upgradeOutpost(game,selectedId));break;
+  case 'station-module':act(installStationModule(game,selectedId,data.id));break;
+  case 'station-platform':act(buildStationPlatform(game,selectedId));break;
+ case 'solar-select-ship':{
+  if(!solarOpen||!shipUnitRoster(game,selectedId).some(u=>u.id===id&&u.owner===0))break;
+  selectedShipIds=data.shift?(selectedShipIds.includes(id)?selectedShipIds.filter(x=>x!==id):[...selectedShipIds,id]):[id];
+  moveShipTargetMode=false;solar.setMoveMode(false);render();break;
+ }
+ case 'ship-orbit':act(orderSelectedShips(game,selectedShipIds,{kind:'orbit',planetId:selectedPlanet}));break;
+ case 'ship-guard':act(orderSelectedShips(game,selectedShipIds,{kind:'guard',planetId:selectedPlanet}));break;
+ case 'ship-dock':act(orderSelectedShips(game,selectedShipIds,{kind:'dock'}));break;
+ case 'ship-patrol':act(orderSelectedShips(game,selectedShipIds,{kind:'patrol'}));break;
+ case 'ship-hold':act(orderSelectedShips(game,selectedShipIds,{kind:'hold'}));break;
+ case 'ship-move-target':moveShipTargetMode=true;solar.setMoveMode(true);render();break;
+ case 'ship-hyperlane':{
+   const chosen=shipUnitRoster(game,selectedId).filter(u=>selectedShipIds.includes(u.id)&&u.owner===0);
+   const group=[...new Set(chosen.map(u=>u.fleetId))];
+   if(!chosen.length||group.length!==1){notice('Select ships from one fleet, then use Send via Hyperlane.','error');break;}
+   const fleet=game.fleets.find(f=>f.id===group[0]);
+   if(!fleet){notice('Fleet is no longer available.','error');break;}
+   if(chosen.length===fleet.units.length)selectedFleetId=fleet.id;
+   else{
+      const result=splitShipSelection(game,selectedShipIds);
+      if(!result.ok){notice(result.message,'error');break;}
+      selectedFleetId=result.fleetIds[0];
+   }
+   closeSolarSystem();activePage='military';selectedShipIds=[];persist();render();
+   notice('Choose a destination in Movement Orders, or right-click a discovered system.');
+   break;
+ }
+ case 'ship-split':act(splitShipSelection(game,selectedShipIds));break;
+ case 'ship-merge':act(mergeShipSelection(game,selectedShipIds));break;
+ case 'solar-site':{if(!solarOpen||!solarBodies.sites.some(s=>s.id===data.id))break;selectedSpaceSite=data.id;planetFocus=false;activePage='system';render();$('#inspector').scrollTop=0;break;}
   case 'survey-site':{if(!solarOpen||!solarBodies.sites.some(s=>s.id===data.id))break;act(surveySpaceSite(game,selectedId,data.id));break;}
   case 'zoom-in':zoomAt(1.27);break;
   case 'zoom-out':zoomAt(.78);break;
   case 'center':recenter();break;
   case 'select-system':if(solarOpen)closeSolarSystem();selectedId=id;activePage='system';maybeSelectFleetForSystem(id);render();break;
   case 'inspect-colony':openSolarSystem(id);planetFocus=true;render();break;
-  case 'select-fleet':selectedFleetId=id;activePage='military';render();notice('Fleet selected. Click a neighboring system, then issue a Move order.');break;
+  case 'select-fleet':selectedFleetId=id;activePage='military';render();notice('Fleet selected. Choose a destination in Movement Orders or right-click a system.');break;
   case 'colonize':act(colonize(game,selectedId));break;
   case 'build':act(build(game,selectedId,data.type));break;
    case 'build-orbital':act(buildOrbital(game,selectedId,selectedPlanet,data.type));break;
   case 'recruit':act(recruit(game,systemId,data.type));break;
   case 'research':act(chooseResearch(game,data.id));break;
-  case 'move-fleet':act(moveFleet(game,selectedFleetId,selectedId));break;
+  case 'fleet-destination':selectedId=id;act(queueFleetRoute(game,selectedFleetId,id));break;
+  case 'queue-fleet-route':act(queueFleetRoute(game,selectedFleetId,selectedId));break;
+   case 'cancel-fleet-route':act(cancelFleetRoute(game,selectedFleetId));break;
   case 'envoy':act(sendEnvoy(game,id));break;
   case 'war':act(declareWar(game,id));break;
   case 'peace':act(offerPeace(game,id));break;
@@ -485,7 +619,7 @@ function exportSave(){
  try{
   const payload=JSON.stringify({version:1,exportedAt:new Date().toISOString(),game});
   const url=URL.createObjectURL(new Blob([payload],{type:'application/json'}));
-  const anchor=document.createElement('a');anchor.href=url;anchor.download='orbital-empires-save-cycle-'+game.turn+'.json';
+  const anchor=document.createElement('a');anchor.href=url;anchor.download='orbital-empires-save-month-'+game.turn+'.json';
   document.body.append(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
   notice('Save backup downloaded. Store it safely.');
  }catch{notice('Could not download save backup.','error');}
@@ -497,6 +631,20 @@ window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredIns
 window.addEventListener('appinstalled',()=>notice('Orbital Empires installed. Play offline!'));
 if('serviceWorker' in navigator&&window.location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 
+// Freeze monthly rerenders while the player clicks or drags, particularly at 8× speed.
+let pointerCommandActive=false;
+document.addEventListener('pointerdown',event=>{
+ if(!game||!simClock.state().running||!(event.target instanceof Element))return;
+ if(!event.target.closest('button,[data-action],[data-nav],#galaxy-canvas,#solar-canvas'))return;
+ pointerCommandActive=true;simClock.suspend();
+},true);
+function resumePointerClock(){
+ if(!pointerCommandActive)return;
+ pointerCommandActive=false;requestAnimationFrame(syncSimClock);
+}
+document.addEventListener('pointerup',resumePointerClock,true);
+document.addEventListener('pointercancel',resumePointerClock,true);
+document.addEventListener('visibilitychange',()=>{pointerCommandActive=false;syncSimClock();});
 // Boot. Keep game state isolated from the UI — all mechanics live in core.js.
 const existing=loadGame();if(existing){activateGame(existing,true);notice('Campaign restored from local save.');}else{activateGame(generateGame({seed:'SOL-2200',size:90,opponents:4,difficulty:'normal',scenario:'sol',startYear:2200,playerFaction:'human'}),true);}
 applySettings();requestAnimationFrame(draw);

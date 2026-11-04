@@ -2,6 +2,26 @@
 
 All published game builds use [Semantic Versioning](https://semver.org/). Version tags are created **only after** a reviewed integration and stable release, never on work-in-progress commits.
 
+## [Unreleased] — Tactical starbases and ship control (feature candidate)
+
+- Every owned system now has a persistent defensive outpost, including newly established colonies. Four upgrade tiers add station combat power, shields, armor, hull HP and garrison capacity. Station damage affects defense, repairs during monthly progression, and ruined stations can be rebuilt after conquest.
+- Individual combat ships have stable IDs and original low-poly 3D meshes, with a Canvas 2D fallback. Click, Shift-click and drag-box selection work in the orbital view, with touch-friendly selection and target modes.
+- Ships can receive hold, orbit, guard, dock, patrol or move-to-point orders. Selected groups may split or merge fleets without duplicating units. Fleet Operations now offers direct one-click hyperlane destination choices, right-click galaxy orders, and a Send via Hyperlane action for ships selected inside solar systems. Existing route orders, saves, economy and monthly clock remain compatible.
+- Galaxy and system panels now show outpost strength; the new compact system-command overlay provides outpost upgrades and local fleet commands.
+
+## [Unreleased] — Monthly simulation and fleet routing (feature candidate)
+
+- Replaces the player-facing End Turn button with Play/Pause, 1×/3×/8× and single-month stepping. Default campaign starts in January 2200, and the fixed-step game advances autonomously when the page is active.
+- Economy, research, rival AI, politics and population advance each month; no offline catch-up. A compatibility `endTurn` alias remains for existing tests and integrations.
+- Player fleet movement gains queued multi-hop legal hyperlane routes, one-hop-per-month transit, ETA, hold orders and blocked-route handling. Legacy direct movement remains an API for backwards compatibility.
+- Adds deterministic clock/routing tests and a mandatory per-feature documentation gate. No save-schema bump; fleet route is an optional field.
+
+## [Unreleased] — Rival strategic economic AI (integration candidate)
+
+- Rivals prioritize legal, high-value frontier colonies and preserve the credit/alloy/influence budget for the next claim instead of consuming it on shipbuilding.
+- When frontier expansion is blocked, rivals choose affordable, productive colony upgrades using a deterministic return heuristic.
+- No player autopilot, new UI, save-schema change or monthly-balance recalibration. This remains a feature-branch candidate until reviewed and integrated.
+
 ## [0.3.1] — 2026-11-03 · Seeded biome planets
 
 - **Orbital environment:** deterministic starfield in WebGL and Canvas 2D fallback, visible asteroid fields, orbital comets, anomalies, rare black-hole systems and hostile void leviathans (fictional beyond Sol).

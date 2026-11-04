@@ -1,4 +1,5 @@
 import { TECHS, TRADITIONS, POLICIES, income, traditionCost, unityIncome } from '../../core.js';
+import { renderTechTree, techImagePath } from './tech-tree.js';
 
 // A single, state-driven presentation for three existing progression systems.
 // All purchases and research assignments continue to use core.js actions.
@@ -56,6 +57,10 @@ export function developmentIconKey(page, group) {
 }
 const escapeText = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const number = value => Math.round(value || 0).toLocaleString('en-US');
+export function monthLabel(count, uppercase = false) {
+  const text = count + ' ' + (count === 1 ? 'month' : 'months');
+  return uppercase ? text.toUpperCase() : text;
+}
 
 export const isDevelopmentPage = page => Object.hasOwn(PAGES, page);
 export const developmentItems = page => ITEMS[page] || [];
@@ -108,8 +113,11 @@ function details(game, page, item) {
     const generated = income(game).science;
     const remaining = Math.max(0, item.cost - (empire.progress || 0));
     const estimatedTurns = generated > 0 ? Math.ceil(remaining / generated) : null;
-    meta = '<div class="progress-details-row"><span>Research cost</span><b>' + number(item.cost) + ' Science</b></div>' +
-      '<div class="progress-details-row"><span>Estimated time</span><b>' + (state.completed ? 'Finished' : (estimatedTurns === null ? 'No science income' : estimatedTurns + ' cycles')) + '</b></div>';
+    const statusClass = state.completed ? 'completed' : state.active ? 'researching' : state.ready ? 'available' : 'locked';
+    meta = '<div class="progress-details-row"><span>Status</span><b>' + strategyIcon(STATE_ICONS[statusClass], 'progress-status-vector') +
+      ' ' + escapeText(state.status) + '</b></div>' +
+      '<div class="progress-details-row"><span>Research cost</span><b>' + number(item.cost) + ' Science</b></div>' +
+      '<div class="progress-details-row"><span>Estimated time</span><b>' + (state.completed ? 'Finished' : (estimatedTurns === null ? 'No science income' : monthLabel(estimatedTurns))) + '</b></div>';
     if (state.active) meta += '<div class="progress-current"><div class="progress-current-meter"><span style="width:' +
       Math.min(100, Math.max(0, empire.progress / item.cost * 100)) + '%"></span></div><small>' +
       number(empire.progress) + ' / ' + number(item.cost) + ' Science invested</small></div>';
@@ -126,9 +134,12 @@ function details(game, page, item) {
     : !state.affordable ? 'You need more ' + (page === 'traditions' ? 'Unity' : 'Influence') + '.' : '';
   const actionText = state.completed ? (page === 'policies' ? 'Policy in force' : 'Already unlocked')
     : state.active ? 'Current research focus' : info.verb;
+  const detailIcon = page === 'research'
+    ? '<img class="tech-detail-art" src="' + escapeText(techImagePath(item.id)) + '" alt="" width="104" height="104">'
+    : itemIcon(page, item, 'progress-detail-vector');
   return '<aside class="progress-detail" aria-label="Selected ' + info.noun + ' details">' +
     '<span class="progress-detail-eyebrow">' + escapeText(item[PAGES[page].groups]) + ' / ' + escapeText(info.title) + '</span>' +
-    '<div class="progress-detail-icon">' + itemIcon(page, item, 'progress-detail-vector') + '</div>' +
+    '<div class="progress-detail-icon' + (page === 'research' ? ' tech-detail-art-slot' : '') + '">' + detailIcon + '</div>' +
     '<h3>' + escapeText(item.name) + '</h3><p>' + escapeText(description) + '</p>' +
     '<div class="progress-effect"><small>EMPIRE EFFECT</small><strong>' + escapeText(item.bonus) + '</strong></div>' +
     '<div class="progress-details-row"><span>Prerequisites</span><b>' + escapeText(requiredLabel) + '</b></div>' + meta +
@@ -167,10 +178,15 @@ export function renderDevelopment(game, page = 'research', selectedId = null, fi
   const subline = page === 'research' ? (current ? 'Currently researching ' + current.name : 'Choose your next research project')
     : page === 'traditions' ? number(empire.unity || 0) + ' Unity available · next adoption costs ' + traditionCost(empire)
     : number(empire.influence) + ' Influence available · 20 per policy change';
+  const boardLabel = escapeText(info.title) + ' paths';
+  const board = page === 'research'
+    ? '<div class="progress-board tech-board" aria-label="' + boardLabel + '">' +
+      renderTechTree(game, { selectedId: selected ? selected.id : null, filter: activeGroup, icon: tech => itemIcon('research', tech) }) + '</div>'
+    : '<div class="progress-board" aria-label="' + boardLabel + '">' + lanes + '</div>';
   return '<div class="progress-workspace-content">' +
     '<div class="progress-heading"><div><button type="button" class="progress-back" data-nav="system">← Return to galaxy</button>' +
     '<h1>Empire Development</h1><p>Research, culture, and government in one command center.</p></div>' +
-    '<div class="progress-metrics"><div><small>SCIENCE / CYCLE</small><strong>+' + number(income(game).science) + '</strong></div>' +
+    '<div class="progress-metrics"><div><small>SCIENCE / MONTH</small><strong>+' + number(income(game).science) + '</strong></div>' +
     '<div><small>UNITY</small><strong>' + number(empire.unity || 0) + ' <em>+' + number(unityIncome(game)) + '</em></strong></div>' +
     '<div><small>INFLUENCE</small><strong>' + number(empire.influence) + '</strong></div></div></div>' +
     '<div class="progress-tabbar" role="tablist" aria-label="Empire development categories">' + PAGE_ORDER.map(tab).join('') + '</div>' +
@@ -178,7 +194,7 @@ export function renderDevelopment(game, page = 'research', selectedId = null, fi
     '<div class="progress-current-project">' + escapeText(subline) + (page === 'research' && current ?
       '<div class="progress-current-meter"><span style="width:' + progress + '%"></span></div>' : '') + '</div></div>' +
     '<div class="progress-filters" aria-label="' + escapeText(info.title) + ' categories">' + ['all', ...allGroups].map(groupButton).join('') + '</div>' +
-    '<div class="progress-content-layout"><div class="progress-board" aria-label="' + escapeText(info.title) + ' paths">' + lanes +
-    '</div>' + (selected ? details(game, page, selected) : '<div class="progress-empty">No choices in this category.</div>') + '</div>' +
+    '<div class="progress-content-layout">' + board +
+    (selected ? details(game, page, selected) : '<div class="progress-empty">No choices in this category.</div>') + '</div>' +
     '</div>';
 }
