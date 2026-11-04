@@ -1,6 +1,6 @@
 /** Dependency-free WebGL solar system scene. Canvas 2D remains available on unsupported devices. */
 import { planetPalette } from './modules/visuals/planet-visual.js';
-import { buildShipMesh,buildOutpostMesh,hullOutline,shipLocalPosition,shipsInsideRectangle,nearestSelectableShip,HULL_COLORS } from './modules/visuals/ship-models.js';
+import { buildShipMesh,buildOutpostMesh,buildStationMesh,buildPlatformMesh,hullOutline,shipLocalPosition,shipsInsideRectangle,nearestSelectableShip,HULL_COLORS,STATION_ORBIT,stationPosition,stationScale,platformPositions } from './modules/visuals/ship-models.js';
 const TAU = Math.PI * 2;
 const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
 
@@ -208,9 +208,10 @@ export function createSolarView(canvas,{onSelect=()=>{},onSelectSite=()=>{},onSe
   const box=document.createElement('div');box.className='oe-ship-selection-rectangle';box.hidden=true;canvas.after(box);
   function shipBuffer(type){
    if(!geometry.has(type)){
-    const mesh=type==='outpost'?buildOutpostMesh():buildShipMesh(type);
-    const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,mesh,gl.STATIC_DRAW);
-    geometry.set(type,{buffer,count:mesh.length/6});
+     const level=Number(String(type).split('-')[1]);
+     const mesh=type==='outpost'?buildOutpostMesh():type==='platform'?buildPlatformMesh():String(type).startsWith('station-')?buildStationMesh(level):buildShipMesh(type);
+     const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,mesh,gl.STATIC_DRAW);
+     geometry.set(type,{buffer,count:mesh.length/6});
    }
    return geometry.get(type);
   }
@@ -263,10 +264,20 @@ export function createSolarView(canvas,{onSelect=()=>{},onSelectSite=()=>{},onSe
   function renderTactical3D(matrix,time){
     lastShipPoints=[];lastOutpostPoint=null;
     if(tacticalOutpost?.level>0){
-      const atStation=[1.9,.25,1.1],mesh=shipBuffer('outpost');
-      bindPositions(mesh.buffer);material(atStation,.58,HULL_COLORS.outpost,3);
+      const level=tacticalOutpost.level,pos=stationPosition(time);
+      lineRing(STATION_ORBIT,0,'#7fb8c8',.13);
+      const mesh=shipBuffer('station-'+level);
+      bindPositions(mesh.buffer);material(pos,stationScale(level),HULL_COLORS.outpost,3);
       gl.drawArrays(gl.TRIANGLES,0,mesh.count);
-      const screen=projectPoint(atStation,matrix,width,height);
+      const platforms=Number.isInteger(tacticalOutpost.platforms)?tacticalOutpost.platforms:0;
+      if(platforms>0){
+        const turret=shipBuffer('platform');
+        for(const p of platformPositions(pos,platforms,time)){
+          bindPositions(turret.buffer);material(p,.17,HULL_COLORS.outpost,3);
+          gl.drawArrays(gl.TRIANGLES,0,turret.count);
+        }
+      }
+      const screen=projectPoint(pos,matrix,width,height);
       if(screen)lastOutpostPoint={...screen,r:28};
     }
     for(const [index,unit] of tacticalUnits.slice(0,320).entries()){
@@ -292,10 +303,19 @@ export function createSolarView(canvas,{onSelect=()=>{},onSelectSite=()=>{},onSe
   function renderTactical2D(cx,cy,scale,time){
     lastShipPoints=[];lastOutpostPoint=null;
     if(tacticalOutpost?.level>0){
-      const x=cx+1.9*scale,y=cy+1.1*scale*.48;
-      ctx.save();ctx.translate(x,y);ctx.fillStyle='#5da5b2';ctx.strokeStyle='#d2f8ff';ctx.lineWidth=2;
-      ctx.beginPath();for(let n=0;n<8;n++){const a=n*TAU/8;const r=n%2===0?20:8;if(n===0)ctx.moveTo(Math.cos(a)*r,Math.sin(a)*r);else ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);}ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();
-      lastOutpostPoint={x,y,r:24};
+      const level=tacticalOutpost.level,pos=stationPosition(time);
+      const x=cx+pos[0]*scale,y=cy+pos[2]*scale*.48,r=10+level*4;
+      ctx.save();
+      ctx.strokeStyle='rgba(140,205,220,.22)';ctx.lineWidth=1;
+      ctx.beginPath();ctx.ellipse(cx,cy,STATION_ORBIT*scale,STATION_ORBIT*scale*.48,0,0,TAU);ctx.stroke();
+      const platforms=Number.isInteger(tacticalOutpost.platforms)?tacticalOutpost.platforms:0;
+      for(const p of platformPositions(pos,platforms,time)){
+        ctx.fillStyle='#9fe2ea';ctx.fillRect(cx+p[0]*scale-2,cy+p[2]*scale*.48-2,4,4);
+      }
+      ctx.translate(x,y);ctx.fillStyle='#5da5b2';ctx.strokeStyle='#d2f8ff';ctx.lineWidth=2;
+      ctx.beginPath();for(let n=0;n<8;n++){const a=n*TAU/8;const rr=n%2===0?r:r*.4;if(n===0)ctx.moveTo(Math.cos(a)*rr,Math.sin(a)*rr);else ctx.lineTo(Math.cos(a)*rr,Math.sin(a)*rr);}ctx.closePath();ctx.fill();ctx.stroke();
+      ctx.restore();
+      lastOutpostPoint={x,y,r:Math.max(24,r+6)};
     }
     for(const [index,unit] of tacticalUnits.slice(0,320).entries()){
       const pos=shipLocalPosition(unit,bodies,time,index),x=cx+pos[0]*scale,y=cy+pos[2]*scale*.48;
