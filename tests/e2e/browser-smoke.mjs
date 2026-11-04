@@ -148,6 +148,7 @@ try{
  await evaluate('document.querySelector("[data-nav=colonies]").click();true');
  await ready('!!document.querySelector(".oe-investment-opportunity")','mobile colony upgrade advice');
  await evaluate('document.querySelector(".oe-investment-opportunity").scrollIntoView({block:"center"});true');
+ await ready('!document.querySelector("#toast")?.classList.contains("show")','saved-game toast clears before economy screenshot');
  await capture('05-colony-economy-mobile.png');
  assert.ok(await evaluate('document.documentElement.scrollWidth<=document.documentElement.clientWidth+3'),'economy guidance must not overflow mobile width');
  await evaluate('document.querySelector("[data-nav=system]").click();window.scrollTo(0,0);true');
