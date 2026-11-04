@@ -66,6 +66,31 @@ try{
  assert.ok(await evaluate('!!document.querySelector(".command-group-label")'));
  await evaluate('document.querySelector(".oe-home-continue").click();document.querySelector("[data-action=clock-toggle]").click();true');
  await ready('document.getElementById("modal-root").hidden&&!!document.querySelector("[data-action=open-solar]")','galaxy after menu resume');
+ // The existing Colonies screen now makes building investment choices actionable.
+ await evaluate('document.querySelector("[data-nav=colonies]").click();true');
+ await ready('!!document.querySelector(".oe-investment-opportunity")','colony upgrade advice');
+ assert.ok(await evaluate('document.querySelector(".oe-investment-opportunity").textContent.includes("CREDITS")&&document.querySelector(".oe-investment-opportunity").textContent.includes("ALLOYS")'),'upgrade advice must show exact costs');
+ assert.ok(await evaluate('document.querySelector(".oe-investment-opportunity").textContent.includes("PRODUCTION")'),'upgrade must explain the expected output');
+ const adviceGeometry=JSON.parse(await evaluate(`JSON.stringify((()=>{
+   const card=document.querySelector('.oe-investment-opportunity'),heading=card?.querySelector('.oe-investment-head'),
+     action=card?.querySelector('[data-action=inspect-colony]');
+   return {width:card?.getBoundingClientRect().width,headWidth:heading?.getBoundingClientRect().width,
+     cardOverflow:card?.scrollWidth-card?.clientWidth,hasAction:!!action};
+ })())`));
+ assert.ok(adviceGeometry.headWidth>220&&adviceGeometry.cardOverflow<=2&&adviceGeometry.hasAction,
+   'investment advice needs a readable full-width layout: '+JSON.stringify(adviceGeometry));
+ await evaluate('document.getElementById("inspector").scrollTop=0;true');
+ await capture('00-colony-economy-desktop.png');
+ const targetColony=await evaluate('document.querySelector(".oe-investment-opportunity").dataset.systemId');
+ const targetName=await evaluate('document.querySelector(".oe-investment-head small").textContent.replace(/ colony$/,"").trim()');
+ assert.ok(Number.isInteger(Number(targetColony))&&targetName.length>0,'investment must point at a named colony');
+ await evaluate('document.querySelector(".oe-investment-opportunity [data-action=inspect-colony]").click();true');
+ await ready('!document.querySelector("#solar-stage").hidden','investment Manage opens the colony');
+ const openedName=await evaluate('document.getElementById("solar-system-name").textContent.trim()');
+ assert.ok(openedName.toUpperCase().startsWith(targetName.toUpperCase()),'Manage must open the recommended colony, not another system: '+openedName);
+ await evaluate('document.querySelector("[data-action=close-solar]").click();true');
+ await ready('!!document.querySelector("[data-action=open-solar]")','return to galaxy after investment preview');
+
  // Regression: CSS display:flex must not override the Progress section's hidden attribute.
  assert.ok(await evaluate("document.getElementById('progress-workspace').hidden&&getComputedStyle(document.getElementById('progress-workspace')).display==='none'&&document.getElementById('progress-workspace').offsetHeight===0"),'hidden Progress section must not occupy the galaxy scene');
  const galaxyGeometry=JSON.parse(await evaluate("JSON.stringify(({top:document.getElementById('map-viewport').getBoundingClientRect().top,height:document.getElementById('map-viewport').getBoundingClientRect().height}))"));
@@ -190,6 +215,14 @@ try{
  assert.ok(await evaluate('document.querySelector(".topbar").getBoundingClientRect().height<=105'), 'phone header must fit brand, commands and resources in two compact rows');
  await capture('03-galaxy-mobile.png');
  assert.ok(await evaluate('document.querySelectorAll(".game-nav .nav-link").length===7'));
+ await evaluate('document.querySelector("[data-nav=colonies]").click();true');
+ await ready('!!document.querySelector(".oe-investment-opportunity")','mobile colony upgrade advice');
+ await evaluate('document.querySelector(".oe-investment-opportunity").scrollIntoView({block:"center"});true');
+ await ready('!document.querySelector("#toast")?.classList.contains("show")','saved-game toast clears before economy screenshot');
+ await capture('05-colony-economy-mobile.png');
+ assert.ok(await evaluate('document.documentElement.scrollWidth<=document.documentElement.clientWidth+3'),'economy guidance must not overflow mobile width');
+ await evaluate('document.querySelector("[data-nav=system]").click();window.scrollTo(0,0);true');
+ await ready('!!document.querySelector("[data-action=open-solar]")','mobile galaxy after economy');
  await evaluate('document.querySelector("[data-action=open-solar]").click();true');
  await ready('!document.getElementById("solar-stage").hidden','mobile orbital scene');
  await evaluate('document.getElementById("solar-focus-planet").click();true');
