@@ -73,7 +73,7 @@ body.oe-orbital-mode .oe-tactical-caption{flex:0 0 auto}
  body.oe-orbital-mode .oe-solar-command-panel{
   bottom:auto;
   height:auto;
-  max-height:calc(100% - 110px);
+  max-height:min(calc(100% - 110px),66%);
  }
 }
 
