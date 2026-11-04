@@ -16,6 +16,12 @@ All published game builds use [Semantic Versioning](https://semver.org/). Versio
 - Player fleet movement gains queued multi-hop legal hyperlane routes, one-hop-per-month transit, ETA, hold orders and blocked-route handling. Legacy direct movement remains an API for backwards compatibility.
 - Adds deterministic clock/routing tests and a mandatory per-feature documentation gate. No save-schema bump; fleet route is an optional field.
 
+## [Unreleased] — Rival strategic economic AI (integration candidate)
+
+- Rivals prioritize legal, high-value frontier colonies and preserve the credit/alloy/influence budget for the next claim instead of consuming it on shipbuilding.
+- When frontier expansion is blocked, rivals choose affordable, productive colony upgrades using a deterministic return heuristic.
+- No player autopilot, new UI, save-schema change or monthly-balance recalibration. This remains a feature-branch candidate until reviewed and integrated.
+
 ## [0.3.1] — 2026-11-03 · Seeded biome planets
 
 - **Orbital environment:** deterministic starfield in WebGL and Canvas 2D fallback, visible asteroid fields, orbital comets, anomalies, rare black-hole systems and hostile void leviathans (fictional beyond Sol).

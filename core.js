@@ -307,13 +307,54 @@ export function offerPeace(g,id){const p=g.empires[0],enemy=g.empires[id];if(!en
 function empireResearch(g,e){if(!e.research||has(e,e.research))e.research=availableTechs(e)[0]?.id||null;if(!e.research)return;const t=TECHS.find(t=>t.id===e.research);if(!t||!t.prereqs.every(p=>has(e,p))){e.research=availableTechs(e)[0]?.id||null;return;}e.progress+=income(g,e.id).science;while(e.research){const cur=TECHS.find(t=>t.id===e.research);if(!cur||e.progress<cur.cost)break;e.progress-=cur.cost;e.techs.push(cur.id);if(e.id===0)log(g,`RESEARCH COMPLETE: ${cur.name}. ${cur.bonus}.`,'research');e.research=availableTechs(e)[0]?.id||null;}}
 export function adoptTradition(g,id){const valid=canAdoptTradition(g,id);if(!valid.ok)return valid;const e=g.empires[0],t=TRADITIONS.find(x=>x.id===id);e.unity=(e.unity||0)-traditionCost(e);(e.traditions??=[]).push(id);log(g,`TRADITION ADOPTED: ${t.name}. ${t.bonus}.`,'culture');return success(`${t.name} adopted.`);}
 export function enactPolicy(g,id){const valid=canEnactPolicy(g,id);if(!valid.ok)return valid;const e=g.empires[0],p=POLICIES.find(x=>x.id===id);e.influence-=20;e.policies=(e.policies||[]).filter(x=>POLICIES.find(z=>z.id===x)?.slot!==p.slot);e.policies.push(id);log(g,`SOCIAL POLICY: ${p.name}. ${p.bonus}.`,'culture');return success(`${p.name} enacted.`);}
-function aiRecruit(g,emp){const system=ownedSystems(g,emp.id).find(s=>s.capital)||ownedSystems(g,emp.id)[0];if(!system)return;const ship=SHIPS.slice().reverse().find(ship=>(!ship.tech||has(emp,ship.tech))&&emp.alloys>=ship.alloy&&emp.credits>=ship.credits);if(!ship)return;emp.alloys-=ship.alloy;emp.credits-=ship.credits;let f=g.fleets.find(x=>x.owner===emp.id&&x.system===system.id);if(!f){f={id:g.nextFleetId++,owner:emp.id,system:system.id,ships:{corvette:0,frigate:0,cruiser:0},movedTurn:0,name:`${emp.short} Armada`};g.fleets.push(f)}f.ships[ship.id]++;}
-function aiTurn(g,emp){if(!ownedSystems(g,emp.id).length){emp.eliminated=true;return;}
- const colonies=ownedSystems(g,emp.id),choices=[];for(const s of colonies)for(const n of getNeighbors(g,s.id))if(n.owner===null&&!choices.includes(n.id))choices.push(n.id);
- const ranked=choices.map(id=>g.systems[id]).sort((a,b)=>(b.richness+b.habitability)-(a.richness+a.habitability));
- if(ranked.length&&rand(g)<(g.difficulty==='hard'?.83:g.difficulty==='easy'?.42:.62))colonizeBy(g,ranked[0].id,emp.id);
- if(rand(g)<.52&&emp.alloys>34&&emp.credits>25){const s=pick(g,colonies);const b=pick(g,BUILDINGS.slice(0,3));const lv=s.buildings[b.id];if(lv<3&&emp.alloys>=b.cost[lv]&&emp.credits>=b.credit[lv]){emp.alloys-=b.cost[lv];emp.credits-=b.credit[lv];s.buildings[b.id]++;}}
- if(rand(g)<.75)aiRecruit(g,emp);
+
+function aiRecruit(g,emp,reserve={credits:0,alloys:0}){
+ const system=ownedSystems(g,emp.id).find(s=>s.capital)||ownedSystems(g,emp.id)[0];if(!system)return;
+ const ship=SHIPS.slice().reverse().find(ship=>(!ship.tech||has(emp,ship.tech))&&emp.alloys>=ship.alloy+reserve.alloys&&emp.credits>=ship.credits+reserve.credits);
+ if(!ship)return;
+ emp.alloys-=ship.alloy;emp.credits-=ship.credits;
+ let f=g.fleets.find(x=>x.owner===emp.id&&x.system===system.id);
+ if(!f){f={id:g.nextFleetId++,owner:emp.id,system:system.id,ships:{corvette:0,frigate:0,cruiser:0},movedTurn:0,name:`${emp.short} Armada`};g.fleets.push(f)}
+ f.ships[ship.id]++;
+}
+/** A pure, deterministic frontier and budget forecast for a rival empire. */
+export function aiEconomicPlan(g,empireId){
+ const emp=g.empires[empireId];if(!emp||empireId===0)throw new RangeError('A rival empire is required.');
+ const frontier=new Set();
+ for(const colony of ownedSystems(g,empireId))for(const n of getNeighbors(g,colony.id)){
+  if(n.owner===null&&!g.fleets.some(f=>f.system===n.id&&f.owner!==empireId))frontier.add(n.id);
+ }
+ const choices=[...frontier].map(id=>g.systems[id]).sort((a,b)=>
+  (b.habitability*3+b.richness*2)-(a.habitability*3+a.richness*2)||a.id-b.id);
+ const reserve=choices.length?colonyCost(g,empireId):{credits:0,alloys:0,influence:0};
+ const affordable=choices.length&&Object.keys(reserve).every(key=>emp[key]>=reserve[key]);
+ return {targetId:affordable?choices[0].id:null,frontierCount:choices.length,reserve};
+}
+function aiTurn(g,emp){
+ const colonies=ownedSystems(g,emp.id);
+ if(!colonies.length){emp.eliminated=true;return;}
+ const plan=aiEconomicPlan(g,emp.id);
+ if(plan.targetId!==null&&rand(g)<(g.difficulty==='hard'?.83:g.difficulty==='easy'?.42:.62))
+  colonizeBy(g,plan.targetId,emp.id);
+ // Preserve savings for frontier colonies; when boxed in, invest in the
+ // highest-return affordable production building instead of random upgrades.
+ if(!plan.frontierCount&&rand(g)<.52){
+  const options=[];
+  for(const s of ownedSystems(g,emp.id))for(const b of BUILDINGS.slice(0,3)){
+   const lv=s.buildings?.[b.id]??0;
+   if(lv>=3||emp.alloys<b.cost[lv]||emp.credits<b.credit[lv])continue;
+   const output=b.id==='exchange'?5:3;
+   const scarcity=b.id==='foundry'&&emp.alloys<emp.credits*.6?1.6:1;
+   options.push({s,b,lv,priority:output*scarcity/(b.cost[lv]+b.credit[lv])});
+  }
+  options.sort((a,b)=>b.priority-a.priority||a.s.id-b.s.id||a.b.id.localeCompare(b.b.id));
+  if(options.length){const {s,b,lv}=options[0];emp.alloys-=b.cost[lv];emp.credits-=b.credit[lv];s.buildings[b.id]=lv+1;
+   if(getVisibility(g).has(s.id))log(g,`${emp.short} developed ${b.name} at ${s.name}.`,'intel');
+  }
+ }
+ // Even when expansion did not trigger this turn, the next colony's
+ // treasury budget is protected from automatic shipbuilding.
+ if(rand(g)<.75)aiRecruit(g,emp,aiEconomicPlan(g,emp.id).reserve);
  // Opportunistic but conservative AI: threats emerge after initial expansion.
  if(g.turn>12){for(const rival of g.empires){if(rival.id===emp.id||rival.eliminated||emp.wars[rival.id])continue;
    const touching=colonies.some(s=>s.neighbors.some(n=>g.systems[n].owner===rival.id));
