@@ -82,9 +82,12 @@ try{
  await evaluate('document.getElementById("inspector").scrollTop=0;true');
  await capture('00-colony-economy-desktop.png');
  const targetColony=await evaluate('document.querySelector(".oe-investment-opportunity").dataset.systemId');
+ const targetName=await evaluate('document.querySelector(".oe-investment-head small").textContent.replace(/ colony$/,"").trim()');
+ assert.ok(Number.isInteger(Number(targetColony))&&targetName.length>0,'investment must point at a named colony');
  await evaluate('document.querySelector(".oe-investment-opportunity [data-action=inspect-colony]").click();true');
  await ready('!document.querySelector("#solar-stage").hidden','investment Manage opens the colony');
- assert.ok(Number.isInteger(Number(targetColony)),'investment must point at a numeric colony ID');
+ const openedName=await evaluate('document.getElementById("solar-system-name").textContent.trim()');
+ assert.ok(openedName.toUpperCase().startsWith(targetName.toUpperCase()),'Manage must open the recommended colony, not another system: '+openedName);
  await evaluate('document.querySelector("[data-action=close-solar]").click();true');
  await ready('!!document.querySelector("[data-action=open-solar]")','return to galaxy after investment preview');
 
