@@ -57,6 +57,10 @@ export function developmentIconKey(page, group) {
 }
 const escapeText = value => String(value ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 const number = value => Math.round(value || 0).toLocaleString('en-US');
+export function monthLabel(count, uppercase = false) {
+  const text = count + ' ' + (count === 1 ? 'month' : 'months');
+  return uppercase ? text.toUpperCase() : text;
+}
 
 export const isDevelopmentPage = page => Object.hasOwn(PAGES, page);
 export const developmentItems = page => ITEMS[page] || [];
@@ -113,7 +117,7 @@ function details(game, page, item) {
     meta = '<div class="progress-details-row"><span>Status</span><b>' + strategyIcon(STATE_ICONS[statusClass], 'progress-status-vector') +
       ' ' + escapeText(state.status) + '</b></div>' +
       '<div class="progress-details-row"><span>Research cost</span><b>' + number(item.cost) + ' Science</b></div>' +
-      '<div class="progress-details-row"><span>Estimated time</span><b>' + (state.completed ? 'Finished' : (estimatedTurns === null ? 'No science income' : estimatedTurns + ' cycles')) + '</b></div>';
+      '<div class="progress-details-row"><span>Estimated time</span><b>' + (state.completed ? 'Finished' : (estimatedTurns === null ? 'No science income' : monthLabel(estimatedTurns))) + '</b></div>';
     if (state.active) meta += '<div class="progress-current"><div class="progress-current-meter"><span style="width:' +
       Math.min(100, Math.max(0, empire.progress / item.cost * 100)) + '%"></span></div><small>' +
       number(empire.progress) + ' / ' + number(item.cost) + ' Science invested</small></div>';
@@ -182,7 +186,7 @@ export function renderDevelopment(game, page = 'research', selectedId = null, fi
   return '<div class="progress-workspace-content">' +
     '<div class="progress-heading"><div><button type="button" class="progress-back" data-nav="system">← Return to galaxy</button>' +
     '<h1>Empire Development</h1><p>Research, culture, and government in one command center.</p></div>' +
-    '<div class="progress-metrics"><div><small>SCIENCE / CYCLE</small><strong>+' + number(income(game).science) + '</strong></div>' +
+    '<div class="progress-metrics"><div><small>SCIENCE / MONTH</small><strong>+' + number(income(game).science) + '</strong></div>' +
     '<div><small>UNITY</small><strong>' + number(empire.unity || 0) + ' <em>+' + number(unityIncome(game)) + '</em></strong></div>' +
     '<div><small>INFLUENCE</small><strong>' + number(empire.influence) + '</strong></div></div></div>' +
     '<div class="progress-tabbar" role="tablist" aria-label="Empire development categories">' + PAGE_ORDER.map(tab).join('') + '</div>' +
