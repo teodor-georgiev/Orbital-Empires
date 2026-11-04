@@ -6,6 +6,7 @@ for(const [mode,size] of Object.entries({desktop:{width:1440,height:900},mobile:
   await page.setViewportSize(size);
   await page.goto('/');
   await page.locator('.oe-home-continue').click();
+  await page.locator('[data-action="clock-toggle"]').click(); // Deterministic UI and asteroid assertions.
   await expect(page.locator('#modal-root')).toBeHidden();
   await page.locator('.progress-nav').click();
   await expect(page.locator('#progress-workspace')).toBeVisible();

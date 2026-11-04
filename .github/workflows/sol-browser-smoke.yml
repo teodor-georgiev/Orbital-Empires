@@ -9,6 +9,8 @@ on:
       - 'solar-view.js'
       - 'system-model.js'
       - 'modules/galaxy/**'
+      - 'modules/strategy/**'
+      - 'modules/visuals/**'
       - 'modules/styles/**'
       - 'tests/**'
       - 'e2e/**'
