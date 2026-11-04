@@ -152,7 +152,9 @@ function render(){
   if(isProgress){
     workspace.innerHTML=renderDevelopment(game,activePage,selectedDevelopmentId,developmentFilter);
     const board=workspace.querySelector('.progress-board');
-    if(board){board.scrollLeft=previousScroll[0];board.scrollTop=previousScroll[1];}
+    if(board){board.scrollLeft=previousScroll[0];board.scrollTop=previousScroll[1];
+      const focus=!previousBoard&&board.querySelector('.tech-node.selected');
+      if(focus)board.scrollTop=Math.max(0,focus.offsetTop-(board.clientHeight-focus.offsetHeight)/2);}
     $('#inspector').innerHTML='';
   }else{
     workspace.innerHTML='';

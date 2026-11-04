@@ -1,0 +1,56 @@
+/* Technology category tree: category lanes, prerequisite links and illustrated research nodes.
+ * Linked after the shared command workspace so it only restyles the research board. */
+
+.tech-board{display:block;position:relative;overflow:auto;padding:12px;background:#07101a;border:1px solid #1c2f3c;border-radius:9px;scrollbar-width:thin;scrollbar-color:#3a5566 #0a1621}
+
+.tech-tree{position:relative}
+
+.tech-lane{position:absolute;left:0;right:0;border-top:1px solid #1c2f3c}
+.tech-lane-name{position:absolute;left:0;top:12px;width:112px;margin:0;font:700 19px/1.15 Rajdhani,'Arial Narrow',sans-serif;color:#b8dbe5;letter-spacing:.2px}
+.tech-lane-name small{display:block;margin-top:3px;font:600 14px/1.3 'DM Sans',sans-serif;color:#9db0b8;letter-spacing:0}
+
+.tech-links{position:absolute;left:0;top:0;pointer-events:none;z-index:0}
+.tech-link{fill:none;stroke:#4a5f6b;stroke-width:2}
+.tech-link.done{stroke:#6fb6c4}
+.tech-link.cross{stroke-dasharray:5 4}
+
+.tech-node{position:absolute;z-index:1;display:flex;flex-direction:row;align-items:center;gap:10px;width:220px;height:84px;min-height:84px;box-sizing:border-box;padding:8px;text-align:left;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;color:#eaf3f8}
+.tech-node:hover{box-shadow:0 0 0 1px #5b8697}
+.tech-node.selected{outline:2px solid #fff;outline-offset:1px;box-shadow:none}
+.tech-node:focus-visible{outline:2px solid #ffd27a;outline-offset:1px}
+
+.tech-node.completed{background:#10291f;border:1px solid #3f8f66}
+.tech-node.completed .tech-node-status{color:#8fe3b0}
+.tech-node.researching{background:#2a2312;border:2px solid #ffd27a}
+.tech-node.researching .tech-node-status{color:#ffd27a}
+.tech-node.available{background:#102630;border:1px solid #4c9aa9}
+.tech-node.available .tech-node-status{color:#9fdce8}
+.tech-node.locked{background:#0c1923;border:1px dashed #3a4e5a;opacity:1}
+.tech-node.locked .tech-node-status{color:#9db0b8}
+.tech-node.locked .tech-node-art{opacity:.62}
+
+.tech-node-art{flex:0 0 60px;width:60px;height:60px;border-radius:10px;display:block}
+.tech-node-text{display:flex;flex-direction:column;gap:3px;min-width:0;overflow:hidden}
+.tech-node strong{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font:700 16px/1.2 var(--head);color:#f2f8fb;letter-spacing:.2px}
+.tech-node-status{display:flex;align-items:center;gap:6px;font-size:14px;line-height:1.2;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tech-node-status .progress-vector{flex:0 0 18px;width:18px;height:18px;padding:0;border:0;border-radius:0;background:none;color:inherit}
+.tech-node-meter{display:block;height:4px;border-radius:2px;background:#3b3018;overflow:hidden}
+.tech-node-meter>span{display:block;height:100%;background:#ffd27a}
+
+.progress-detail-icon.tech-detail-art-slot{width:auto;height:auto;padding:0;border:0;background:none;margin:14px auto 10px}
+.tech-detail-art{display:block;width:104px;height:104px;margin:auto;border-radius:12px}
+.progress-detail:has(.tech-detail-art-slot){scrollbar-width:thin;scrollbar-color:#3a5566 #0b1829}
+/* Keep the research action visible while the details scroll. */
+.progress-detail:has(.tech-detail-art-slot) .progress-detail-action{position:sticky;bottom:0;background:#0d1b2b;padding-bottom:4px}
+
+@media(max-width:760px){
+  .tech-board{padding:8px}
+  .tech-tree{position:static!important;width:auto!important;height:auto!important}
+  .tech-links{display:none}
+  .tech-lane{position:static;height:auto!important;top:auto!important}
+  .tech-lane-name{position:static;width:auto;padding:14px 2px 6px}
+  .tech-node{position:static;width:100%;height:auto;min-height:76px;margin:8px 0;left:auto!important;top:auto!important}
+  .tech-node-text{overflow:visible}
+  .progress-detail-icon.tech-detail-art-slot{width:100%}
+  .tech-detail-art{width:104px;height:104px}
+}
